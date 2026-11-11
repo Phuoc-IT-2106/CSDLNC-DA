@@ -10,6 +10,7 @@
 
 ## Start here
 
+- **Handover package (2026-11-11):** [README_HANDOFF.md](README_HANDOFF.md) (current state, components, decisions, quick start) · [design/BENCHMARK_RUNBOOK.md](design/BENCHMARK_RUNBOOK.md) (E6, B0, experiments, evidence transfer) · [PROMPT_PLAYBOOK.md](PROMPT_PLAYBOOK.md) (Claude Code prompts) · [REMAINING_WORK_ROADMAP.md](REMAINING_WORK_ROADMAP.md) (remaining work, academic evidence matrix).
 - **Agent or new session:** read [../../agent/P3_CONTEXT_INDEX.md](../../agent/P3_CONTEXT_INDEX.md), then follow [../../agent/P3_MASTER_PROMPT.md](../../agent/P3_MASTER_PROMPT.md).
 - **Project Owner:** read [16_READINESS_REPORT.md](16_READINESS_REPORT.md), then the approval matrix in [design/P0_FINAL_DECISION_PACKAGE.md](design/P0_FINAL_DECISION_PACKAGE.md#f-approval-matrix).
 
