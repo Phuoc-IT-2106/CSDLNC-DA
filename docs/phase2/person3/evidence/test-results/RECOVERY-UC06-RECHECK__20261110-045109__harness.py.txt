@@ -1,0 +1,12 @@
+﻿from pathlib import Path
+import subprocess,datetime,json
+root=Path(r'C:\Users\DELL\source\repos\CSDLNC-DA'); out=Path(__file__).parent
+run='RECOVERY-UC06-RECHECK__'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')
+f=out/(run+'.txt')
+f.write_text('Targeted retry of T-REC-01/02/04 on preserved FitLife_P3_UC05L. Previous recovery attempt timed out at 180 seconds; allowance 600 seconds. Same script, data and assertions; read-only. R-27 not investigated; no performance conclusion.\n',encoding='utf-8')
+p=subprocess.run(['sqlcmd','-S','localhost','-E','-I','-b','-l','10','-t','600','-W','-s','|','-d','FitLife_P3_UC05L','-v','AsOfDate=2026-01-15','-i','tests/db/reconciliation/T-REC_loyalty.sql'],cwd=root,capture_output=True)
+t=p.stdout.decode('utf-8',errors='replace')+p.stderr.decode('utf-8',errors='replace')
+ok=p.returncode==0 and 'T-REC_loyalty_RESULT: PASS' in t
+with f.open('a',encoding='utf-8') as h: h.write(t+'\nSQLCMD_EXIT='+str(p.returncode)+'\nTARGETED_RECHECK_RESULT: '+('PASS' if ok else 'FAIL')+'\n')
+print('\n'.join(x for x in t.splitlines() if 'SUMMARY' in x or '_RESULT' in x));print('TARGETED_RECHECK_RESULT: '+('PASS' if ok else 'FAIL'));print(f)
+(out/'targeted_result.json').write_text(json.dumps({'run':run,'log':str(f),'passed':ok}),encoding='utf-8')

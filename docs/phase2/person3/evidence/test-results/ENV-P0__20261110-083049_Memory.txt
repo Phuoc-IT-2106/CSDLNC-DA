@@ -1,0 +1,79 @@
+﻿ENV-P0 - WO-P3-P0-02 (amended 2026-11-10), stage Memory. Benchmark instance BM-1 = localhost\MSSQLSERVER01. Started (UTC) 2026-11-10 08:30:49.
+Runner SHA-256: 74AA3DD1B40D623884371A22F7E87F475175832CDAF2624DC979737C72CF71A4
+Identity: ID|MSSQLSERVER01|MSSQLSERVER01|17.0.1000.7|Standard Developer Edition (64-bit)|2|local|1
+G0 PASS  Connection reaches service MSSQLSERVER01 on the local computer (not the default instance)
+G1 PASS  Engine 17.0.1000.7, Standard Developer Edition, EngineEdition 2; current login is sysadmin
+Host: CPU 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz, cores 4, logical 8; RAM 7915 MB, free 601 MB; commit 20164 of 23907 MB; OS Microsoft Windows 10 Pro build 19044; battery status 2 (2 = AC), charge 100%
+Volume C:: free 10.4 GB of 238 GB
+Power scheme: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)
+Heaviest process groups (working set MB):
+  chrome x19: 1486
+  Code x18: 1374
+  claude x5: 537
+  svchost x88: 441
+  ChatGPT x14: 335
+  Zalo x8: 237
+  MsMpEng x1: 203
+  powershell x4: 202
+-- BM-1 BEFORE configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2147483647|2147483647
+  CFG|min server memory (MB)|0|16
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|605|Physical memory usage is steady
+  PROC|60|1|0
+  SYSINFO|239|239|CONVENTIONAL
+  SEM|5|180|2
+-- Default instance MSSQLSERVER (read only; NOT changed) configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2147483647|2147483647
+  CFG|min server memory (MB)|0|16
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|604|Physical memory usage is steady
+  PROC|92|1|0
+  SYSINFO|396|397|CONVENTIONAL
+  SEM|9|298|152
+Previous values on BM-1 (for rollback): min server memory configured 0 (in use 16) MB; max server memory 2147483647 MB; show advanced options 0
+Workload size: DS-L reserves 69 MB (read from the default instance copy). Memory in use now: BM-1 60 MB, default instance 92 MB.
+M1 PASS  Proposed max server memory is sufficient for the workload: >= 4 x DS-L size + 256 MB query memory + 256 MB overhead | 2048 MB vs required 788 MB
+M2 PASS  Floor <= 25% and cap <= 35% of physical RAM, leaving the rest to the OS, applications and the default instance | floor 1024, cap 2048, RAM 7915 MB
+M3 PASS  Commit headroom of the host >= floor + 512 MB, so the floor cannot exhaust the commit limit | headroom 3743 MB
+M4 PASS  The change only narrows the range: today BM-1 has no cap, so its worst-case memory use decreases; the floor can retain at most (floor - current use) more than today | worst-case additional retention 964 MB
+Applying on localhost\MSSQLSERVER01 only: IF @@SERVICENAME <> N'MSSQLSERVER01' THROW 51900, N'wrong instance', 1; EXEC sys.sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sys.sp_configure 'min server memory (MB)', 1024; EXEC sys.sp_configure 'max server memory (MB)', 2048; RECONFIGURE; EXEC sys.sp_configure 'show advanced options', 0; RECONFIGURE; SELECT 'APPLIED', @@SERVICENAME;
+  Configuration option 'show advanced options' changed from 0 to 1. Run the RECONFIGURE statement to install.
+  Configuration option 'min server memory (MB)' changed from 0 to 1024. Run the RECONFIGURE statement to install.
+  Configuration option 'max server memory (MB)' changed from 2147483647 to 2048. Run the RECONFIGURE statement to install.
+  Configuration option 'show advanced options' changed from 1 to 0. Run the RECONFIGURE statement to install.
+  APPLIED|MSSQLSERVER01
+-- BM-1 AFTER configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2048|2048
+  CFG|min server memory (MB)|1024|1024
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|591|Physical memory usage is steady
+  PROC|69|1|0
+  SYSINFO|239|239|CONVENTIONAL
+  SEM|5|180|2
+-- Default instance MSSQLSERVER AFTER (must be unchanged) configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2147483647|2147483647
+  CFG|min server memory (MB)|0|16
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|587|Physical memory usage is steady
+  PROC|94|1|0
+  SYSINFO|397|397|CONVENTIONAL
+  SEM|9|298|152
+M5 PASS  BM-1 value_in_use: min server memory 1024 MB, max server memory 2048 MB
+M6 PASS  Default instance MSSQLSERVER memory settings unchanged | min 16, max 2147483647
+ROLLBACK (not executed): powershell -File tests/db/build/run_p0_02_bm1.ps1 -Stage MemoryRollback -PrevMin 0 -PrevMax 2147483647
+
+ENV-P0 Memory SUMMARY: checks 8; FAIL 0; finished (UTC) 2026-11-10 08:30:52
+ENV-P0_Memory_RESULT: PASS

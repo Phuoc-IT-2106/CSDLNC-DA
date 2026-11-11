@@ -1,0 +1,19 @@
+﻿T-CONC-02 - parallel settlement (SameMember) (WO-P3-P3-01). Run A.
+Started (UTC): 2026-11-10 07:29:59.439; database FitLife_P3_UC05; sessions 10; rounds 20; members 31,32
+Harness SHA-256: 47EB9BC1CF92C93D6B59313554535EFB5175E64B01BB79941180009B540E8FC5
+Prepared 200 PENDING invoices (ids 310-509)
+Gate released (UTC): 2026-11-10 07:30:01.568; all sessions finished (UTC): 2026-11-10 07:30:02.230 (context only, not a measurement)
+
+Per member (final state):
+  member 31: rows 1, TotalSpend 3058500.00, PAID total 3058500.00, harness expected 3058500, PointsEarned 30, CurrentPoints 30, sum of returned increments 30, bad floor rows 0, bad UpdatedAt rows 0 -> ok
+  member 32: rows 1, TotalSpend 3058500.00, PAID total 3058500.00, harness expected 3058500, PointsEarned 30, CurrentPoints 30, sum of returned increments 30, bad floor rows 0, bad UpdatedAt rows 0 -> ok
+
+Checks:
+  C1 PASS  Every call returned an allowed result (no unexpected error, no PK violation surfaced) | calls 200 of 200; unexpected 0; deadlock retries 0; PK violations 0; worker errors 0 
+  C2 PASS  Exactly one winner per invoice: PAID with one SETTLED response (others ALREADY_SETTLED with the stored PaidAt), or CANCELLED (race invoices only) with no settlement | invoices 200: PAID 200, CANCELLED 0; violations 0
+  C3 PASS  Effects applied once: one inventory and one entitlement hook call per PAID invoice; none per CANCELLED invoice | invoices with wrong hook calls 0; hook calls 400
+  C4 PASS  Spending and points exactly once: TotalSpend = sum of PAID FinalAmount = harness amounts; PointsEarned = FLOOR; UpdatedAt = latest PaidAt; CurrentPoints = sum PointsEarned = sum of returned increments | member 31: rows 1, TotalSpend 3058500.00, PAID total 3058500.00, harness expected 3058500, PointsEarned 30, CurrentPoints 30, sum of returned increments 30, bad floor rows 0, bad UpdatedAt rows 0 -> ok | member 32: rows 1, TotalSpend 3058500.00, PAID total 3058500.00, harness expected 3058500, PointsEarned 30, CurrentPoints 30, sum of returned increments 30, bad floor rows 0, bad UpdatedAt rows 0 -> ok
+  C5 PASS  Calls of the same round overlapped in time (several calls in flight together) in at least half of the rounds | rounds with >= 2 calls in flight: 20 of 20; max calls in flight together: 10
+
+T-CONC-02 SUMMARY: run A; mode SameMember; checks 5; FAIL 0
+T-CONC-02_RESULT: PASS

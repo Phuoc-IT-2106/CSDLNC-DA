@@ -1,0 +1,7 @@
+﻿R-27-CLOSE precheck (2026-11-08 15:54:30 UTC). Harness r27_e6_probe.ps1 v2 SHA-256 74D40E039AE89B25F71AD100FE9772DDAC9B8BE7FA4CB677ED3ED8BA0B385080.
+PRE-1 AC power now: PASS (PowerLineStatus Online; BatteryStatus 2; charge 100%)
+PRE-2 No power event (Kernel-Power 42/105/107/506/507, Power-Troubleshooter 1) in the 10 min before the start: PASS (0 events)
+PRE-3 Database identity (name FitLife_P3_P2, P3_Disposable marker 1, compatibility 160, read_only 0): PASS
+PRE-4 No conflicting process: other sessions on the database 0; other user requests on the instance 0; sqlcmd processes 0: PASS
+PRE-5 Memory gate E2 now (available 2274 MB, physical_memory_low 0, semaphore target 1593 MB): PASS
+INFO  CPU load 4%, % Processor Performance 57, cached pages of the database 48

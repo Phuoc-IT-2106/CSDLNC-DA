@@ -1,0 +1,185 @@
+﻿UC05U-RUN - WO-P3-P3-01 completion: full settlement regression + task 2 (U0, REFERENCE_ONLY) functional tests and code search
+Started (UTC): 2026-11-09 16:10:05; target FitLife_P3_UC05 (isolated, disposable); FitLife_P3_P1, FitLife_P3_P2 read only
+TEST_ONLY SYNTHETIC tier thresholds for this run: Silver 0 (approved base-tier rule), Gold 1000000.00, Platinum 3000000.00 (NOT business values; D-008 values open)
+Scripts (SHA-256):
+  FE21004F56E1AC6DE31C1C600875DCFAB996953AFB34523D40952B81930D97B8  tests/db/functional/run_uc05_settlement.ps1
+  76C98FCDEFC9F3CCF3B5DE23EA51376608209D5AC41096D3F5090AE79124886E  tests/db/fixtures/F002T__TEST_ONLY_member_tier.sql
+  BAC2D7E132B098E545567659E2C4D7F8436BC339CFDFB719EA67559AD74D7E81  tests/db/fixtures/F003H__TEST_ONLY_paid_history_helper.sql
+  D77FDAB7293A8FAB334EA2068ABA18A852D25E915B459107AC781BC19A4525F6  db/reference/usp_P3_SettleInvoice_Baseline.sql
+  3DD3F6B71FB130B045653C819C189E5C111068731E8AE236B5106E86D3893857  db/procedures/usp_P3_SettleInvoice.sql
+  FD4F1C822DCB845122764AC2CC4C71B256838CFDC177E5C3FD5EC5DF5FB76B89  tests/db/functional/T-F05-U0_settlement_baseline.sql
+  33F94005BF894AD653B2B701A167F38BB5CC16BFFCA9A85D34C3D7C14B5C88F4  tests/db/functional/V-UC05T_loyalty_integrity.sql
+  603B0F5EF95CA7B06568F316420611FBD81842CAC14F74109B4B5B44859E7302  tests/db/functional/run_uc05_settlement_u0.ps1
+
+== 1. Instance fingerprint before (sqlcmd exit 0) ==
+== F1. Databases other than tempdb and FitLife_P3_UC05 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+FitLife_P3_P2|10|2026-11-08 18:55:36.873|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+STEP 1 PASS: Instance fingerprint captured before
+
+== 2. WO-P3-P3-01 regression (unchanged runner run_uc05_settlement.ps1; exit 0) ==
+UC05S-RUN - WO-P3-P3-01 settlement: build, regression, functional, concurrency and integrity tests
+Started (UTC): 2026-11-09 16:10:08; target database FitLife_P3_UC05 (isolated, disposable); read-only references FitLife_P3_P1, FitLife_P3_P2
+STEP 1 PASS: Instance fingerprint captured before
+STEP 2 PASS: FitLife_P3_P2 checksum before = DS-L run C reference - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+STEP 3 PASS: Fresh isolated database built (F001 TEST_ONLY key-only fixtures, V001, V002)
+STEP 4 PASS: T-SCH-01 constraint tests (P1 regression) - T-SCH-01 SUMMARY: cases=54 PASS=53 FAIL=0 INFO=1
+STEP 5 PASS: T-SCH-02 conformance (P1 regression) - T-SCH-02 SUMMARY: checks=6 FAIL=0
+STEP 6 PASS: Apply the invoice-creation routine (unchanged, WO-P3-P3-00)
+STEP 7 PASS: T-SCH-03 creation scope and catalog (before settlement objects) - T-SCH-03 SUMMARY: checks=6 FAIL=0
+STEP 8 PASS: F001U TEST_ONLY key rows
+STEP 9 PASS: F002P TEST_ONLY MEMBER.CurrentPoints (points only, no tier)
+STEP 10 PASS: D001 TEST_ONLY contract-only hook doubles
+STEP 11 PASS: Apply the settlement routine and month function
+STEP 12 PASS: Apply the cancellation routine
+STEP 13 PASS: T-SCH-04 catalog vs P1, inventory, settlement and cancellation write scope - T-SCH-04 SUMMARY: checks=6 FAIL=0 INFO=1
+STEP 14 PASS: T-F05S settlement functional tests - T-F05S SUMMARY: cases=47 FAIL=0
+STEP 15-V PASS: V-UC05S after T-F05S - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 16 PASS: T-CONC-06 run R (creation regression with settlement objects deployed; 10 x 20 parallel creations)
+STEP 16-V PASS: V-UC05S after T-CONC-06 run R - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 17A PASS: T-CONC-01 run A (10 sessions settle the same invoice, 20 invoices, settle-vs-cancel race on every 5th)
+STEP 17A-V PASS: V-UC05S after T-CONC-01 run A - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 17B PASS: T-CONC-01 run B (10 sessions settle the same invoice, 20 invoices, settle-vs-cancel race on every 5th)
+STEP 17B-V PASS: V-UC05S after T-CONC-01 run B - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 17C PASS: T-CONC-01 run C (10 sessions settle the same invoice, 20 invoices, settle-vs-cancel race on every 5th)
+STEP 17C-V PASS: V-UC05S after T-CONC-01 run C - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 18A PASS: T-CONC-02 run A (10 sessions x 20 rounds, different invoices of the same two fresh members)
+STEP 18A-V PASS: V-UC05S after T-CONC-02 run A - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 18B PASS: T-CONC-02 run B (10 sessions x 20 rounds, different invoices of the same two fresh members)
+STEP 18B-V PASS: V-UC05S after T-CONC-02 run B - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 18C PASS: T-CONC-02 run C (10 sessions x 20 rounds, different invoices of the same two fresh members)
+STEP 18C-V PASS: V-UC05S after T-CONC-02 run C - V-UC05S SUMMARY: checks=10 FAIL=0
+STEP 19 PASS: T-SCH-04 after all tests (no leftover object, principal or permission; catalog unchanged) - T-SCH-04 SUMMARY: checks=6 FAIL=0 INFO=1
+STEP 20 PASS: Instance fingerprint after = before (no other database changed)
+STEP 21 PASS: FitLife_P3_P2 checksum after = before = DS-L run C reference - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+UC05S-RUN SUMMARY: steps 32; FAIL 0; finished (UTC) 2026-11-09 16:11:27
+UC05S-RUN_RESULT: PASS
+STEP 2 PASS: Full WO-P3-P3-01 settlement regression on a fresh build (unchanged runner and tests) - UC05S-RUN SUMMARY: steps 32; FAIL 0; finished (UTC) 2026-11-09 16:11:27
+
+== 3. F002T TEST_ONLY tiers (sqlcmd exit 0) ==
+Tier_ID|Tier_Name|SpendingThreshold
+-------|---------|-----------------
+1|Silver|.00
+2|Gold|1000000.00
+3|Platinum|3000000.00
+members|on_base_tier
+-------|------------
+40|40
+F002T (TEST_ONLY) applied: MEMBER_TIER (Silver 0 + SYNTHETIC Gold/Platinum) and MEMBER.Tier_ID NOT NULL FK; all members on the base tier
+STEP 3 PASS: F002T TEST_ONLY MEMBER_TIER (Silver 0, synthetic Gold/Platinum) + MEMBER.Tier_ID FK, all members on the base tier
+
+== 4. F003H TEST_ONLY paid-history helper (sqlcmd exit 0) ==
+F003H (TEST_ONLY) applied: dbo.TEST_p3_AddPaidHistory, dbo.TEST_HistoryInvoice
+STEP 4 PASS: F003H TEST_ONLY helper
+
+== 5. U0 reference variant (sqlcmd exit 0) ==
+usp_P3_SettleInvoice_Baseline applied (REFERENCE_ONLY U0)
+STEP 5 PASS: usp_P3_SettleInvoice_Baseline applied (REFERENCE_ONLY)
+
+== 6. T-F05-U0: full output in T-F05-U0__20261109-1610.txt ==
+Tier configuration (Gold/Platinum TEST_ONLY synthetic): Silver id 1 = 0; Gold id 2 = 1000000.00; Platinum id 3 = 3000000.00
+U01|T-F05-36|PASS|U0 keeps the settlement contract (PAID, PaidAt, spending, points, one call per hook); window spend Gold - 0.01 -> Silver|error 0 ; outcome SETTLED; tier 1; points 9; balance 9
+U02|T-F05-36|PASS|Window spend exactly = Gold threshold -> Gold (inclusive comparison, D-008 rule)|error 0 ; outcome SETTLED; tier 2
+U03|T-F05-36|PASS|Repeated U0 settlement: ALREADY_SETTLED, whole state (status, spending, points, tier, hook log) unchanged|error 0; outcome ALREADY_SETTLED; state changed no
+U04|T-F05-36|PASS|Window recomputed from INVOICE (D-007): month 12 back (Platinum-level) ignored, month 11 back counted; spend = Gold -> stale Platinum lowered to Gold|error 0 ; outcome SETTLED; oracle window spend 1000000.00; tier 2; history months 2025-11-01
+U05|T-F05-36|PASS|Contrast: the production routine usp_P3_SettleInvoice (U1) settles Platinum-level spending without touching Tier_ID - re-ranking is U0-only (reference) or the periodic batch|error 0; outcome SETTLED; tier after U1 1
+U06|T-F05-36|PASS|Rejected U0 requests (CANCELLED invoice 51204, invalid method 51202, invalid tier configuration 51311): nothing written|errors 51204 / 51202 / 51311; state changed no
+U07|T-F05-37|PASS|Failure injected at the U0 tier update: status, PaidAt, spending, points, hook calls and tier all rolled back; afterwards the invoice settles once (Gold)|error 52920 (TEST_ONLY injected failure at the U0 tier update.); state changed no; retry
+U08|T-F05-37|PASS|Inside a caller transaction: rollback removes the U0 settlement and its re-rank; a later error leaves XACT_STATE -1 and one rollback removes everything|inside: SETTLED tier 3; second error 51204, XACT_STATE -1; state after rollbacks = before:
+K01|AC4|PASS|No database module references U0 (definitions and dependency view); U0 marked REFERENCE_ONLY; approved settlement routine unchanged (definition hash = WO-P3-P3-01 run 1447)|modules mentioning U0: 0; referencing entities: 0; marker: REFERENCE_ONLY 
+T-F05-U0 SUMMARY: cases=9 FAIL=0
+T-F05-U0_RESULT: PASS
+STEP 6 PASS: T-F05-36, T-F05-37 and K01 (U0) - T-F05-U0 SUMMARY: cases=9 FAIL=0
+
+== 7. V-UC05T integrity (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 30
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 337 = sum PointsEarned 337
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 1362
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+886|201|683|2|30|337|1362
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 7 PASS: V-UC05T whole-database integrity after the U0 tests - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 8. Criterion 4 code search: "SettleInvoice_Baseline" in every repository file outside docs/ and .git/ ==
+  db/reference/usp_P3_SettleInvoice_Baseline.sql  (6 line(s))
+  tests/db/functional/run_uc05_settlement_u0.ps1  (8 line(s))
+  tests/db/functional/T-F05-U0_settlement_baseline.sql  (16 line(s))
+  tests/db/functional/V-UC05T_loyalty_integrity.sql  (2 line(s))
+  tests/db/schema/T-SCH-04_settlement_catalog_and_scope.sql  (1 line(s))
+  Allowed: the definition in db/reference/ and TEST_ONLY scripts under tests/. Any hit in db/procedures, db/migrations, db/seed or an application path is a failure. Application code in the repository: none.
+STEP 8 PASS: U0 is not called by any application path or production routine (code search) - files with hits 5; outside allowed locations 0 
+
+== 9. Instance fingerprint after (sqlcmd exit 0) ==
+== F1. Databases other than tempdb and FitLife_P3_UC05 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+FitLife_P3_P2|10|2026-11-08 18:55:36.873|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+STEP 9 PASS: Instance fingerprint after = before (no other database changed)
+
+== 10. FitLife_P3_P2 dataset checksum (read-only) (sqlcmd exit 0) ==
+tbl|row_count|sha256
+---|---------|------
+INVOICE|324000|B321C5C8E689358C865EDA03B5D98BFF2DA8F92248CB5CEEDEC82E5E853A4FB7
+INVOICE_SERVICE_ITEM|65177|F087DEEB3C1FAA14D80ACC396B133F1DDAE5A63B5C6E20E4B09049FC8F6C8281
+INVOICE_PRODUCT_ITEM|712789|EC62F651B28F857F648A5C394ACFE48B1D32921396E36F83653817A4EEA4CBF1
+MEMBER_MONTHLY_SPENDING|169040|D25C9C8EFC99AE2C1782CC4A49800862E9BF117E51E34E62DCDBA4CF938E7BFC
+MEMBER (TEST_ONLY keys)|30000|B876C95BA3DFAF2B11377790815E242164DE5963E015BD5BBB7793D5DFC6E062
+BRANCH (TEST_ONLY keys)|12|7909937ABE135B51143FAF006BA1713D4C139E3337325AD10F9B81807CD66786
+EMPLOYEE (TEST_ONLY keys)|120|1C4732EAF0B754EF54C34467457CBBE4D233B277B73E72505AAEF7DBB4C5BD08
+SERVICE_PLAN (TEST_ONLY keys)|30|A8DA6DC1099B8B38805D26F04C1E8A49B9D3870506F9586535105A3C3BE64FDB
+PRODUCT (TEST_ONLY keys)|200|2066223C021D5FE0C60E02FCC68BFE6F618DE108F9E5AFC21200D86B620C305B
+item|sha256
+----|------
+DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+STEP 10 PASS: FitLife_P3_P2 checksum = DS-L run C reference - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+Summary:
+  1    PASS  Instance fingerprint captured before
+  2    PASS  Full WO-P3-P3-01 settlement regression on a fresh build (unchanged runner and tests)
+  3    PASS  F002T TEST_ONLY MEMBER_TIER (Silver 0, synthetic Gold/Platinum) + MEMBER.Tier_ID FK, all members on the base tier
+  4    PASS  F003H TEST_ONLY helper
+  5    PASS  usp_P3_SettleInvoice_Baseline applied (REFERENCE_ONLY)
+  6    PASS  T-F05-36, T-F05-37 and K01 (U0)
+  7    PASS  V-UC05T whole-database integrity after the U0 tests
+  8    PASS  U0 is not called by any application path or production routine (code search)
+  9    PASS  Instance fingerprint after = before (no other database changed)
+  10   PASS  FitLife_P3_P2 checksum = DS-L run C reference
+UC05U-RUN SUMMARY: steps 10; FAIL 0; finished (UTC) 2026-11-09 16:11:42
+UC05U-RUN_RESULT: PASS

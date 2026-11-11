@@ -1,0 +1,12 @@
+SEPARATION-P1 — WO-P3-P1-01 §8.3 static separation check (read-only)
+Captured (UTC): 2026-11-07 11:49:24
+Command: python -I separation.py <repository root> (script kept in the session scratchpad)
+----
+Production migrations: db/migrations/V001__p3_billing_and_spending_tables.sql, db/migrations/V002__p3_settlement_and_spending_constraints.sql
+  V001__p3_billing_and_spending_tables.sql: CREATE/ALTER TABLE targets = ['INVOICE', 'INVOICE_PRODUCT_ITEM', 'INVOICE_SERVICE_ITEM', 'MEMBER_MONTHLY_SPENDING']; non-P3 targets = []; references fixtures/TEST_ONLY = False; other object DDL = []
+  V002__p3_settlement_and_spending_constraints.sql: CREATE/ALTER TABLE targets = ['INVOICE', 'INVOICE_PRODUCT_ITEM', 'INVOICE_SERVICE_ITEM', 'MEMBER_MONTHLY_SPENDING']; non-P3 targets = []; references fixtures/TEST_ONLY = False; other object DDL = []
+TEST_ONLY fixture scripts: tests/db/fixtures/F001__TEST_ONLY_shared_dependency_keys.sql
+  F001__TEST_ONLY_shared_dependency_keys.sql: creates = ['BRANCH', 'EMPLOYEE', 'MEMBER', 'PRODUCT', 'SERVICE_PLAN']; columns = {'MEMBER': ['Member_ID'], 'BRANCH': ['Branch_ID'], 'EMPLOYEE': ['Employee_ID'], 'SERVICE_PLAN': ['Plan_ID'], 'PRODUCT': ['Product_ID']}; extra constructs = []; header marked TEST_ONLY = True
+Files under db/ that reference the fixture script: none
+Test scripts creating indexes, routines, triggers or views: none
+SEPARATION_RESULT: PASS

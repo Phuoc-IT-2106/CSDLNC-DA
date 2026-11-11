@@ -1,0 +1,27 @@
+﻿T-CONC-06 - parallel invoice creation (WO-P3-P3-00). Run B.
+Started (UTC): 2026-11-09 08:30:13.444; database FitLife_P3_UC05; sessions 10 x 20 calls; routine dbo.usp_P3_CreateInvoice
+Harness SHA-256: 65689EEEA32CFF8A0663C034FBB6522CD61D426034AB3D2B7CA6F8584FFEECEC
+Before: invoices 213, max Invoice_ID 236
+Gate released (UTC): 2026-11-09 08:30:13.941; all sessions finished (UTC): 2026-11-09 08:30:16.422 (context only, not a measurement)
+
+Per session (calls, failures, first id, last id):
+  session  1: calls 20, failures 0, ids 245..413
+  session  2: calls 20, failures 0, ids 244..435
+  session  3: calls 20, failures 0, ids 242..369
+  session  4: calls 20, failures 0, ids 239..355
+  session  5: calls 20, failures 0, ids 248..411
+  session  6: calls 20, failures 0, ids 240..434
+  session  7: calls 20, failures 0, ids 247..408
+  session  8: calls 20, failures 0, ids 241..436
+  session  9: calls 20, failures 0, ids 237..410
+  session 10: calls 20, failures 0, ids 238..425
+
+Checks:
+  C1 PASS  Every call succeeded: return 0, Outcome CREATED, an invoice id | calls recorded 200 of 200; failed 0 ; worker errors 0 
+  C2 PASS  Distinct invoice ids; exactly N x K new invoices; no new invoice that no session received | ids returned 200, distinct 200; new invoices in the table 200 (ids 237-436); new invoices not returned to any session 0
+  C3 PASS  Each new invoice holds exactly its own request: header keys, totals, PENDING, PaidAt NULL, lines (no lost or misattached line), entitlement/PT columns NULL | invoices compared 200; mismatches 0; mixed invoices 50; lines expected and found 460
+  C4 PASS  V-TOT = 0 and no orphan line in the whole database | V-TOT rows 0; orphan lines 0; invoices 213 -> 413
+  C5 PASS  Sessions overlapped (the last session started before the first session finished) | latest first call (UTC) 2026-11-09 08:30:14.161; earliest last call end (UTC) 2026-11-09 08:30:15.404
+
+T-CONC-06 SUMMARY: run B; checks 5; FAIL 0
+T-CONC-06_RESULT: PASS

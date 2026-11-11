@@ -1,0 +1,228 @@
+SESSION RECOVERY: WO-P3-P4-01 Part F; read-only database validation; no rebuild, deployment, benchmark or configuration change.
+UTC started: 20261110-043655; reused full run UC06-RUN__20261110-0206; R-27 remains OPEN.
+Branch: p3/wo-p3-p1-01
+HEAD: 792a85e0d5b9ce6acfe0ad91028ab49585aef601
+PASS | Recorded source hashes UC06-RUN__20261110-0206.txt | 39 hashes; mismatches=[]
+PASS | Recorded source hashes UC05LOY-RUN__20261109-1636.txt | 33 hashes; mismatches=[]
+PASS | Reused UC06 run complete | 78 steps; all success markers; 16 functional cases and UC05 regression recorded
+
+== Instance and interrupted transaction check ==
+ | | | 
+-|-|-|-
+ENGINE|17.0.1000.7|Standard Developer Edition (64-bit)|2
+ |name|state_desc|compatibility_level
+-|----|----------|-------------------
+DATABASE|FitLife_P3_P1|ONLINE|160
+DATABASE|FitLife_P3_P2|ONLINE|160
+DATABASE|FitLife_P3_UC05|ONLINE|160
+DATABASE|FitLife_P3_UC05L|ONLINE|160
+ |session_id|open_transaction_count| 
+-|----------|----------------------|-
+ |transaction_id|session_id| 
+-|--------------|----------|-
+
+PASS | Instance identity | 
+PASS | No active user requests or open user transactions | 
+
+== Other database fingerprint before ==
+== F1. Databases other than tempdb and FitLife_P3_UC05 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+FitLife_P3_P2|10|2026-11-08 18:55:36.873|160|ONLINE|SIMPLE|1|2
+FitLife_P3_UC05L|12|2026-11-09 23:37:29.223|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+
+REUSED unchanged checksum precheck from RECOVERY-UC06__20261110-043548 (no database mutations since): FitLife_P3_P2
+
+tbl|row_count|sha256
+
+---|---------|------
+
+INVOICE|324000|B321C5C8E689358C865EDA03B5D98BFF2DA8F92248CB5CEEDEC82E5E853A4FB7
+
+INVOICE_SERVICE_ITEM|65177|F087DEEB3C1FAA14D80ACC396B133F1DDAE5A63B5C6E20E4B09049FC8F6C8281
+
+INVOICE_PRODUCT_ITEM|712789|EC62F651B28F857F648A5C394ACFE48B1D32921396E36F83653817A4EEA4CBF1
+
+MEMBER_MONTHLY_SPENDING|169040|D25C9C8EFC99AE2C1782CC4A49800862E9BF117E51E34E62DCDBA4CF938E7BFC
+
+MEMBER (TEST_ONLY keys)|30000|B876C95BA3DFAF2B11377790815E242164DE5963E015BD5BBB7793D5DFC6E062
+
+BRANCH (TEST_ONLY keys)|12|7909937ABE135B51143FAF006BA1713D4C139E3337325AD10F9B81807CD66786
+
+EMPLOYEE (TEST_ONLY keys)|120|1C4732EAF0B754EF54C34467457CBBE4D233B277B73E72505AAEF7DBB4C5BD08
+
+SERVICE_PLAN (TEST_ONLY keys)|30|A8DA6DC1099B8B38805D26F04C1E8A49B9D3870506F9586535105A3C3BE64FDB
+
+PRODUCT (TEST_ONLY keys)|200|2066223C021D5FE0C60E02FCC68BFE6F618DE108F9E5AFC21200D86B620C305B
+
+item|sha256
+
+----|------
+
+DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+
+PASS | Dataset FitLife_P3_P2 | 26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+PASS | Dataset FitLife_P3_P2 | 26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+REUSED unchanged checksum precheck from RECOVERY-UC06__20261110-043548 (no database mutations since): FitLife_P3_UC05
+
+tbl|row_count|sha256
+
+---|---------|------
+
+INVOICE|681|867CBC53A025E528D94A21603825C14359C1F5A77912BD5837499BA77D296064
+
+INVOICE_SERVICE_ITEM|53|23C3F93E6ECC57D66D19B153132D85D4BB1660E8BA914CFF5D77DE6BFCDC6658
+
+INVOICE_PRODUCT_ITEM|888|29033A53D6A49083B8CE98FE6BA51889BF220F7DC82DA15AEE2868F71F08FA9D
+
+MEMBER_MONTHLY_SPENDING|42|B5EFE139E11BD22F49CB756AD4EA48D68B42D85159262C105D2B8CDEBC5CC180
+
+MEMBER (TEST_ONLY keys)|40|B6A72FB6F35EFB6F78CB29B2ABCAFFF800CCAC6BEAC4531D8F81A3FBC8105798
+
+BRANCH (TEST_ONLY keys)|3|8A6AE15122001229EDB8866F56E342AF12AE8187203C3E3B33931743E7C0C48D
+
+EMPLOYEE (TEST_ONLY keys)|6|93C69BA5671E377916A7A5738E71AFA07A65067FECE97DC42372E610594669DE
+
+SERVICE_PLAN (TEST_ONLY keys)|5|B726EED184CEA30D5A57FB645F77527E4232BEC085E24E8D29A6E3B2C84C2DB1
+
+PRODUCT (TEST_ONLY keys)|10|D10434D8C3B61A402E8C5A9F2E64E628B1E9F8C1DD747E7F480DBE57EB79C425
+
+item|sha256
+
+----|------
+
+DATASET_CHECKSUM|152D144F975883DC26C0ADC0E2460AAB5AED1EC11A69CE9A6699C2C91572A268
+
+
+PASS | Dataset FitLife_P3_UC05 | 152D144F975883DC26C0ADC0E2460AAB5AED1EC11A69CE9A6699C2C91572A268
+
+PASS | Dataset FitLife_P3_UC05 | 152D144F975883DC26C0ADC0E2460AAB5AED1EC11A69CE9A6699C2C91572A268
+REUSED unchanged checksum precheck from RECOVERY-UC06__20261110-043548 (no database mutations since): FitLife_P3_UC05L
+
+tbl|row_count|sha256
+
+---|---------|------
+
+INVOICE|324000|B321C5C8E689358C865EDA03B5D98BFF2DA8F92248CB5CEEDEC82E5E853A4FB7
+
+INVOICE_SERVICE_ITEM|65177|F087DEEB3C1FAA14D80ACC396B133F1DDAE5A63B5C6E20E4B09049FC8F6C8281
+
+INVOICE_PRODUCT_ITEM|712789|EC62F651B28F857F648A5C394ACFE48B1D32921396E36F83653817A4EEA4CBF1
+
+MEMBER_MONTHLY_SPENDING|169040|D25C9C8EFC99AE2C1782CC4A49800862E9BF117E51E34E62DCDBA4CF938E7BFC
+
+MEMBER (TEST_ONLY keys)|30000|B876C95BA3DFAF2B11377790815E242164DE5963E015BD5BBB7793D5DFC6E062
+
+BRANCH (TEST_ONLY keys)|12|7909937ABE135B51143FAF006BA1713D4C139E3337325AD10F9B81807CD66786
+
+EMPLOYEE (TEST_ONLY keys)|120|1C4732EAF0B754EF54C34467457CBBE4D233B277B73E72505AAEF7DBB4C5BD08
+
+SERVICE_PLAN (TEST_ONLY keys)|30|A8DA6DC1099B8B38805D26F04C1E8A49B9D3870506F9586535105A3C3BE64FDB
+
+PRODUCT (TEST_ONLY keys)|200|2066223C021D5FE0C60E02FCC68BFE6F618DE108F9E5AFC21200D86B620C305B
+
+item|sha256
+
+----|------
+
+DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+
+PASS | Dataset FitLife_P3_UC05L | 26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+PASS | Dataset FitLife_P3_UC05L | 26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+== Disposable marker FitLife_P3_UC05 ==
+ | 
+-|-
+MARKER|WO-P3-P3-00 isolated UC05 development database; safe to drop and rebuild from scripts
+
+PASS | Disposable marker FitLife_P3_UC05 | 
+FAIL | Deployed definitions equal local source FitLife_P3_UC05 | 16 modules; revenue=7; mismatches=['tvf_P3_ReportPeriodStart', 'tvf_P3_ReportPeriodUtc', 'tvf_P3_SpendingMonth', 'tvf_P3_TierForSpend', 'tvf_P3_TierWindow', 'usp_P3_CancelInvoice', 'usp_P3_CreateInvoice', 'usp_P3_EvaluateTiers', 'usp_P3_GetMemberLoyalty', 'usp_P3_RptBranchRevenue', 'usp_P3_RptBranchRevenueByPeriod', 'usp_P3_RptSystemRevenue', 'usp_P3_RptSystemRevenueByBranch', 'usp_P3_RptSystemRevenueByPeriod', 'usp_P3_SettleInvoice', 'usp_P3_SettleInvoice_Baseline']
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|tvf_P3_ReportPeriodStart|f7030299a9ec09b7378eaa79fcca520ca6567ab6adaa10c01eb91228fa16ddc1
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|tvf_P3_ReportPeriodUtc|4e52d9511a8dd4cc62deb00c5152b4aed35e47513b072452b9d5d781ef1ec17d
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|tvf_P3_SpendingMonth|491dddb16e85e0f0429d83c1ebf5053f15e0104bd68186ba7c740243677ba626
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|tvf_P3_TierForSpend|f1ebd66d13134da7ed5826ab6f90a8fac39d3ca07a32edbdebc0c28e0b24e42d
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|tvf_P3_TierWindow|c14e64ea4de97b345cb46767b7be5992e4aacaef62502282f1564c649562e58f
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_CancelInvoice|f03ec0b5af620b5bb65a9cba05f86f07b2b29a03bb45be6db744eb066bd7f1a0
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_CreateInvoice|6d1cadd2afea6f7740e85855236692f8c3164539e0261d0d8249d5dc5e71b6ec
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_EvaluateTiers|e29d5d1f682057746fa89bd83f7f4810f72c60248cae3127665085c099cd234f
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_GetMemberLoyalty|904692c558c4152b87162aec20922d1ffc8a2040d6b99d6e330d44485a9eb93e
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_RptBranchRevenue|38484cbf9411b9efa548b892d3fb8c1dd7951f1bb771f09034761f02c42d3a6c
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_RptBranchRevenueByPeriod|1f26b0f0a88d5f02450a72fe2e5d3c90ee8246d835a0bb26722d01bd76b61edc
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_RptSystemRevenue|2c255b8d0efc5aba3c1cee98eeb0d35393d5009ff75117742371c7474e9e12ad
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_RptSystemRevenueByBranch|afe04f818231b6b57bc6245ff95109782f998ea71f77f3ba3f4aae458a1510ac
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_RptSystemRevenueByPeriod|1523bfaf8b7dce0e1bd57ec5cde53a2b1855ecb1c087f7f1f7e6b0087d44a227
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_SettleInvoice|18b61a4375cf9562f3f94a7c74cb0d3ba425dd6008163a0325e351515650a49a
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05|usp_P3_SettleInvoice_Baseline|9bd7cdc62e09bcca3d3f5c7985e5faf10f698b5784665aa72d00763f6964be17
+
+== Catalog before FitLife_P3_UC05 ==
+CATALOG_DIGEST|DDCAA7E8F3FCD3AEFEC76185FB2990BB29C0FBA8749E444367CA6608542DC57B|items=136|tables=13|non_pk_indexes=0|views=0|triggers=0|partition_objects=0
+
+PASS | Catalog equals completed run FitLife_P3_UC05 | DDCAA7E8F3FCD3AEFEC76185FB2990BB29C0FBA8749E444367CA6608542DC57B
+
+== T-SCH-06 FitLife_P3_UC05 ==
+check_id|result|descr|detail
+--------|------|-----|------
+S1|PASS|Exactly the 7 revenue objects were added (5 report procedures, 2 inline functions); every other object is a known P3 / TEST_ONLY / REFERENCE_ONLY object; no view, trigger, sequence, synonym, non-PK index, columnstore or partition object; no summary table|revenue objects: IF:tvf_P3_ReportPeriodStart,IF:tvf_P3_ReportPeriodUtc,P :usp_P3_RptBranchRevenue,P :usp_P3_RptBranchRevenueByPeriod,P :usp_P3_RptSystemRevenue,P :usp_P3_RptSystemRevenueByBranch,P :usp_P3_RptSystemRevenueByPeriod || missing: none || unexpected objects: none || views/triggers/non-PK indexes/partition objects/other types: 0 || tables: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,PRODUCT,SERVICE_PLAN,TEST_HistoryInvoice,TEST_HookCallLog,TEST_HookFault
+S2|PASS|Report procedures depend only on INVOICE, BRANCH (key check, branch reports only) and the two report functions (sys.sql_expression_dependencies); the functions read no table; no line table, MEMBER or spending table; no cross-database or remote reference; of the INVOICE columns only Branch_ID, FinalAmount, PaidAt and PaymentStatus are named in the routine text|dependencies: usp_P3_RptBranchRevenue -> BRANCH,INVOICE,tvf_P3_ReportPeriodUtc; usp_P3_RptBranchRevenueByPeriod -> BRANCH,INVOICE,tvf_P3_ReportPeriodStart,tvf_P3_ReportPeriodUtc; usp_P3_RptSystemRevenue -> INVOICE,tvf_P3_ReportPeriodUtc; usp_P3_RptSystemRevenueByBranch -> INVOICE,tvf_P3_ReportPeriodUtc; usp_P3_RptSystemRevenueByPeriod -> INVOICE,tvf_P3_ReportPeriodStart,tvf_P3_ReportPeriodUtc || deviating: none || dependencies of the functions: 0 || cross-database or remote: 0 || other INVOICE columns (Invoice_ID,Member_ID,Employee_ID,IssuedAt,GrossAmount,DiscountAmount,PaymentMethod) named in a routine: none || procedures without the revenue columns: none
+S3|PASS|Each report procedure has ONE statement over INVOICE with the canonical half-open UTC filter (PaymentStatus = 'PAID' literal, PaidAt >= @FromUtc AND PaidAt < @ToUtc); PaidAt is otherwise used only as the argument of the bucket function (SELECT / GROUP BY); no AT TIME ZONE, IssuedAt, GrossAmount, line table, table hint, query hint, DML or dynamic SQL|definitions 7; filters per object: tvf_P3_ReportPeriodStart=0, tvf_P3_ReportPeriodUtc=0, usp_P3_RptBranchRevenue=1, usp_P3_RptBranchRevenueByPeriod=1, usp_P3_RptSystemRevenue=1, usp_P3_RptSystemRevenueByBranch=1, usp_P3_RptSystemRevenueByPeriod=1; wrong filter count: none; PaidAt used elsewhere: none; not exactly one INVOICE statement: none; forbidden token: none
+S4|PASS|Approved routines unchanged where deployed (definition SHA-256 = WO-P3-P3-00/01/02 evidence): create, settle, cancel, month function, tier evaluation, loyalty lookup|compared: 6; changed: none; not deployed in this database: none || new (SHA-256 of definition): tvf_P3_ReportPeriodStart C249859F95E9B62DEAEF91CC0ACCEC0642045CCC3F79A75657EFEAE8DA8BB674; tvf_P3_ReportPeriodUtc 9A639B5E2F04F71D37F6F50EF29383A1DF1D0C7B91BD4914D0A29C8A556FA030; usp_P3_RptBranchRevenue 1C0C1FDF6456FE43658EEAF57E8EC594DE80C84D5C610DAF75E2C28BB29F6098; usp_P3_RptBranchRevenueByPeriod 39A8B02D0B15E35093A281BCC53BC1DF024080BCA96C538D2A8D9FC274075654; usp_P3_RptSystemRevenue FFAA1E63F95695F894E6C73E6A588A928B0C4DC181FA43F19B6E8C3D0AD44CBC; usp_P3_RptSystemRevenueByBranch CC084668BD40E789F424C4BAE7FAB99C405144AB231BF1E0C7FCC85E76DFA068; usp_P3_RptSystemRevenueByPeriod 849EED36449A3309CECE6B9DBB33707C55CAFC69ADEA321FB4754D6BDFA7D260
+S5|PASS|No extra database user or role and no explicit permission|extra principals: none; explicit permissions: 0
+T-SCH-06 SUMMARY: database FitLife_P3_UC05; checks=5 FAIL=0
+T-SCH-06_RESULT: PASS
+
+PASS | T-SCH-06 FitLife_P3_UC05 | 
+
+== Disposable marker FitLife_P3_UC05L ==
+ | 
+-|-
+MARKER|WO-P3-P2-01 dataset pipeline - WO-P3-P3-02 DS-L loyalty copy (FitLife_P3_UC05L); safe to drop and rebuild from scripts
+
+PASS | Disposable marker FitLife_P3_UC05L | 
+FAIL | Deployed definitions equal local source FitLife_P3_UC05L | 11 modules; revenue=7; mismatches=['tvf_P3_ReportPeriodStart', 'tvf_P3_ReportPeriodUtc', 'tvf_P3_TierForSpend', 'tvf_P3_TierWindow', 'usp_P3_EvaluateTiers', 'usp_P3_GetMemberLoyalty', 'usp_P3_RptBranchRevenue', 'usp_P3_RptBranchRevenueByPeriod', 'usp_P3_RptSystemRevenue', 'usp_P3_RptSystemRevenueByBranch', 'usp_P3_RptSystemRevenueByPeriod']
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|tvf_P3_ReportPeriodStart|f7030299a9ec09b7378eaa79fcca520ca6567ab6adaa10c01eb91228fa16ddc1
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|tvf_P3_ReportPeriodUtc|4e52d9511a8dd4cc62deb00c5152b4aed35e47513b072452b9d5d781ef1ec17d
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|tvf_P3_TierForSpend|f1ebd66d13134da7ed5826ab6f90a8fac39d3ca07a32edbdebc0c28e0b24e42d
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|tvf_P3_TierWindow|c14e64ea4de97b345cb46767b7be5992e4aacaef62502282f1564c649562e58f
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|usp_P3_EvaluateTiers|e29d5d1f682057746fa89bd83f7f4810f72c60248cae3127665085c099cd234f
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|usp_P3_GetMemberLoyalty|904692c558c4152b87162aec20922d1ffc8a2040d6b99d6e330d44485a9eb93e
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|usp_P3_RptBranchRevenue|38484cbf9411b9efa548b892d3fb8c1dd7951f1bb771f09034761f02c42d3a6c
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|usp_P3_RptBranchRevenueByPeriod|1f26b0f0a88d5f02450a72fe2e5d3c90ee8246d835a0bb26722d01bd76b61edc
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|usp_P3_RptSystemRevenue|2c255b8d0efc5aba3c1cee98eeb0d35393d5009ff75117742371c7474e9e12ad
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|usp_P3_RptSystemRevenueByBranch|afe04f818231b6b57bc6245ff95109782f998ea71f77f3ba3f4aae458a1510ac
+MODULE_NORMALIZED_SHA256|FitLife_P3_UC05L|usp_P3_RptSystemRevenueByPeriod|1523bfaf8b7dce0e1bd57ec5cde53a2b1855ecb1c087f7f1f7e6b0087d44a227
+
+== Catalog before FitLife_P3_UC05L ==
+CATALOG_DIGEST|33106AC02E0DA0602F9666393D7BA536BCA7728E39DC537C2229C66970717FBA|items=116|tables=10|non_pk_indexes=0|views=0|triggers=0|partition_objects=0
+
+PASS | Catalog equals completed run FitLife_P3_UC05L | 33106AC02E0DA0602F9666393D7BA536BCA7728E39DC537C2229C66970717FBA
+
+== T-SCH-06 FitLife_P3_UC05L ==
+check_id|result|descr|detail
+--------|------|-----|------
+S1|PASS|Exactly the 7 revenue objects were added (5 report procedures, 2 inline functions); every other object is a known P3 / TEST_ONLY / REFERENCE_ONLY object; no view, trigger, sequence, synonym, non-PK index, columnstore or partition object; no summary table|revenue objects: IF:tvf_P3_ReportPeriodStart,IF:tvf_P3_ReportPeriodUtc,P :usp_P3_RptBranchRevenue,P :usp_P3_RptBranchRevenueByPeriod,P :usp_P3_RptSystemRevenue,P :usp_P3_RptSystemRevenueByBranch,P :usp_P3_RptSystemRevenueByPeriod || missing: none || unexpected objects: none || views/triggers/non-PK indexes/partition objects/other types: 0 || tables: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,PRODUCT,SERVICE_PLAN
+S2|PASS|Report procedures depend only on INVOICE, BRANCH (key check, branch reports only) and the two report functions (sys.sql_expression_dependencies); the functions read no table; no line table, MEMBER or spending table; no cross-database or remote reference; of the INVOICE columns only Branch_ID, FinalAmount, PaidAt and PaymentStatus are named in the routine text|dependencies: usp_P3_RptBranchRevenue -> BRANCH,INVOICE,tvf_P3_ReportPeriodUtc; usp_P3_RptBranchRevenueByPeriod -> BRANCH,INVOICE,tvf_P3_ReportPeriodStart,tvf_P3_ReportPeriodUtc; usp_P3_RptSystemRevenue -> INVOICE,tvf_P3_ReportPeriodUtc; usp_P3_RptSystemRevenueByBranch -> INVOICE,tvf_P3_ReportPeriodUtc; usp_P3_RptSystemRevenueByPeriod -> INVOICE,tvf_P3_ReportPeriodStart,tvf_P3_ReportPeriodUtc || deviating: none || dependencies of the functions: 0 || cross-database or remote: 0 || other INVOICE columns (Invoice_ID,Member_ID,Employee_ID,IssuedAt,GrossAmount,DiscountAmount,PaymentMethod) named in a routine: none || procedures without the revenue columns: none
+S3|PASS|Each report procedure has ONE statement over INVOICE with the canonical half-open UTC filter (PaymentStatus = 'PAID' literal, PaidAt >= @FromUtc AND PaidAt < @ToUtc); PaidAt is otherwise used only as the argument of the bucket function (SELECT / GROUP BY); no AT TIME ZONE, IssuedAt, GrossAmount, line table, table hint, query hint, DML or dynamic SQL|definitions 7; filters per object: tvf_P3_ReportPeriodStart=0, tvf_P3_ReportPeriodUtc=0, usp_P3_RptBranchRevenue=1, usp_P3_RptBranchRevenueByPeriod=1, usp_P3_RptSystemRevenue=1, usp_P3_RptSystemRevenueByBranch=1, usp_P3_RptSystemRevenueByPeriod=1; wrong filter count: none; PaidAt used elsewhere: none; not exactly one INVOICE statement: none; forbidden token: none
+S4|PASS|Approved routines unchanged where deployed (definition SHA-256 = WO-P3-P3-00/01/02 evidence): create, settle, cancel, month function, tier evaluation, loyalty lookup|compared: 2; changed: none; not deployed in this database: usp_P3_CreateInvoice,usp_P3_SettleInvoice,usp_P3_CancelInvoice,tvf_P3_SpendingMonth || new (SHA-256 of definition): tvf_P3_ReportPeriodStart C249859F95E9B62DEAEF91CC0ACCEC0642045CCC3F79A75657EFEAE8DA8BB674; tvf_P3_ReportPeriodUtc 9A639B5E2F04F71D37F6F50EF29383A1DF1D0C7B91BD4914D0A29C8A556FA030; usp_P3_RptBranchRevenue 1C0C1FDF6456FE43658EEAF57E8EC594DE80C84D5C610DAF75E2C28BB29F6098; usp_P3_RptBranchRevenueByPeriod 39A8B02D0B15E35093A281BCC53BC1DF024080BCA96C538D2A8D9FC274075654; usp_P3_RptSystemRevenue FFAA1E63F95695F894E6C73E6A588A928B0C4DC181FA43F19B6E8C3D0AD44CBC; usp_P3_RptSystemRevenueByBranch CC084668BD40E789F424C4BAE7FAB99C405144AB231BF1E0C7FCC85E76DFA068; usp_P3_RptSystemRevenueByPeriod 849EED36449A3309CECE6B9DBB33707C55CAFC69ADEA321FB4754D6BDFA7D260
+S5|PASS|No extra database user or role and no explicit permission|extra principals: none; explicit permissions: 0
+T-SCH-06 SUMMARY: database FitLife_P3_UC05L; checks=5 FAIL=0
+T-SCH-06_RESULT: PASS
+
+PASS | T-SCH-06 FitLife_P3_UC05L | 
+FAIL | Recovery execution | Recovery preconditions failed; no further tests run
+RECOVERY SUMMARY: checks=17 PASS=14 FAIL=3

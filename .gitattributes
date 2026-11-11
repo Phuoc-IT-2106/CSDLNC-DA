@@ -1,0 +1,5 @@
+# Proposed by Person 3 (WO-P3-P1-01, D-021 Part A); final content is a team decision (D-021 Part B).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.sqlplan -text

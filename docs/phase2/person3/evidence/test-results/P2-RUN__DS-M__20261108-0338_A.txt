@@ -1,0 +1,253 @@
+﻿P2-RUN - WO-P3-P2-01 dataset run. Dataset DS-M, run label A, target FitLife_P3_P2. Instance: local default (localhost), Windows authentication. Machine and server names are masked as <local-server>.
+Profile: Seed=20261108 StartDateLocal=2025-01-01 EndDateLocal=2025-04-01 InvoicesPerMonth=27000 MemberCount=30000 BranchCount=12 EmployeesPerBranch=10 PlanCount=30 ProductCount=200 ServiceInvoiceShare=0.20 CancelledShare=0.02 PendingWindowDays=3 PendingShareInWindow=0.30 HeavyMemberShare=0.20 HeavyInvoiceShare=0.60 HomeBranchShare=0.85 DiscountLineShare=0.20 PeakShare=0.35; runtime: MaxGrantPercent=2
+
+---- 1 preflight (read-only)  (UTC 2026-11-08 03:38:55)
+Command: sqlcmd -S localhost -E -I -b -W -s | -v LocalComputer=<local-server> TargetDb=FitLife_P3_P2 -i tests/db/build/preflight_p2.sql
+== 1. Engine, edition, instance ==
+product_version|product_level|edition|engine_edition|server_collation|instance_name
+---------------|-------------|-------|--------------|----------------|-------------
+17.0.1000.7|RTM|Standard Developer Edition (64-bit)|2|SQL_Latin1_General_CP1_CI_AS|(default instance)
+== 2. Local development instance and permissions ==
+net_transport|machine_is_local_computer|is_developer_edition|supports_level_160|is_sysadmin|can_create_database
+-------------|-------------------------|--------------------|------------------|-----------|-------------------
+Shared memory|1|1|1|1|1
+== 3. Target database FitLife_P3_P2 ==
+target|target_state|disposable_marker|owner_is_current_login
+------|------------|-----------------|----------------------
+FitLife_P3_P2|EXISTS|WO-P3-P2-01 isolated dataset database; safe to drop and rebuild from scripts|1
+== 4. Verdict ==
+PREFLIGHT_P2_RESULT: PASS
+exit code: 0; elapsed_ms: 258
+
+---- 2 instance fingerprint before  (UTC 2026-11-08 03:38:55)
+Command: sqlcmd -S localhost -E -I -b -W -s | -v TargetDb=FitLife_P3_P2 -i tests/db/build/fingerprint_instance.sql
+== F1. Databases other than tempdb and FitLife_P3_P2 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+exit code: 0; elapsed_ms: 597
+
+---- 3 rebuild FitLife_P3_P2 (F001 TEST_ONLY, V001, V002)  (UTC 2026-11-08 03:38:56)
+Command: sqlcmd -S localhost -E -I -b -W -s | -i tests/db/build/rebuild_p2_db.sql
+Dropped previous disposable database FitLife_P3_P2
+Changed database context to 'FitLife_P3_P2'.
+Created FitLife_P3_P2 (compatibility level 160, SIMPLE recovery, P3_Disposable marker)
+F001 (TEST_ONLY) applied: key-only fixtures MEMBER, BRANCH, EMPLOYEE, SERVICE_PLAN, PRODUCT
+V001 applied: INVOICE, INVOICE_SERVICE_ITEM, INVOICE_PRODUCT_ITEM, MEMBER_MONTHLY_SPENDING
+V002 applied: INVOICE.PaidAt, 12 CHECK constraints, 4 DEFAULT constraints
+BUILD_RESULT: OK (FitLife_P3_P2)
+exit code: 0; elapsed_ms: 381
+
+---- 4 F001D fixture key rows (TEST_ONLY)  (UTC 2026-11-08 03:38:56)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P2 -v MemberCount=30000 BranchCount=12 EmployeesPerBranch=10 PlanCount=30 ProductCount=200 -i tests/db/fixtures/F001D__TEST_ONLY_fixture_key_rows.sql
+branch_keys|employee_keys|member_keys|plan_keys|product_keys
+-----------|-------------|-----------|---------|------------
+12|120|30000|30|200
+F001D (TEST_ONLY) applied: key rows only
+exit code: 0; elapsed_ms: 147
+
+---- 5 S001 generator  (UTC 2026-11-08 03:38:56)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P2 -v Seed=20261108 StartDateLocal=2025-01-01 EndDateLocal=2025-04-01 InvoicesPerMonth=27000 MemberCount=30000 BranchCount=12 EmployeesPerBranch=10 PlanCount=30 ProductCount=200 ServiceInvoiceShare=0.20 CancelledShare=0.02 PendingWindowDays=3 PendingShareInWindow=0.30 HeavyMemberShare=0.20 HeavyInvoiceShare=0.60 HomeBranchShare=0.85 DiscountLineShare=0.20 PeakShare=0.35 MaxGrantPercent=2 -i db/seed/S001__p3_dataset_generator.sql
+GENERATOR: S001 v1.0; seed 20261108; local range [2025-01-01, 2025-04-01)
+TIMING step=calendar_members_prices ms=700
+TIMING step=invoice_headers ms=362673
+TIMING step=invoice_lines ms=1642
+TIMING step=load_invoice_tables ms=2566
+TIMING step=monthly_spending ms=551
+TIMING step=total_generator ms=368132
+invoice_rows|service_item_rows|product_item_rows|monthly_spending_rows
+------------|-----------------|-----------------|---------------------
+81000|16268|178518|42059
+GENERATOR_RESULT: OK
+exit code: 0; elapsed_ms: 368344
+
+---- 6 T-SCH-02 conformance on the seeded database  (UTC 2026-11-08 03:45:05)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P2 -i tests/db/schema/T-SCH-02_conformance.sql
+check_id|result|descr|detail
+--------|------|-----|------
+C1|PASS|Columns of all 9 tables: name, order, type, nullability, identity (35 columns)|35 expected = 35 actual; no differences
+C2|PASS|Constraint set: 9 PK (key columns), 8 FK, 13 CHECK, 4 DEFAULT, 0 UNIQUE; nothing extra or missing|expected 34 = actual 34
+C3|PASS|Foreign keys: exactly 8, all owned by P3 tables, NO ACTION on delete and update, enabled and trusted|count=8; on fixtures=0; all NO_ACTION, enabled, trusted
+C4|PASS|Classification: exactly 9 user tables; 5 fixtures marked TEST_ONLY_FIXTURE with 1 key column and only their PK; 4 P3 tables unmarked|BRANCH=TEST_ONLY_FIXTURE, EMPLOYEE=TEST_ONLY_FIXTURE, INVOICE=P3_OWNED (no fixture marker), INVOICE_PRODUCT_ITEM=P3_OWNED (no fixture marker), INVOICE_SERVICE_ITEM=P3_OWNED (no fixture marker), MEMBER=TEST_ONLY_FIXTURE, MEMBER_MONTHLY_SPENDING=P3_OWNED (no fixture marker), PRODUCT=TEST_ONLY_FIXTURE, SERVICE_PLAN=TEST_ONLY_FIXTURE
+C5|PASS|Inventory: no views, procedures, functions, triggers, sequences or synonyms; only the 9 clustered PK indexes; no partition function or scheme|other objects: none; clustered PK indexes: 9; non-PK indexes: 0; partition functions+schemes: 0
+C6|PASS|All 13 CHECK constraints enabled and trusted; compatibility level 160; P3_Disposable marker present|untrusted/disabled: none; compatibility_level=160; marker=WO-P3-P2-01 isolated dataset database; safe to drop and rebuild from scripts
+-- catalog listing: constraints (type, name, table, keys/columns/definition) --
+typ|name|tbl|detail
+---|----|---|------
+PK|PK_BRANCH|BRANCH|Branch_ID
+PK|PK_EMPLOYEE|EMPLOYEE|Employee_ID
+C|CK_INVOICE_Amounts|INVOICE|([GrossAmount]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[GrossAmount])
+C|CK_INVOICE_FinalAmount|INVOICE|([FinalAmount]=([GrossAmount]-[DiscountAmount]) AND [FinalAmount]>=(0))
+C|CK_INVOICE_MethodWhenPaid|INVOICE|([PaymentStatus]<>'PAID' OR [PaymentMethod] IS NOT NULL)
+C|CK_INVOICE_PaidAtAfterIssued|INVOICE|([PaidAt]>=[IssuedAt])
+C|CK_INVOICE_PaidAtStatus|INVOICE|([PaymentStatus]='PAID' AND [PaidAt] IS NOT NULL OR [PaymentStatus]<>'PAID' AND [PaidAt] IS NULL)
+C|CK_INVOICE_PaymentMethod|INVOICE|([PaymentMethod]='CARD' OR [PaymentMethod]='VNPAY' OR [PaymentMethod]='CASH')
+C|CK_INVOICE_PaymentStatus|INVOICE|([PaymentStatus]='CANCELLED' OR [PaymentStatus]='PAID' OR [PaymentStatus]='PENDING')
+D|DF_INVOICE_PaymentStatus|INVOICE|PaymentStatus = ('PENDING')
+F|FK_INVOICE_BRANCH|INVOICE|Branch_ID->BRANCH.Branch_ID
+F|FK_INVOICE_EMPLOYEE|INVOICE|Employee_ID->EMPLOYEE.Employee_ID
+F|FK_INVOICE_MEMBER|INVOICE|Member_ID->MEMBER.Member_ID
+PK|PK_INVOICE|INVOICE|Invoice_ID
+C|CK_INVOICE_PRODUCT_ITEM_Amounts|INVOICE_PRODUCT_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice]*[Quantity])
+C|CK_INVOICE_PRODUCT_ITEM_Quantity|INVOICE_PRODUCT_ITEM|([Quantity]>(0))
+F|FK_INVOICE_PRODUCT_ITEM_INVOICE|INVOICE_PRODUCT_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_PRODUCT_ITEM_PRODUCT|INVOICE_PRODUCT_ITEM|Product_ID->PRODUCT.Product_ID
+PK|PK_INVOICE_PRODUCT_ITEM|INVOICE_PRODUCT_ITEM|Invoice_ID,LineNo
+C|CK_INVOICE_SERVICE_ITEM_Amounts|INVOICE_SERVICE_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice])
+C|CK_INVOICE_SERVICE_ITEM_Validity|INVOICE_SERVICE_ITEM|([ValidUntil]>=[ValidFrom])
+F|FK_INVOICE_SERVICE_ITEM_INVOICE|INVOICE_SERVICE_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN|INVOICE_SERVICE_ITEM|Plan_ID->SERVICE_PLAN.Plan_ID
+PK|PK_INVOICE_SERVICE_ITEM|INVOICE_SERVICE_ITEM|Invoice_ID,LineNo
+PK|PK_MEMBER|MEMBER|Member_ID
+C|CK_MEMBER_MONTHLY_SPENDING_FirstDay|MEMBER_MONTHLY_SPENDING|(datepart(day,[SpendingMonth])=(1))
+C|CK_MEMBER_MONTHLY_SPENDING_NonNegative|MEMBER_MONTHLY_SPENDING|([TotalSpend]>=(0) AND [PointsEarned]>=(0))
+D|DF_MEMBER_MONTHLY_SPENDING_PointsEarned|MEMBER_MONTHLY_SPENDING|PointsEarned = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_TotalSpend|MEMBER_MONTHLY_SPENDING|TotalSpend = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_UpdatedAt|MEMBER_MONTHLY_SPENDING|UpdatedAt = (sysutcdatetime())
+F|FK_MEMBER_MONTHLY_SPENDING_MEMBER|MEMBER_MONTHLY_SPENDING|Member_ID->MEMBER.Member_ID
+PK|PK_MEMBER_MONTHLY_SPENDING|MEMBER_MONTHLY_SPENDING|Member_ID,SpendingMonth
+PK|PK_PRODUCT|PRODUCT|Product_ID
+PK|PK_SERVICE_PLAN|SERVICE_PLAN|Plan_ID
+T-SCH-02 SUMMARY: checks=6 FAIL=0
+T-SCH-02_RESULT: PASS
+exit code: 0; elapsed_ms: 866
+
+---- 7 T-SEED dataset checks  (UTC 2026-11-08 03:45:06)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P2 -v Seed=20261108 StartDateLocal=2025-01-01 EndDateLocal=2025-04-01 InvoicesPerMonth=27000 MemberCount=30000 BranchCount=12 EmployeesPerBranch=10 PlanCount=30 ProductCount=200 ServiceInvoiceShare=0.20 CancelledShare=0.02 PendingWindowDays=3 PendingShareInWindow=0.30 HeavyMemberShare=0.20 HeavyInvoiceShare=0.60 HomeBranchShare=0.85 DiscountLineShare=0.20 PeakShare=0.35 CountTolerancePct=2 DistTolerancePP=2 LinesMeanTolerance=0.05 Demo70k=1 SkewCheck=1 MaxGrantPercent=2 -i tests/db/seed/T-SEED_dataset_checks.sql
+Warning: Null value is eliminated by an aggregate or other SET operation.
+== Results ==
+test_id|check_id|result|descr|detail
+-------|--------|------|-----|------
+T-SEED-01|C01|PASS|INVOICE per local month = InvoicesPerMonth x day weights (exact)|2025-01=27000/27000 2025-02=27000/27000 2025-03=27000/27000
+T-SEED-01|C02|PASS|INVOICE_PRODUCT_ITEM within tolerance of N x (1 - service share) x 2.75|actual=178518 expected=178200 tol%=2
+T-SEED-01|C03|PASS|INVOICE_SERVICE_ITEM within tolerance of N x service share|actual=16268 expected=16200 tol%=2
+T-SEED-01|C04|PASS|RQ-A06 demonstration tables >= 70,000 rows (Demo70k: 1 = INVOICE, product lines; 2 = also monthly spending)|INVOICE=81000 INVOICE_PRODUCT_ITEM=178518 INVOICE_SERVICE_ITEM=16268 MEMBER_MONTHLY_SPENDING=42059 Demo70k=1
+T-SEED-01|C05|PASS|TEST_ONLY fixture key rows = profile|MEMBER=30000 BRANCH=12 EMPLOYEE=120 SERVICE_PLAN=30 PRODUCT=200
+T-SEED-02|C06|PASS|No orphan rows on the 8 foreign keys (explicit anti-joins)|orphans=0
+T-SEED-02|C07|PASS|8 FK and 13 CHECK constraints enabled and trusted|fk_trusted=8 check_trusted=13 disabled_or_untrusted=0
+T-SEED-02|C08|PASS|All 13 CHECK definitions re-evaluated on every row: no violation|constraints=13 violations=0
+T-SEED-02|C09|PASS|Every invoice has at least one line (BR12)|invoices_without_lines=0
+T-SEED-02|C10|PASS|Line numbers 1..n per invoice; no line number used in both item tables|violations=0
+T-SEED-02|C11|PASS|No duplicate monthly aggregate key (Member_ID, SpendingMonth)|duplicate_keys=0
+T-SEED-02|C12|PASS|Fixtures still key-only (5 tables x 1 column) and marked TEST_ONLY_FIXTURE|fixture_columns=5 marked=5
+T-SEED-02|C13|PASS|Schema unchanged by seeding: 9 tables, no nonclustered index, view, routine, trigger or partition function (B0)|extra_objects=0
+T-SEED-03|C14|PASS|CANCELLED share|actual%=2.000 configured%=2 tol_pp=2.000
+T-SEED-03|C15|PASS|PENDING share among non-cancelled invoices of the pending window|actual%=29.785 configured%=30 n=2602 tol_pp=3.593 window_from=2025-03-29
+T-SEED-03|C16|PASS|PENDING invoices exist only in the last days of the dataset|pending_outside_window=0
+T-SEED-03|C17|PASS|Payment method mix of PAID invoices (CASH 40 / VNPAY 35 / CARD 25)|CASH%=39.911 VNPAY%=35.061 CARD%=25.028 tol_pp=2.000
+T-SEED-03|C18|PASS|Service-invoice share|actual%=20.084 configured%=20 tol_pp=2.000
+T-SEED-03|C19|PASS|Mean lines per product invoice (configured 2.75)|actual=2.7578 tolerance=0.0500
+T-SEED-03|C20|PASS|Branch shares vs weights (3 large 1.5 / 6 medium 1.0 / 3 small 0.5); max deviation in pp|max_dev_pp=0.495 branch:actual/expected% 1:13.00/12.50 2:12.39/12.50 3:12.45/12.50 4:8.51/8.33 5:8.02/8.33 6:8.39/8.33 7:8.09/8.33 8:8.46/8.33 9:8.31/8.33 10:4.02/4.17 11:4.34/4.17 12:4.02/4.17
+T-SEED-03|C21|PASS|Member skew: share of invoices from the top 20% of members (configured heavy share; tolerance 5 pp)|top20%_share%=60.942 configured%=60 members_with_invoices=23641 of 30000
+T-SEED-03|C22|PASS|Share of discounted lines|actual%=19.972 configured%=20 tol_pp=2.000
+T-SEED-03|C23|PASS|Issue times within opening hours 06:00-22:00 local; evening-peak (17:00-20:00) share|outside_hours=0 peak%=47.315 expected%=47.188
+T-SEED-04|C24|PASS|PAID: PaidAt and method set, PaidAt >= IssuedAt; PENDING/CANCELLED: no PaidAt, no method (D-005)|violations=0
+T-SEED-04|C25|PASS|All IssuedAt and PaidAt inside the dataset range (UTC bounds of the local range)|outside=0 utc_range=[2024-12-31 17:00:00.000, 2025-03-31 17:00:00.000)
+T-SEED-04|C26|PASS|Issue-to-payment delay at most 24 h|over_24h=0 max_delay_ms=43129161
+T-SEED-05|C27|PASS|Boundary rows at 23:59:59.999, 00:00:00.000 and 03:30 local for every month boundary (only 23:59:59.999 at the range end)|boundaries=3 (end=1) missing=0
+T-SEED-05|C28|PASS|Payments at 00:00-06:59 local on the 1st (UTC month = previous month) exist and are counted in the local month|rows=69 counted_in_local_month=69
+V-TOT|C29|PASS|Gross = sum of line gross, Discount = sum of line discounts, Final = Gross - Discount (D-023)|mismatching_invoices=0
+T-REC-01|C30|PASS|(member, month): TotalSpend = sum of FinalAmount of PAID invoices in the local month of PaidAt; no missing or extra rows|mismatches=0
+T-REC-01|C31|PASS|UpdatedAt = last PaidAt of the member-month (generator convention)|mismatches=0
+T-REC-02|C32|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per member-month|mismatches=0
+T-REC-02|C33|PASS|Incremental replay (each PAID invoice in PaidAt order adds new floor - previous floor) = PointsEarned|mismatches=0
+T-REC-02|C34|INFO|D-006 effect: monthly-cumulative points vs a per-invoice floor; spending residual not carried to the next month|points_monthly_rule=1521353 points_if_per_invoice=1507902 residual_vnd_not_carried=1876571100
+== Row counts ==
+tbl|row_count
+---|---------
+INVOICE|81000
+INVOICE_SERVICE_ITEM|16268
+INVOICE_PRODUCT_ITEM|178518
+MEMBER_MONTHLY_SPENDING|42059
+MEMBER (fixture keys)|30000
+BRANCH (fixture keys)|12
+EMPLOYEE (fixture keys)|120
+SERVICE_PLAN (fixture keys)|30
+PRODUCT (fixture keys)|200
+== Distribution report ==
+PaymentStatus|PaymentMethod|invoices|final_amount
+-------------|-------------|--------|------------
+CANCELLED|NULL|1620|3172897100.00
+PAID|CARD|19673|38363801150.00
+PAID|CASH|31372|61607358000.00
+PAID|VNPAY|27560|54040711950.00
+PENDING|NULL|775|1509777750.00
+spending_month|member_months|total_spend|points
+--------------|-------------|-----------|------
+2025-01|13994|52067432950.00|514380
+2025-02|14146|51559990150.00|509274
+2025-03|13919|50384448000.00|497699
+min_final|max_final|avg_final|min_invoices_per_active_member|max_invoices_per_member|members_with_invoices
+---------|---------|---------|------------------------------|-----------------------|---------------------
+16000.00|15954100.00|1959191.93|1|21|23641
+== Storage (sys.dm_db_partition_stats, sys.database_files) ==
+tbl|row_count|reserved_pages|reserved_mb|data_pages
+---|---------|--------------|-----------|----------
+BRANCH|12|9|.07|1
+EMPLOYEE|120|9|.07|1
+INVOICE|81000|833|6.51|819
+INVOICE_PRODUCT_ITEM|178518|921|7.20|907
+INVOICE_SERVICE_ITEM|16268|105|.82|95
+MEMBER|30000|65|.51|49
+MEMBER_MONTHLY_SPENDING|42059|201|1.57|188
+PRODUCT|200|9|.07|1
+SERVICE_PLAN|30|9|.07|1
+type_desc|allocated_mb|used_mb
+---------|------------|-------
+LOG|8.00|1.44
+ROWS|72.00|21.25
+T-SEED SUMMARY: checks=34 PASS=33 FAIL=0 INFO=1
+T-SEED_RESULT: PASS
+exit code: 0; elapsed_ms: 5074
+
+---- 8 T-REPRO-02 checksums  (UTC 2026-11-08 03:45:11)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P2 -v MaxGrantPercent=2 -i tests/db/seed/T-REPRO-02_checksums.sql
+tbl|row_count|sha256
+---|---------|------
+INVOICE|81000|AE037ACEC421BE4D19F191EB3D6A32547B16F8F1E3E557982A38FB92218E6DD9
+INVOICE_SERVICE_ITEM|16268|D1512D727D934E1F4008D33147380DADACF818C355633E5713D86259D8B4E80F
+INVOICE_PRODUCT_ITEM|178518|C5BAC29848437AC0B76AF6F7139A1C6AC24F787691045F1C5DF5EE7C1E39C7CB
+MEMBER_MONTHLY_SPENDING|42059|A802B8CB58C492E7842326BFA4D1E470A659466863AD6A601AC2C40C0ADDBDF4
+MEMBER (TEST_ONLY keys)|30000|B876C95BA3DFAF2B11377790815E242164DE5963E015BD5BBB7793D5DFC6E062
+BRANCH (TEST_ONLY keys)|12|7909937ABE135B51143FAF006BA1713D4C139E3337325AD10F9B81807CD66786
+EMPLOYEE (TEST_ONLY keys)|120|1C4732EAF0B754EF54C34467457CBBE4D233B277B73E72505AAEF7DBB4C5BD08
+SERVICE_PLAN (TEST_ONLY keys)|30|A8DA6DC1099B8B38805D26F04C1E8A49B9D3870506F9586535105A3C3BE64FDB
+PRODUCT (TEST_ONLY keys)|200|2066223C021D5FE0C60E02FCC68BFE6F618DE108F9E5AFC21200D86B620C305B
+item|sha256
+----|------
+DATASET_CHECKSUM|3C056B7A7F0FFB8DE0C4A24474AFAEED80DE6B728F9CE834F34C3A752B33D85C
+exit code: 0; elapsed_ms: 2501
+
+---- 9 instance fingerprint after  (UTC 2026-11-08 03:45:13)
+Command: sqlcmd -S localhost -E -I -b -W -s | -v TargetDb=FitLife_P3_P2 -i tests/db/build/fingerprint_instance.sql
+== F1. Databases other than tempdb and FitLife_P3_P2 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+exit code: 0; elapsed_ms: 365
+
+FINGERPRINT_COMPARE: IDENTICAL (no other database changed)
+RESULTS: preflight=PASS; build=OK; fixture_rows=OK; generator=OK; T-SCH-02=PASS; T-SEED=PASS; checksums=OK; other_databases_unchanged=PASS
+P2-RUN_RESULT: PASS

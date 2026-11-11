@@ -1,0 +1,93 @@
+"""ACCEPT-P3-03C: read-only Owner-acceptance check of WO-P3-P3-03 Part C (Owner Directive "Accept P3 Correctness &
+Unblock Performance", 2026-11-10, section 2). Re-validates the recorded evidence; re-runs NO test; changes nothing."""
+from pathlib import Path
+import hashlib, re, subprocess, datetime, os
+
+ROOT = Path(r'C:\Users\DELL\source\repos\CSDLNC-DA')
+EV = ROOT / 'docs/phase2/person3/evidence/test-results'
+UTC = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')
+LOG = EV / f'ACCEPT-P3-03C__{UTC}.txt'
+RUN = '20261110-0737'
+res = []
+MASK = [m for m in {os.environ.get('COMPUTERNAME', '')} if len(m) > 2]
+
+
+def hide(s):
+    for m in MASK:
+        s = re.sub(re.escape(m), '<local-server>', s, flags=re.I)
+    return s
+
+
+def log(s):
+    with LOG.open('a', encoding='utf-8') as f:
+        f.write(hide(str(s)) + '\n')
+
+
+def check(name, ok, detail=''):
+    res.append(bool(ok))
+    line = f'{"PASS" if ok else "FAIL"} | {name} | {detail}'
+    log(line)
+    print(hide(line), flush=True)
+
+
+def rd(fn):
+    p = EV / fn
+    return p.read_text(encoding='utf-8-sig', errors='replace') if p.exists() else ''
+
+
+log('ACCEPT-P3-03C - Owner acceptance check of WO-P3-P3-03 Part C (read-only; no test re-run, no deployment, no data or setting change).')
+log(f'UTC started: {UTC}; final Part C run P3-03-RUN__{RUN}; R-27 OPEN; no timing in this log.')
+log('Branch: ' + subprocess.check_output(['git', 'branch', '--show-current'], cwd=ROOT, text=True).strip()
+    + '; HEAD: ' + subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip())
+try:
+    run = rd(f'P3-03-RUN__{RUN}.txt')
+    steps = re.findall(r'^STEP (\S+) (PASS|FAIL):', run, re.M)
+    check('E1 Final run: 100 steps, all PASS, run result PASS, no stage stopped',
+          len(steps) == 100 and all(v == 'PASS' for _, v in steps) and 'P3-03-RUN_RESULT: PASS' in run and 'stage stopped early: False' in run,
+          f'{len(steps)} steps; FAIL {sum(v == "FAIL" for _, v in steps)}')
+    files = {f'T-F05-CREATE__{RUN}.txt': 'T-F05_RESULT: PASS', f'T-F05S-SETTLE__{RUN}.txt': 'T-F05S_RESULT: PASS',
+             f'T-F05-U0__{RUN}.txt': 'T-F05-U0_RESULT: PASS', f'T-F05L__{RUN}.txt': 'T-F05L_RESULT: PASS',
+             f'T-CONC-06__{RUN}_R.txt': 'T-CONC-06_RESULT: PASS', f'T-WF-01__{RUN}.txt': 'T-WF-01_RESULT: PASS',
+             f'T-CONC-04R__{RUN}.txt': 'T-CONC-04R_RESULT: PASS', f'T-CONC-07__{RUN}.txt': 'T-CONC-07_RESULT: PASS',
+             f'T-CONC-08__{RUN}.txt': 'T-CONC-08_RESULT: PASS', f'T-REC-05__{RUN}_regression.txt': 'T-REC-05_RESULT: PASS',
+             f'T-REC-05__{RUN}_workflow.txt': 'T-REC-05_RESULT: PASS'}
+    for lbl in 'ABC':
+        files[f'T-CONC-01__{RUN}_{lbl}.txt'] = 'T-CONC-01_RESULT: PASS'
+        files[f'T-CONC-02__{RUN}_{lbl}.txt'] = 'T-CONC-02_RESULT: PASS'
+        files[f'T-CONC-04F__{RUN}_{lbl}.txt'] = 'T-CONC-04F_RESULT: PASS'
+    bad = [fn for fn, pat in files.items() if pat not in rd(fn)]
+    check('E2 Every per-test evidence file of the final run present with its PASS result', not bad, f'{len(files)} files; missing/failed={bad}')
+    t01 = [re.search(r'PAID (\d+), CANCELLED (\d+)', rd(f'T-CONC-01__{RUN}_{l}.txt')) for l in 'ABC']
+    check('E3 T-CONC-01 executed 3 times (WO §8) with exactly one winner per invoice', all(t01), '; '.join(m.group(0) for m in t01 if m))
+    t08 = rd(f'T-CONC-08__{RUN}.txt')
+    check('E4 Settlement vs cancellation covered in both winning orders (T-CONC-08)', t08.count('CancelFirst invoice') == 3 and t08.count('SettleFirst invoice') == 3 and 'C2 PASS' in t08)
+    wf = rd(f'T-WF-01__{RUN}.txt')
+    check('E5 Integrated workflow W1-W11 all PASS', all(re.search(rf'^W{i} PASS', wf, re.M) for i in range(1, 12)), 'T-WF-01 SUMMARY: ' + (re.search(r'checks=\d+ FAIL=\d+', wf).group(0) if re.search(r'checks=\d+ FAIL=\d+', wf) else 'missing'))
+    r = rd(f'T-CONC-04R__{RUN}.txt')
+    check('E6 Reports vs settlement: no dirty read (R1 x10, R2-C2), SERIALIZABLE case', len(re.findall(r'^  R1-\d+ PASS', r, re.M)) == 10 and 'R2-C2 PASS' in r and re.search(r'^  R3 PASS', r, re.M) is not None)
+    zs = [s for s, _ in steps if s.startswith('Z')]
+    check('E7 Preservation: fingerprint unchanged; FitLife_P3_P2 and FitLife_P3_UC05L DS-L checksum = run C', len(zs) == 3, ', '.join(zs))
+    entries = re.findall(r'^\s+([A-F0-9]{64})\s+((?:db|tests)/\S+)', run, re.M)
+    mism = [p for h, p in entries if hashlib.sha256((ROOT / p).read_bytes()).hexdigest().upper() != h]
+    check('S1 Every script hash recorded in the final run = current file (nothing changed since)', len(entries) >= 40 and not mism, f'{len(entries)} files; mismatches={mism}')
+    t0 = datetime.datetime(2026, 11, 10, 7, 37, 0, tzinfo=datetime.timezone.utc).timestamp()
+    newer = sorted(p.relative_to(ROOT).as_posix() for d in ('db', 'tests') for p in (ROOT / d).rglob('*') if p.is_file() and p.stat().st_mtime > t0)
+    check('S2 No file under db/ or tests/ modified after the final run started', not newer, f'newer={newer}')
+    t02 = datetime.datetime(2026, 11, 10, 2, 6, 20, tzinfo=datetime.timezone.utc).timestamp()
+    dbchg = sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / 'db').rglob('*') if p.is_file() and p.stat().st_mtime > t02)
+    check('S3 No production file under db/ changed by WO-P3-P3-03 (no routine modified)', not dbchg, f'changed={dbchg}')
+    kept = [fn for fn in ('P3-03-RUN__20261110-0724.txt', 'P3-03-RUN__20261110-0728.txt') if (EV / fn).exists()]
+    check('S4 Earlier runs retained (0724 FAIL, 0728 PASS)', len(kept) == 2 and 'P3-03-RUN_RESULT: FAIL' in rd('P3-03-RUN__20261110-0724.txt') and 'P3-03-RUN_RESULT: PASS' in rd('P3-03-RUN__20261110-0728.txt'), ', '.join(kept))
+    wo = (ROOT / 'docs/phase2/person3/work-orders/WO-P3-P3-03_UC05_VERIFICATION.md').read_text(encoding='utf-8')
+    check('S5 Execution record present: §2a amendment, §13.3 criterion table, §13.6 boundary', all(x in wo for x in ('## 2a. Limited-scope amendment', '### 13.3 Acceptance evidence', '### 13.6 Completion boundary')))
+    p = subprocess.run(['sqlcmd', '-S', 'localhost', '-E', '-I', '-b', '-W', '-l', '10', '-d', 'FitLife_P3_UC05', '-i', 'tests/db/schema/catalog_digest.sql'], cwd=ROOT, capture_output=True)
+    m = re.search(r'CATALOG_DIGEST\|([A-F0-9]{64})', p.stdout.decode('utf-8', errors='replace'))
+    check('D1 FitLife_P3_UC05 catalog still = the verified final routine set (read-only)', m is not None and m.group(1) == 'DDCAA7E8F3FCD3AEFEC76185FB2990BB29C0FBA8749E444367CA6608542DC57B', m.group(1) if m else 'missing')
+except Exception as e:  # noqa: BLE001
+    check('Execution', False, str(e))
+finally:
+    s = f'ACCEPT-P3-03C SUMMARY: checks={len(res)} PASS={sum(res)} FAIL={len(res) - sum(res)}'
+    log(s)
+    log('ACCEPT-P3-03C_RESULT: ' + ('PASS' if res and all(res) else 'FAIL'))
+    print(s)
+    print('LOG=' + str(LOG))

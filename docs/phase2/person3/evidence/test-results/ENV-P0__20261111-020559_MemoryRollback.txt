@@ -1,0 +1,35 @@
+﻿ENV-P0 - WO-P3-P0-02 (amended 2026-11-10), stage MemoryRollback. Benchmark instance BM-1 = localhost\MSSQLSERVER01. Started (UTC) 2026-11-11 02:05:59.
+Runner SHA-256: 74AA3DD1B40D623884371A22F7E87F475175832CDAF2624DC979737C72CF71A4
+Identity: ID|MSSQLSERVER01|MSSQLSERVER01|17.0.1000.7|Standard Developer Edition (64-bit)|2|local|1
+G0 PASS  Connection reaches service MSSQLSERVER01 on the local computer (not the default instance)
+G1 PASS  Engine 17.0.1000.7, Standard Developer Edition, EngineEdition 2; current login is sysadmin
+-- BM-1 BEFORE rollback configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2048|2048
+  CFG|min server memory (MB)|1024|1024
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|878|Physical memory usage is steady
+  PROC|286|0|0
+  SYSINFO|532|1024|CONVENTIONAL
+  SEM|646|735|2
+  Configuration option 'show advanced options' changed from 0 to 1. Run the RECONFIGURE statement to install.
+  Configuration option 'min server memory (MB)' changed from 1024 to 0. Run the RECONFIGURE statement to install.
+  Configuration option 'max server memory (MB)' changed from 2048 to 2147483647. Run the RECONFIGURE statement to install.
+  Configuration option 'show advanced options' changed from 1 to 0. Run the RECONFIGURE statement to install.
+-- BM-1 AFTER rollback configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2147483647|2147483647
+  CFG|min server memory (MB)|0|16
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|866|Physical memory usage is steady
+  PROC|293|0|0
+  SYSINFO|532|1024|CONVENTIONAL
+  SEM|646|735|2
+R1 PASS  BM-1 memory settings restored (configured min 0, max 2147483647)
+
+ENV-P0 MemoryRollback SUMMARY: checks 3; FAIL 0; finished (UTC) 2026-11-11 02:06:00
+ENV-P0_MemoryRollback_RESULT: PASS

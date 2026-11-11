@@ -1,0 +1,17 @@
+Targeted retry of T-REC-01/02/04 on preserved FitLife_P3_UC05L. Previous recovery attempt timed out at 180 seconds; allowance 600 seconds. Same script, data and assertions; read-only. R-27 not investigated; no performance conclusion.
+check_id|result|descr|detail
+--------|------|-----|------
+T-REC-01|PASS|Monthly spending = PAID invoices per local month (independent AT TIME ZONE oracle)|mismatched member-months: 0 (missing row 0, row without PAID invoices 0); spending rows 169040; PAID invoices 316660
+T-REC-02|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per row; CurrentPoints = SUM(PointsEarned) per member|rows violating the point rule: 0; members with CurrentPoints <> SUM(PointsEarned): 0; members 30000; total points 6110230
+T-REC-04|PASS|Tier_ID = tier computed independently from INVOICE for the twelve local months ending with the as-of month (D-007, D-008 rule)|as of 2026-01-15 (window 2025-02-01 .. 2026-01-01); members with a wrong tier: 0
+-- tier distribution (context) --
+Tier_ID|Tier_Name|SpendingThreshold|members
+-------|---------|-----------------|-------
+1|Silver|.00|679
+2|Gold|1000000.00|1956
+3|Platinum|3000000.00|27365
+T-REC_loyalty SUMMARY: as-of 2026-01-15; checks=3 FAIL=0
+T-REC_loyalty_RESULT: PASS
+
+SQLCMD_EXIT=0
+TARGETED_RECHECK_RESULT: PASS

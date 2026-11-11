@@ -1,0 +1,89 @@
+﻿UC06-REF - WO-P3-P4-01 Part F: DIAGNOSTIC_ONLY reference capture of the UC06 report routines on DS-L (FitLife_P3_UC05L). Run 20261110-0153.
+Captured (UTC): 2026-11-10 01:57:50; SQL Server 17.0.1000.7 Standard Developer Edition (64-bit); compatibility level 160; invoices 324000; non-PK indexes 0
+Status: REFERENCE material, NOT a baseline and NOT a benchmark. Timing: NOT recorded (R-27 OPEN). No UPDATE STATISTICS, no index, no setting change.
+The formal B0 baseline of the frozen queries Q-UC06-* belongs to WO-P3-P2-02; index decisions belong to WO-P3-P4-01 Part X.
+Query definitions: db/procedures/usp_P3_RevenueReports.sql SHA-256 1B262CA819087C632AE73939B5EF3CCDBBC8FA494AD7C5E272D67E6A4410D128
+  tvf_P3_ReportPeriodStart definition SHA-256 C249859F95E9B62DEAEF91CC0ACCEC0642045CCC3F79A75657EFEAE8DA8BB674
+  tvf_P3_ReportPeriodUtc definition SHA-256 9A639B5E2F04F71D37F6F50EF29383A1DF1D0C7B91BD4914D0A29C8A556FA030
+  usp_P3_RptBranchRevenue definition SHA-256 1C0C1FDF6456FE43658EEAF57E8EC594DE80C84D5C610DAF75E2C28BB29F6098
+  usp_P3_RptBranchRevenueByPeriod definition SHA-256 39A8B02D0B15E35093A281BCC53BC1DF024080BCA96C538D2A8D9FC274075654
+  usp_P3_RptSystemRevenue definition SHA-256 FFAA1E63F95695F894E6C73E6A588A928B0C4DC181FA43F19B6E8C3D0AD44CBC
+  usp_P3_RptSystemRevenueByBranch definition SHA-256 CC084668BD40E789F424C4BAE7FAB99C405144AB231BF1E0C7FCC85E76DFA068
+  usp_P3_RptSystemRevenueByPeriod definition SHA-256 849EED36449A3309CECE6B9DBB33707C55CAFC69ADEA321FB4754D6BDFA7D260
+
+== Existing index inventory and size of the P3 tables (sys.indexes, sys.dm_db_partition_stats) ==
+table|index|type|is_primary_key|is_unique|key_columns|included_columns|filter|rows|used_pages
+BRANCH|PK_BRANCH|CLUSTERED|True|True|Branch_ID|-|-|12|2
+INVOICE|PK_INVOICE|CLUSTERED|True|True|Invoice_ID|-|-|324000|3281
+INVOICE_PRODUCT_ITEM|PK_INVOICE_PRODUCT_ITEM|CLUSTERED|True|True|Invoice_ID,LineNo|-|-|712789|3628
+INVOICE_SERVICE_ITEM|PK_INVOICE_SERVICE_ITEM|CLUSTERED|True|True|Invoice_ID,LineNo|-|-|65177|381
+MEMBER_MONTHLY_SPENDING|PK_MEMBER_MONTHLY_SPENDING|CLUSTERED|True|True|Member_ID,SpendingMonth|-|-|169040|759
+
+== RPT-01 P1: dbo.usp_P3_RptBranchRevenue
+   parameters: @Branch_ID=1, @FromDate=2025-06-01, @ToDate=2025-07-01
+   result rows 1; ordered-result SHA-256 112811DBF4D3D35E95A0648E9826AC8B1302794E23B224A24581ECFE9099B8AF
+   logical reads on INVOICE 3281; STATISTICS IO (raw, all statements of the routine):
+     Table 'BRANCH'. Scan count 0, logical reads 2, physical reads 1, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'INVOICE'. Scan count 1, logical reads 3281, physical reads 114, page server reads 0, read-ahead reads 3277, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-01__DS-L__P1__20261110-0153.sqlplan; physical operators: Compute Scalar > Compute Scalar > Stream Aggregate > Clustered Index Scan
+
+== RPT-01 P2: dbo.usp_P3_RptBranchRevenue
+   parameters: @Branch_ID=12, @FromDate=2025-01-01, @ToDate=2026-01-01
+   result rows 1; ordered-result SHA-256 7FF0B0A464A73CF4C9857C52A840F1F933BDA750AD0AE9F6D8A44E39D9CD1B32
+   logical reads on INVOICE 3281; STATISTICS IO (raw, all statements of the routine):
+     Table 'BRANCH'. Scan count 0, logical reads 2, physical reads 1, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'INVOICE'. Scan count 1, logical reads 3281, physical reads 407, page server reads 0, read-ahead reads 3277, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-01__DS-L__P2__20261110-0153.sqlplan; physical operators: Compute Scalar > Compute Scalar > Stream Aggregate > Clustered Index Scan
+
+== RPT-02T P1: dbo.usp_P3_RptSystemRevenue
+   parameters: @FromDate=2025-06-01, @ToDate=2025-07-01
+   result rows 1; ordered-result SHA-256 F9A9F2198BE562072EFCE8FEB4B26F860740BA95AB7D08E1A2AD7741612125F3
+   logical reads on INVOICE 3281; STATISTICS IO (raw, all statements of the routine):
+     Table 'INVOICE'. Scan count 1, logical reads 3281, physical reads 516, page server reads 0, read-ahead reads 3277, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-02T__DS-L__P1__20261110-0153.sqlplan; physical operators: Compute Scalar > Compute Scalar > Stream Aggregate > Clustered Index Scan
+
+== RPT-02 P1: dbo.usp_P3_RptSystemRevenueByBranch
+   parameters: @FromDate=2025-06-01, @ToDate=2025-07-01
+   result rows 12; ordered-result SHA-256 C373ACFE19E9947ECAD8528385857228026AC49BB74AF3B0AFAA7BF2DEA20954
+   logical reads on INVOICE 3281; STATISTICS IO (raw, all statements of the routine):
+     Table 'Worktable'. Scan count 3, logical reads 29, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'INVOICE'. Scan count 1, logical reads 3281, physical reads 494, page server reads 0, read-ahead reads 2972, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-02__DS-L__P1__20261110-0153.sqlplan; physical operators: Compute Scalar > Nested Loops > Table Spool > Segment > Sort > Hash Match > Clustered Index Scan > Nested Loops > Compute Scalar > Stream Aggregate > Table Spool > Table Spool
+
+== RPT-02 P2: dbo.usp_P3_RptSystemRevenueByBranch
+   parameters: @FromDate=2025-01-01, @ToDate=2026-01-01
+   result rows 12; ordered-result SHA-256 D402429B2685666F14E55F63B4D9DEB4F57263FD2F583BAAB65AB98A015599DD
+   logical reads on INVOICE 3281; STATISTICS IO (raw, all statements of the routine):
+     Table 'Worktable'. Scan count 3, logical reads 29, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'INVOICE'. Scan count 1, logical reads 3281, physical reads 597, page server reads 0, read-ahead reads 3277, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-02__DS-L__P2__20261110-0153.sqlplan; physical operators: Compute Scalar > Nested Loops > Table Spool > Segment > Sort > Hash Match > Clustered Index Scan > Nested Loops > Compute Scalar > Stream Aggregate > Table Spool > Table Spool
+
+== RPT-03 P1: dbo.usp_P3_RptBranchRevenueByPeriod
+   parameters: @Branch_ID=1, @FromDate=2025-06-01, @ToDate=2025-07-01, @Grain=DAY
+   result rows 30; ordered-result SHA-256 B8AE127ACBEF0A6D568581B8129CCB6845362071BCDE0D496CE6879099484B0A
+   logical reads on INVOICE 3281; STATISTICS IO (raw, all statements of the routine):
+     Table 'BRANCH'. Scan count 0, logical reads 2, physical reads 1, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'INVOICE'. Scan count 1, logical reads 3281, physical reads 14, page server reads 0, read-ahead reads 3277, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-03__DS-L__P1__20261110-0153.sqlplan; physical operators: Stream Aggregate > Sort > Compute Scalar > Clustered Index Scan
+
+== RPT-04B P1: dbo.usp_P3_RptBranchRevenueByPeriod
+   parameters: @Branch_ID=1, @FromDate=2025-01-01, @ToDate=2026-01-01, @Grain=MONTH
+   result rows 12; ordered-result SHA-256 B1CE4A6648726803A3F5CF666A3F4E0C95EE95C38BFE0BFA751AFF0C66EA0C81
+   logical reads on INVOICE 3281; STATISTICS IO (raw, all statements of the routine):
+     Table 'BRANCH'. Scan count 0, logical reads 2, physical reads 1, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, page server reads 0, read-ahead reads 97, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'INVOICE'. Scan count 1, logical reads 3281, physical reads 170, page server reads 0, read-ahead reads 3277, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-04B__DS-L__P1__20261110-0153.sqlplan; physical operators: Stream Aggregate > Sort > Compute Scalar > Clustered Index Scan
+
+== RPT-04S P1: dbo.usp_P3_RptSystemRevenueByPeriod
+   parameters: @FromDate=2025-01-01, @ToDate=2026-01-01, @Grain=QUARTER
+   result rows 48; ordered-result SHA-256 555388E5C17813A92570B3D720E3C9D5E9FC44A2E82EF38B537C3520A747A855
+   logical reads on INVOICE 3441; STATISTICS IO (raw, all statements of the routine):
+     Table 'INVOICE'. Scan count 9, logical reads 3441, physical reads 200, page server reads 0, read-ahead reads 3064, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'Worktable'. Scan count 20, logical reads 116, physical reads 0, page server reads 0, read-ahead reads 2403, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan of the INVOICE statement: execution-plans/UC06-REF__RPT-04S__DS-L__P1__20261110-0153.sqlplan; physical operators: Parallelism > Nested Loops > Table Spool > Segment > Parallelism > Stream Aggregate > Sort > Parallelism > Compute Scalar > Clustered Index Scan > Nested Loops > Compute Scalar > Stream Aggregate > Table Spool > Table Spool
+
+UC06-REF_RESULT: CAPTURED (8 of 8 plans; logical reads, row counts, index inventory; no timing; DIAGNOSTIC_ONLY)

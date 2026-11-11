@@ -1,0 +1,75 @@
+﻿ENV-INVENTORY - read-only infrastructure inventory for the R-27 benchmark environment decision. Captured (UTC) 2026-11-10 08:06:35.
+Nothing was changed: no service, setting, database, power plan or file outside this log. No LAN/network discovery was performed (other machines are not visible from this session).
+
+== H1. Machine ==
+CPU 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz; cores 4; logical 8; max clock 2419 MHz
+RAM 7.7 GB; free now 0.62 GB; commit in use 19.6 of 23.3 GB
+OS Microsoft Windows 10 Pro build 19044; hypervisor present True
+Disk: NVMe PC SN530 NVMe WDC 256GB; 238 GB; Fixed hard disk media
+Battery: BatteryStatus 2 (2 = on AC); charge 94%
+Active power scheme: (Balanced)
+
+== H2. Heaviest process groups (working set, MB; context for gate E2) ==
+chrome x22: 1783
+Code x17: 1067
+claude x5: 465
+svchost x88: 465
+ChatGPT x14: 321
+Memory Compression x1: 186
+Zalo x8: 179
+MsMpEng x1: 171
+powershell x4: 156
+sqlservr x2: 139
+
+== H3. SQL Server and virtualisation services ==
+LxssManager | Stopped | Manual
+LxssManagerUser_e0b7da5 | Stopped | Manual
+MSSQL$MSSQLSERVER01 | Running | Automatic
+MSSQLSERVER | Running | Automatic
+SQLAgent$MSSQLSERVER01 | Stopped | Manual
+SQLBrowser | Running | Automatic
+SQLTELEMETRY | Running | Automatic
+SQLTELEMETRY$MSSQLSERVER01 | Running | Automatic
+SQLWriter | Running | Automatic
+vmcompute | Stopped | Manual
+WSLService | Running | Automatic
+Installed instances (registry):
+  MSSQLSERVER -> MSSQL17.MSSQLSERVER
+  MSSQLSERVER01 -> MSSQL17.MSSQLSERVER01
+Tool docker: not found
+Tool wsl: present
+Tool sqllocaldb: present
+Tool az: not found
+WSL distributions:   NAME      STATE           VERSION / * Ubuntu    Stopped         2
+
+== S. Instance <local-server> (read-only) ==
+ID|MSSQLSERVER|17.0.1000.7|Standard Developer Edition (64-bit)|2
+CFG|cost threshold for parallelism|5
+CFG|max degree of parallelism|8
+CFG|max server memory (MB)|2147483647
+CFG|min server memory (MB)|16
+CFG|optimize for ad hoc workloads|0
+USERDB_TOTAL|8
+P3_DB|FitLife_P3_P1|160|0
+P3_DB|FitLife_P3_P2|160|0
+P3_DB|FitLife_P3_UC05|160|0
+P3_DB|FitLife_P3_UC05L|160|0
+MEM|7914|629|Physical memory usage is steady
+PROC|90|1
+SEM_DEFAULT_POOL|9|302|152
+STARTED|2026-10-27 22:31:45
+
+== S. Instance <local-server>\MSSQLSERVER01 (read-only) ==
+ID|MSSQLSERVER01|17.0.1000.7|Standard Developer Edition (64-bit)|2
+CFG|cost threshold for parallelism|5
+CFG|max degree of parallelism|8
+CFG|max server memory (MB)|2147483647
+CFG|min server memory (MB)|16
+CFG|optimize for ad hoc workloads|0
+USERDB_TOTAL|0
+MEM|7914|631|Physical memory usage is steady
+PROC|62|1
+SEM_DEFAULT_POOL|5|180|2
+STARTED|2026-10-27 22:34:23
+
+Gate snapshot vs WO-P3-P2-02 Â§2a at capture time: E1 power = see H1; E2 requires >= 2,048 MB available and process_physical_memory_low = 0 (see MEM/PROC rows).

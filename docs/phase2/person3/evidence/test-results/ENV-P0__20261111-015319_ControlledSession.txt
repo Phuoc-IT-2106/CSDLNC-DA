@@ -1,0 +1,30 @@
+﻿2026-11-11 01:53:19 UTC Authority WO-P3-P0-02 A1-A7, 2026-11-10. BM-1=localhost\MSSQLSERVER01 only. Original actual overlay=00000000-0000-0000-0000-000000000000. Plan unchanged. No application is closed by this driver.
+2026-11-11 01:53:19 UTC Owner confirmed preparation. Bounded wait: up to 12 min for AC, 10 clean minutes, free physical RAM >=2100 MB (E2 threshold stays 2048), low-memory flag 0, query semaphore >=256 MB. E6 campaign runs at most once.
+2026-11-11 01:53:20 UTC WAIT ac=Online free_mb=722 power_events_10min=2 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|649 ready=False
+2026-11-11 01:53:50 UTC WAIT ac=Online free_mb=722 power_events_10min=2 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|649 ready=False
+2026-11-11 01:54:21 UTC WAIT ac=Online free_mb=814 power_events_10min=2 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|643 ready=False
+2026-11-11 01:54:51 UTC WAIT ac=Online free_mb=747 power_events_10min=2 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|642 ready=False
+2026-11-11 01:55:22 UTC WAIT ac=Online free_mb=1119 power_events_10min=2 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|843 ready=False
+2026-11-11 01:55:52 UTC WAIT ac=Online free_mb=1040 power_events_10min=2 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|781 ready=False
+2026-11-11 01:56:22 UTC WAIT ac=Online free_mb=1141 power_events_10min=1 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|865 ready=False
+2026-11-11 01:56:53 UTC WAIT ac=Online free_mb=1037 power_events_10min=1 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|782 ready=False
+2026-11-11 01:57:23 UTC WAIT ac=Online free_mb=1144 power_events_10min=1 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|648 ready=False
+2026-11-11 01:57:53 UTC WAIT ac=Online free_mb=1001 power_events_10min=1 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|742 ready=False
+2026-11-11 01:58:24 UTC WAIT ac=Online free_mb=1003 power_events_10min=1 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|748 ready=False
+2026-11-11 01:58:54 UTC WAIT ac=Online free_mb=898 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|648 ready=False
+2026-11-11 01:59:24 UTC WAIT ac=Online free_mb=1054 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|796 ready=False
+2026-11-11 01:59:55 UTC WAIT ac=Online free_mb=946 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|648 ready=False
+2026-11-11 02:00:25 UTC WAIT ac=Online free_mb=1076 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|800 ready=False
+2026-11-11 02:00:55 UTC WAIT ac=Online free_mb=979 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|648 ready=False
+2026-11-11 02:01:26 UTC WAIT ac=Online free_mb=1075 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|799 ready=False
+2026-11-11 02:01:56 UTC WAIT ac=Online free_mb=932 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|648 ready=False
+2026-11-11 02:02:27 UTC WAIT ac=Online free_mb=1042 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|779 ready=False
+2026-11-11 02:02:57 UTC WAIT ac=Online free_mb=1056 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|785 ready=False
+2026-11-11 02:03:27 UTC WAIT ac=Online free_mb=1062 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|792 ready=False
+2026-11-11 02:03:58 UTC WAIT ac=Online free_mb=939 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|648 ready=False
+2026-11-11 02:04:28 UTC WAIT ac=Online free_mb=1031 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|776 ready=False
+2026-11-11 02:04:58 UTC WAIT ac=Online free_mb=965 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|648 ready=False
+2026-11-11 02:05:29 UTC WAIT ac=Online free_mb=1057 power_events_10min=0 event_read_ok=True BM1_low_sem=MSSQLSERVER01|0|793 ready=False
+2026-11-11 02:05:29 UTC PREFLIGHT_RESULT: BLOCKED; E6=NOT_RUN (failed standing preconditions, not a benchmark FAIL). No campaign consumed.
+2026-11-11 02:05:29 UTC A4_NOT_APPLIED; original power overlay retained.
+2026-11-11 02:05:29 UTC KEEP_AWAKE_RELEASED. Session driver ended.

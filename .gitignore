@@ -1,0 +1,33 @@
+# Proposed by Person 3 (WO-P3-P1-01, D-021 Part A); final content is a team decision (D-021 Part B).
+
+# SQL Server data, log, backup and export files
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.trn
+*.bacpac
+*.dacpac
+
+# generated large datasets and raw dumps (seed scripts are versioned, their output is not)
+db/seed/output/
+*.bcp
+*.dat
+*.zip
+*.7z
+*.rar
+
+# local configuration, credentials and machine-specific files
+.env
+.env.*
+*.local.*
+*.user
+.vs/
+.vscode/
+.claude/settings.local.json
+connectionstrings*.json
+
+# build output
+bin/
+obj/
+node_modules/

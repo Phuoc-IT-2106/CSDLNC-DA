@@ -1,0 +1,18 @@
+ACCEPT-P3-03C - Owner acceptance check of WO-P3-P3-03 Part C (read-only; no test re-run, no deployment, no data or setting change).
+UTC started: 20261110-080412; final Part C run P3-03-RUN__20261110-0737; R-27 OPEN; no timing in this log.
+Branch: p3/wo-p3-p1-01; HEAD: 792a85e0d5b9ce6acfe0ad91028ab49585aef601
+PASS | E1 Final run: 100 steps, all PASS, run result PASS, no stage stopped | 100 steps; FAIL 0
+PASS | E2 Every per-test evidence file of the final run present with its PASS result | 20 files; missing/failed=[]
+PASS | E3 T-CONC-01 executed 3 times (WO §8) with exactly one winner per invoice | PAID 19, CANCELLED 1; PAID 19, CANCELLED 1; PAID 20, CANCELLED 0
+PASS | E4 Settlement vs cancellation covered in both winning orders (T-CONC-08) | 
+PASS | E5 Integrated workflow W1-W11 all PASS | T-WF-01 SUMMARY: checks=11 FAIL=0
+PASS | E6 Reports vs settlement: no dirty read (R1 x10, R2-C2), SERIALIZABLE case | 
+PASS | E7 Preservation: fingerprint unchanged; FitLife_P3_P2 and FitLife_P3_UC05L DS-L checksum = run C | Z1, Z-FitLife_P3_P2, Z-FitLife_P3_UC05L
+PASS | S1 Every script hash recorded in the final run = current file (nothing changed since) | 41 files; mismatches=[]
+PASS | S2 No file under db/ or tests/ modified after the final run started | newer=[]
+PASS | S3 No production file under db/ changed by WO-P3-P3-03 (no routine modified) | changed=[]
+PASS | S4 Earlier runs retained (0724 FAIL, 0728 PASS) | P3-03-RUN__20261110-0724.txt, P3-03-RUN__20261110-0728.txt
+PASS | S5 Execution record present: §2a amendment, §13.3 criterion table, §13.6 boundary | 
+PASS | D1 FitLife_P3_UC05 catalog still = the verified final routine set (read-only) | DDCAA7E8F3FCD3AEFEC76185FB2990BB29C0FBA8749E444367CA6608542DC57B
+ACCEPT-P3-03C SUMMARY: checks=13 PASS=13 FAIL=0
+ACCEPT-P3-03C_RESULT: PASS

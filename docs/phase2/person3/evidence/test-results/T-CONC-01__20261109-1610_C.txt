@@ -1,0 +1,20 @@
+﻿T-CONC-01 - parallel settlement (SameInvoice) (WO-P3-P3-01). Run C.
+Started (UTC): 2026-11-09 16:10:48.682; database FitLife_P3_UC05; sessions 10; rounds 20; members 27,28,29
+Harness SHA-256: 47EB9BC1CF92C93D6B59313554535EFB5175E64B01BB79941180009B540E8FC5
+Prepared 20 PENDING invoices (ids 281-300)
+Gate released (UTC): 2026-11-09 16:10:49.618; all sessions finished (UTC): 2026-11-09 16:10:50.461 (context only, not a measurement)
+
+Per member (final state):
+  member 27: rows 1, TotalSpend 658000.00, PAID total 658000.00, harness expected 658000, PointsEarned 6, CurrentPoints 6, sum of returned increments 6, bad floor rows 0, bad UpdatedAt rows 0 -> ok
+  member 28: rows 1, TotalSpend 1008000.00, PAID total 1008000.00, harness expected 1008000, PointsEarned 10, CurrentPoints 10, sum of returned increments 10, bad floor rows 0, bad UpdatedAt rows 0 -> ok
+  member 29: rows 1, TotalSpend 285000.00, PAID total 285000.00, harness expected 285000, PointsEarned 2, CurrentPoints 2, sum of returned increments 2, bad floor rows 0, bad UpdatedAt rows 0 -> ok
+
+Checks:
+  C1 PASS  Every call returned an allowed result (no unexpected error, no PK violation surfaced) | calls 200 of 200; unexpected 0; deadlock retries 0; PK violations 0; worker errors 0 
+  C2 PASS  Exactly one winner per invoice: PAID with one SETTLED response (others ALREADY_SETTLED with the stored PaidAt), or CANCELLED (race invoices only) with no settlement | invoices 20: PAID 20, CANCELLED 0; violations 0
+  C3 PASS  Effects applied once: one inventory and one entitlement hook call per PAID invoice; none per CANCELLED invoice | invoices with wrong hook calls 0; hook calls 40
+  C4 PASS  Spending and points exactly once: TotalSpend = sum of PAID FinalAmount = harness amounts; PointsEarned = FLOOR; UpdatedAt = latest PaidAt; CurrentPoints = sum PointsEarned = sum of returned increments | member 27: rows 1, TotalSpend 658000.00, PAID total 658000.00, harness expected 658000, PointsEarned 6, CurrentPoints 6, sum of returned increments 6, bad floor rows 0, bad UpdatedAt rows 0 -> ok | member 28: rows 1, TotalSpend 1008000.00, PAID total 1008000.00, harness expected 1008000, PointsEarned 10, CurrentPoints 10, sum of returned increments 10, bad floor rows 0, bad UpdatedAt rows 0 -> ok | member 29: rows 1, TotalSpend 285000.00, PAID total 285000.00, harness expected 285000, PointsEarned 2, CurrentPoints 2, sum of returned increments 2, bad floor rows 0, bad UpdatedAt rows 0 -> ok
+  C5 PASS  Calls of the same round overlapped in time (several calls in flight together) in at least half of the rounds | rounds with >= 2 calls in flight: 20 of 20; max calls in flight together: 10
+
+T-CONC-01 SUMMARY: run C; mode SameInvoice; checks 5; FAIL 0
+T-CONC-01_RESULT: PASS

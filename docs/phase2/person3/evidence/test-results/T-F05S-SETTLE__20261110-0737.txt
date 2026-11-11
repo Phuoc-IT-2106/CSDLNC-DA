@@ -1,0 +1,77 @@
+﻿T-F05S settlement/cancellation incl. rollback at the spending and MEMBER steps (T-F05-08), hook faults (T-F05-22), caller tx (T-F05-29). Run P3-03-RUN__20261110-0737.
+Executed (UTC): 2026-11-10 07:37:24; database FitLife_P3_UC05; script tests/db/functional/T-F05S_settlement.sql (SHA-256 AF02457325ED642870C22D908DC9AD98A2D44E7A8C81800ADA651D952C56BBDB); sqlcmd exit 0
+
+Setup: 17 PENDING test invoices created through dbo.usp_P3_CreateInvoice
+Warning: Null value is eliminated by an aggregate or other SET operation.
+case_id|test_id|result|descr|detail
+-------|-------|------|-----|------
+A01|T-F05-05|PASS|Settle a PENDING invoice (150,000, CASH): PAID, PaidAt UTC, first spending row of the member-month inserted, 1 point|invoice 20; error 0; outcome SETTLED; points earned 1; balance 1; stored PAID/CASH/PaidAt 2026-11-10T07:37:22.876; member spend 0.00->150000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A02|T-F05-11|PASS|Second payment of the member in the month (80,000): same row updated, cumulative 230,000 -> 2 points (+1)|invoice 21; error 0; outcome SETTLED; points earned 1; balance 2; stored PAID/CARD/PaidAt 2026-11-10T07:37:22.972; member spend 150000.00->230000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A03|T-F05-05|PASS|Method recorded at creation (VNPAY) used when none is supplied; 280,000 -> still 2 points (+0)|invoice 22; error 0; outcome SETTLED; points earned 0; balance 2; stored PAID/VNPAY/PaidAt 2026-11-10T07:37:22.991; member spend 230000.00->280000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A04|T-F05-06|PASS|Repeat settlement of a PAID invoice: ALREADY_SETTLED, no change in any table|invoice 20; error 0; outcome ALREADY_SETTLED; points earned 0; balance 2; stored PAID/CASH/PaidAt 2026-11-10T07:37:22.876; member spend 280000.00->280000.00; hook calls 2; state changed no; V-TOT 0; open tran 0
+A05|T-F05-06|PASS|Repeat with a different method: ALREADY_SETTLED, stored method and PaidAt unchanged|invoice 20; error 0; outcome ALREADY_SETTLED; points earned 0; balance 2; stored PAID/CASH/PaidAt 2026-11-10T07:37:22.876; member spend 280000.00->280000.00; hook calls 2; state changed no; V-TOT 0; open tran 0
+A06|T-F05-06|PASS|Third repeat without method: no change|invoice 20; error 0; outcome ALREADY_SETTLED; points earned 0; balance 2; stored PAID/CASH/PaidAt 2026-11-10T07:37:22.876; member spend 280000.00->280000.00; hook calls 2; state changed no; V-TOT 0; open tran 0
+A07|T-F05-09|PASS|D-006 boundary: FinalAmount 0 -> 0 points|invoice 23; error 0; outcome SETTLED; points earned 0; balance 0; stored PAID/CASH/PaidAt 2026-11-10T07:37:23; member spend 0.00->0.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A08|T-F05-09|PASS|D-006 boundary: 99,999 -> 0 points|invoice 24; error 0; outcome SETTLED; points earned 0; balance 0; stored PAID/CASH/PaidAt 2026-11-10T07:37:23.003; member spend 0.00->99999.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A09|T-F05-09|PASS|D-006 boundary: 100,000 -> 1 point|invoice 25; error 0; outcome SETTLED; points earned 1; balance 1; stored PAID/CASH/PaidAt 2026-11-10T07:37:23.005; member spend 0.00->100000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A10|T-F05-09|PASS|D-006 boundary: 199,999 -> 1 point|invoice 26; error 0; outcome SETTLED; points earned 1; balance 1; stored PAID/CASH/PaidAt 2026-11-10T07:37:23.009; member spend 0.00->199999.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A11|T-F05-09|PASS|D-006 boundary: 200,000 -> 2 points|invoice 27; error 0; outcome SETTLED; points earned 2; balance 2; stored PAID/CASH/PaidAt 2026-11-10T07:37:23.010; member spend 0.00->200000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A12|T-F05-09|PASS|D-006 (b): first 60,000 of the month -> 0 points|invoice 28; error 0; outcome SETTLED; points earned 0; balance 0; stored PAID/CARD/PaidAt 2026-11-10T07:37:23.013; member spend 0.00->60000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A13|T-F05-09|PASS|D-006 (b): second 60,000 in the same month -> cumulative 120,000 -> +1 point|invoice 29; error 0; outcome SETTLED; points earned 1; balance 1; stored PAID/CARD/PaidAt 2026-11-10T07:37:23.015; member spend 60000.00->120000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A14|T-F05-27|PASS|Supplied method differs from the method recorded at creation: rejected, nothing written|invoice 30; error 51208 (usp_P3_SettleInvoice: invoice 30 was created with payment method VNPAY; the supplied method CASH differs. The recorded method is not overwritten.); outcome -; points earned -; balance -; stored PENDING/VNPAY/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A15|T-F05-27|PASS|No method supplied and none recorded: rejected (PaymentMethod NOT NULL when PAID, D-005)|invoice 31; error 51207 (usp_P3_SettleInvoice: invoice 31 has no recorded payment method and none was supplied.); outcome -; points earned -; balance -; stored PENDING/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A16|T-F05-27|PASS|Method outside the approved domain (CHEQUE): rejected|invoice 31; error 51202 (usp_P3_SettleInvoice: PaymentMethod 'CHEQUE' is not one of CASH, VNPAY, CARD.); outcome -; points earned -; balance -; stored PENDING/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A17|T-F05-27|PASS|Method in lower case: rejected (exact literal required)|invoice 31; error 51202 (usp_P3_SettleInvoice: PaymentMethod 'cash' is not one of CASH, VNPAY, CARD.); outcome -; points earned -; balance -; stored PENDING/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A18|T-F05-27|PASS|Method with a trailing space: rejected|invoice 31; error 51202 (usp_P3_SettleInvoice: PaymentMethod 'CASH ' is not one of CASH, VNPAY, CARD.); outcome -; points earned -; balance -; stored PENDING/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A19|T-F05-27|PASS|Empty method: rejected|invoice 31; error 51202 (usp_P3_SettleInvoice: PaymentMethod '' is not one of CASH, VNPAY, CARD.); outcome -; points earned -; balance -; stored PENDING/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A20|T-F05-05|PASS|After the rejected attempts, settlement with the recorded method succeeds (100,000 -> 1 point)|invoice 30; error 0; outcome SETTLED; points earned 1; balance 1; stored PAID/VNPAY/PaidAt 2026-11-10T07:37:23.033; member spend 0.00->100000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A21|T-F05-05|PASS|Method supplied at settlement (CARD); member 8 month 150,000 -> still 1 point (+0)|invoice 31; error 0; outcome SETTLED; points earned 0; balance 1; stored PAID/CARD/PaidAt 2026-11-10T07:37:23.035; member spend 100000.00->150000.00; hook calls 2; state changed yes; V-TOT 0; open tran 0
+A22|T-F05-07|PASS|Unknown Invoice_ID: rejected, nothing written|invoice 999999; error 51203 (usp_P3_SettleInvoice: invoice 999999 does not exist.); outcome -; points earned -; balance -; stored -/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A23|T-F05-07|PASS|NULL Invoice_ID: rejected|invoice NULL; error 51201 (usp_P3_SettleInvoice: Invoice_ID is required.); outcome -; points earned -; balance -; stored -/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A24|T-F05-16|PASS|Cancel a PENDING invoice: CANCELLED, PaidAt NULL, no spending, points or hook call|invoice 32; error 0; outcome CANCELLED; points earned -; balance -; stored CANCELLED/CARD/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed yes; V-TOT 0; open tran 0
+A25|T-F05-07|PASS|CANCELLED invoice cannot be settled: rejected, nothing written|invoice 32; error 51204 (usp_P3_SettleInvoice: invoice 32 is CANCELLED and cannot be settled (only PENDING invoices are payable; D-005, D-011).); outcome -; points earned -; balance -; stored CANCELLED/CARD/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A26|T-F05-16|PASS|Repeat cancellation: ALREADY_CANCELLED, no change|invoice 32; error 0; outcome ALREADY_CANCELLED; points earned -; balance -; stored CANCELLED/CARD/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A27|T-F05-16|PASS|PAID invoice cannot be cancelled (no refund, D-011): PAID is never reverted|invoice 20; error 51223 (usp_P3_CancelInvoice: invoice 20 is PAID and cannot be cancelled (refunds are out of scope, D-011).); outcome -; points earned -; balance -; stored PAID/CASH/PaidAt 2026-11-10T07:37:22.876; member spend 280000.00->280000.00; hook calls 2; state changed no; V-TOT 0; open tran 0
+A28|T-F05-07|PASS|Cancel an unknown Invoice_ID: rejected|invoice 999999; error 51222 (usp_P3_CancelInvoice: invoice 999999 does not exist.); outcome -; points earned -; balance -; stored -/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+A29|T-F05-07|PASS|Cancel with NULL Invoice_ID: rejected|invoice NULL; error 51221 (usp_P3_CancelInvoice: Invoice_ID is required.); outcome -; points earned -; balance -; stored -/-/PaidAt -; member spend 0.00->0.00; hook calls 0; state changed no; V-TOT 0; open tran 0
+B01|T-F05-02|PASS|PENDING invoice without any line (BR12): settlement rejected, nothing written|TEST_ONLY invoice 37; error 51205 (usp_P3_SettleInvoice: invoice 37 has no line (BR12).); stored PENDING; state changed no; removed afterwards; V-TOT 0; open tran 0
+B02|T-F05-28|PASS|Header GrossAmount (100,000) differs from its line (90,000): settlement rejected, nothing written|TEST_ONLY invoice 38; error 51206 (usp_P3_SettleInvoice: invoice 38 header totals (gross 100000.00, discount 0.00, final 100000.00) differ from its lines (gross 90000.00, discount 0.00) (D-023 X1).); stored PENDING; state changed no; removed afterwards; V-TOT 0; open tran 0
+B03|T-F05-28|PASS|Header DiscountAmount (0) differs from the line discount (5,000): settlement rejected|TEST_ONLY invoice 39; error 51206 (usp_P3_SettleInvoice: invoice 39 header totals (gross 100000.00, discount 0.00, final 100000.00) differ from its lines (gross 100000.00, discount 5000.00) (D-023 X1).); stored PENDING; state changed no; removed afterwards; V-TOT 0; open tran 0
+B04|T-F05-31|PASS|IssuedAt one day in the future (settlement time would precede it, D-004): rejected|TEST_ONLY invoice 40; error 51212 (usp_P3_SettleInvoice: settlement time 2026-11-10T07:37:23.156 is before IssuedAt 2026-11-11T07:37:23.154 (D-004).); stored PENDING; state changed no; removed afterwards; V-TOT 0; open tran 0
+C01|T-F05-08|PASS|Injected failure at the last step (MEMBER points update; TEST_ONLY trigger): whole settlement rolled back, error passed through|invoice F1 33; error 52910 (TEST_ONLY injected failure at the MEMBER step (06 section 4.8 i).); stored PENDING/-/PaidAt -; state changed no; member 10 spending rows 0; hook calls kept 0; open tran 0; TEST_ONLY trigger/fault removed: yes
+C02|T-F05-08|PASS|Injected failure at the spending step (TEST_ONLY trigger on MEMBER_MONTHLY_SPENDING): whole settlement rolled back|invoice F1 33; error 52911 (TEST_ONLY injected failure at the spending step.); stored PENDING/-/PaidAt -; state changed no; member 10 spending rows 0; hook calls kept 0; open tran 0; TEST_ONLY trigger/fault removed: yes
+C03|T-F05-22|PASS|Inventory hook double raises an error (e.g. insufficient stock): whole settlement rolled back, error passed through unchanged|invoice F1 33; error 52901 (TEST_ONLY injected fault in the inventory-decrement hook (stands for e.g. insufficient stock, BR30).); stored PENDING/-/PaidAt -; state changed no; member 10 spending rows 0; hook calls kept 0; open tran 0; TEST_ONLY trigger/fault removed: yes
+C04|T-F05-22|PASS|Entitlement hook double raises an error after the inventory hook ran: both hook effects and everything else rolled back|invoice F1 33; error 52902 (TEST_ONLY injected fault in the entitlement-activation hook.); stored PENDING/-/PaidAt -; state changed no; member 10 spending rows 0; hook calls kept 0; open tran 0; TEST_ONLY trigger/fault removed: yes
+C05|T-F05-08|PASS|After the four failed attempts the same invoice settles once: 300,000 -> 3 points, one call per hook|error 0 ; outcome SETTLED; points 3; balance 3
+D01|T-F05-29|PASS|Inside a caller transaction + COMMIT: the routine joins (does not commit itself); the commit keeps PAID, spending and points (400,000 -> 4)|error 0; outcome SETTLED; @@TRANCOUNT after the call 1; stored PAID/CASH; points 1; balance 4
+D02|T-F05-29|PASS|Inside a caller transaction + ROLLBACK: status, PaidAt, spending, points and hook calls all removed|error 0; outcome inside SETTLED; state after rollback = before: yes
+D03|T-F05-29|PASS|Error in a later call of the same caller transaction: the transaction is uncommittable (XACT_STATE -1); one rollback removes the earlier settlement too|first call SETTLED; error 51204 (usp_P3_SettleInvoice: invoice 32 is CANCELLED and cannot be settled (only PENDING invoices are payable; D-005, D-011).); XACT_STATE in CATCH -1; state after rollback = before: yes
+D04|T-F05-29|PASS|After the rolled-back attempts the invoice settles once on its own: 650,000 -> 6 points (+2)|error 0; outcome SETTLED; points 2; balance 6
+E01|T-F05-10|PASS|Month boundary with UTC storage: 2026-01-31 16:59:59.999 UTC -> January; 17:00:00.000 UTC (= Feb 1 00:00 local) -> February; year end; leap day|results: 2026-01-01, 2026-02-01, 2027-01-01, 2028-02-01
+E02|T-F05-10|PASS|Month function = independent oracle (AT TIME ZONE 'SE Asia Standard Time') at every month end 2026-2028 (+/-1 ms, 1 min, 1 h) and every hour of 2026|points compared: 9012; mismatches: 0
+E03|T-F05-10|PASS|End to end: every PAID invoice is counted in the spending row of its member and local month of PaidAt (full reconciliation: V-UC05S U3)|PAID invoices: 15; without their spending row: 0
+F01|T-F05-30|PASS|Least privilege (TEST_ONLY role): EXECUTE on the routines suffices to settle; cancelling a PAID invoice is refused; direct reversal of PAID, direct points or spending changes and direct hook calls are denied (229)|settle 0; cancel PAID 51223; UPDATE INVOICE PAID->PENDING 229; UPDATE MEMBER points 229; INSERT spending 229; EXEC hook 229; principals dropped: yes
+G01|T-F05-21|PASS|Each settled invoice: exactly one inventory then one entitlement hook call, inside the transaction while PENDING; none for repeated, rejected, rolled-back or cancelled requests|PAID invoices: 16; invoices with wrong calls: 0; calls logged: 32
+test_id|cases|passed
+-------|-----|------
+T-F05-02|1|1
+T-F05-05|4|4
+T-F05-06|3|3
+T-F05-07|5|5
+T-F05-08|3|3
+T-F05-09|7|7
+T-F05-10|3|3
+T-F05-11|1|1
+T-F05-16|3|3
+T-F05-21|1|1
+T-F05-22|2|2
+T-F05-27|6|6
+T-F05-28|2|2
+T-F05-29|4|4
+T-F05-30|1|1
+T-F05-31|1|1
+invoices|paid|cancelled|spending_rows|total_points|hook_calls
+--------|----|---------|-------------|------------|----------
+17|16|1|9|14|32
+T-F05S SUMMARY: cases=47 FAIL=0
+T-F05S_RESULT: PASS

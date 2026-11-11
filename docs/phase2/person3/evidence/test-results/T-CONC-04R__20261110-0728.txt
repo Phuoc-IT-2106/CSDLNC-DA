@@ -1,0 +1,34 @@
+﻿T-CONC-04R - revenue reports concurrent with settlement (WO-P3-P3-03 Part C).
+Started (UTC): 2026-11-10 07:30:53.329; database FitLife_P3_UC05; report period (local) [2026-11-01, 2026-12-01); members 11-20
+Harness SHA-256: 459C86762A7325781767A73916A167C324485B889C061CB1ED071FBF64A3F041
+Isolation settings (read, not changed): READ_COMMITTED_SNAPSHOT=False; ALLOW_SNAPSHOT_ISOLATION=OFF. Session default READ COMMITTED (locking); no NOLOCK / READ UNCOMMITTED anywhere
+
+R1 - uncommitted settlement vs each report routine (rollback, then commit)
+  R1-1 PASS  RPT-01 usp_P3_RptBranchRevenue (branch 1): blocked by the uncommitted settlement; after ROLLBACK returns the value before (no dirty read) | settled inside writer tx: SETTLED; waited: LCK_M_S on KEY: 11:72057594047561728 (89a1ef77310e); before 1510000.00/4; after 1510000.00/4; invoice PENDING, hook rows 0
+  R1-2 PASS  RPT-01 usp_P3_RptBranchRevenue (branch 1): blocked by the uncommitted settlement; after COMMIT returns before + FinalAmount, count + 1 | waited: LCK_M_S on KEY: 11:72057594047561728 (b184d8fe5d7b); before 1510000.00/4; amount 100000; after 1610000.00/5; invoice PAID
+  R1-3 PASS  RPT-02 usp_P3_RptSystemRevenue: blocked by the uncommitted settlement; after ROLLBACK returns the value before (no dirty read) | settled inside writer tx: SETTLED; waited: LCK_M_S on KEY: 11:72057594047561728 (48c8b369b877); before 6219999.99/13; after 6219999.99/13; invoice PENDING, hook rows 0
+  R1-4 PASS  RPT-02 usp_P3_RptSystemRevenue: blocked by the uncommitted settlement; after COMMIT returns before + FinalAmount, count + 1 | waited: LCK_M_S on KEY: 11:72057594047561728 (a8fc9de67ccb); before 6219999.99/13; amount 200000; after 6419999.99/14; invoice PAID
+  R1-5 PASS  RPT-02 usp_P3_RptSystemRevenueByBranch: blocked by the uncommitted settlement; after ROLLBACK returns the value before (no dirty read) | settled inside writer tx: SETTLED; waited: LCK_M_S on KEY: 11:72057594047561728 (51b0f67199c7); before 6419999.99/14; after 6419999.99/14; invoice PENDING, hook rows 0
+  R1-6 PASS  RPT-02 usp_P3_RptSystemRevenueByBranch: blocked by the uncommitted settlement; after COMMIT returns before + FinalAmount, count + 1 | waited: LCK_M_S on KEY: 11:72057594047561728 (d8b6f3f4a521); before 6419999.99/14; amount 300000; after 6719999.99/15; invoice PAID
+  R1-7 PASS  RPT-03/04 usp_P3_RptBranchRevenueByPeriod (branch 2, DAY): blocked by the uncommitted settlement; after ROLLBACK returns the value before (no dirty read) | settled inside writer tx: SETTLED; waited: LCK_M_S on KEY: 11:72057594047561728 (21fa9863402d); before 4309999.99/4; after 4309999.99/4; invoice PENDING, hook rows 0
+  R1-8 PASS  RPT-03/04 usp_P3_RptBranchRevenueByPeriod (branch 2, DAY): blocked by the uncommitted settlement; after COMMIT returns before + FinalAmount, count + 1 | waited: LCK_M_S on KEY: 11:72057594047561728 (c1ceb6ec8491); before 4309999.99/4; amount 400000; after 4709999.99/5; invoice PAID
+  R1-9 PASS  RPT-04 usp_P3_RptSystemRevenueByPeriod (DAY): blocked by the uncommitted settlement; after ROLLBACK returns the value before (no dirty read) | settled inside writer tx: SETTLED; waited: LCK_M_S on KEY: 11:72057594047561728 (3882dd7b619d); before 7119999.99/16; after 7119999.99/16; invoice PENDING, hook rows 0
+  R1-10 PASS  RPT-04 usp_P3_RptSystemRevenueByPeriod (DAY): blocked by the uncommitted settlement; after COMMIT returns before + FinalAmount, count + 1 | waited: LCK_M_S on KEY: 11:72057594047561728 (00a7eaf20de8); before 7119999.99/16; amount 500000; after 7619999.99/17; invoice PAID
+
+R2 - load: 6 committing settlement sessions x 20 invoices, 2 aborting sessions, 3 report sessions
+Prepared 120 PENDING invoices (whole VND) and 2 abort-only invoices (x.01 VND); company total before R2: 8869999.99 (22 invoices)
+Gate released (UTC): 2026-11-10 07:30:57.244; all sessions finished (UTC): 2026-11-10 07:30:57.793 (context only, not a measurement)
+  R2-C1 PASS  Every committing settlement SETTLED; every aborted attempt settled inside its transaction, then rolled back; every report call succeeded | settlements 120/120, failed 0; aborted attempts 11, unexpected 0; report calls 33, failed 0; deadlock retries 0; worker errors 0 
+  R2-C2 PASS  No dirty read: no observed total or branch row contains the 0.01 VND of a rolled-back settlement | observations 33; with cents 0
+  R2-C3 PASS  Every observation lies between the committed state before and after the load (revenue and count) | violations 0
+  R2-C4 PASS  Per report session, successive company totals never decrease (PAID is terminal) | decreases 0 over 6 company-total observations
+  R2-C5 PASS  Single-statement consistency: by-branch SystemRevenue/Count = sum of its rows; by-period totals = sum of their rows | inconsistent observations 0
+  R2-C6 PASS  Final state: company total - before = sum of committed harness amounts; aborted invoices PENDING, no PaidAt, hook call, spending row or point; CurrentPoints = SUM(PointsEarned) for all members | delta 2502000.00 vs 2502000; count delta 120 vs 120; aborted bad state 0, hooks 0, spending rows 0, points 0; members with points <> SUM(PointsEarned) 0
+  R2-C7 PASS  Report calls overlapped the committing settlements and the aborted transactions | report calls overlapping settlements 30; overlapping aborted transactions 30; aborted attempts 11
+
+R3 - two report statements in one SERIALIZABLE transaction (session setting only) while a settlement commits
+  R3 PASS  SERIALIZABLE report transaction: the settlement waits; total, by-branch sum and repeated total agree inside the transaction; after COMMIT the settlement completes and is reported | settlement waited: LCK_M_X on KEY: 11:72057594047561728 (15844e06c8bd); inside tx: total 11371999.99, by-branch sum 11371999.99, repeat 11371999.99; settlement error 0 outcome SETTLED; after: 11494999.99/143
+  Z PASS  No open transaction left in the database by the harness | sessions with open transactions: 0
+
+T-CONC-04R SUMMARY: checks 19; FAIL 0
+T-CONC-04R_RESULT: PASS

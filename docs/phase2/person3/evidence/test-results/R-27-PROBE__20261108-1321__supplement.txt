@@ -1,0 +1,24 @@
+﻿R-27-PROBE supplement - read-only follow-up observations for R-27-PROBE__20261108-1321 (captured 2026-11-08 13:33:45 UTC). The probe files themselves are unchanged.
+
+== S1. Power-source changes (System log, Kernel-Power 105) 13:15-13:40 UTC; event 105 was not in the probe's G-E1 event list (G-E1 failed through the AC check instead) ==
+  13:20:44 UTC  Microsoft-Windows-Kernel-Power id=105  Power source change.
+  13:20:45 UTC  Microsoft-Windows-Kernel-Power id=105  Power source change.
+  13:21:11 UTC  Microsoft-Windows-Kernel-Power id=105  Power source change.
+  13:21:43 UTC  Microsoft-Windows-Kernel-Power id=105  Power source change.
+  13:24:26 UTC  Microsoft-Windows-Kernel-Power id=105  Power source change.
+  Probe window: S1 13:21:43-13:21:52, S2 13:31:54-13:31:59 UTC (gate rows of the probe file).
+
+== S2. CPU-time resolution: distinct STATISTICS TIME CPU values over the 120 measured runs (count x ms) ==
+  29x0 1x15 5x16 7x31 1x32 7x47 5x62 6x63 1x78 2x93 3x109 1x110 2x123 1x124 3x125 3x126 1x138 1x139 3x141 1x155 1x156 1x157 1x172 1x174 2x187 1x189 1x202 2x204 2x205 1x206 1x219 1x220 2x233 1x251 1x266 1x280 1x281 1x296 1x297 2x312 4x328 1x343 3x344 1x360 1x375 1x406 1x453
+  Values cluster at multiples of about 15.6 ms (0, 15-16, 31-32, 47, 62-63, 78, 93, 109-110, 125-126, ...): the Windows clock tick. CPU medians below about 150 ms are dominated by this quantization.
+
+== S3. Competing process seen during the session ==
+  BackgroundDownload.exe pid 21156, started 13:32:13 UTC, path C:\Program Files (x86)\Microsoft Visual Studio\Installer\resources\app\ServiceHub\Services\Microsoft.VisualStudio.Setup.Service\BackgroundDownload.exe
+  BackgroundDownload.exe pid 2444, started 13:32:43 UTC, path C:\Users\<user>\AppData\Local\Temp\pzwolbw3.3n2\resources\app\ServiceHub\Services\Microsoft.VisualStudio.Setup.Service\BackgroundDownload.exe
+  A BackgroundDownload process (pid 19016) used about 13% of total CPU in a 10 s sample at about 13:20 UTC (before S1). The probe gates recorded CPU load 40% / 26% at S1 start/end and 2% / 1% at S2 start/end.
+
+== S4. Power plan processor limits (read-only) ==
+  Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)
+  PROCTHROTTLEMAX Current AC Power Setting Index: 0x00000064
+  PROCTHROTTLEMAX Current DC Power Setting Index: 0x00000064
+  Maximum processor state 100% on AC and on battery; any battery-mode slowdown therefore comes from firmware or vendor power management, not this setting (not further verifiable without vendor tools).

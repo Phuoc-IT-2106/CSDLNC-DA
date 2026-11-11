@@ -1,0 +1,76 @@
+﻿Recovery metadata UTC 20261111-015411; WO-P3-P0-02; SELECT-only, no setting change. Owner/operator=Project Owner; runner=Codex.
+Branch p3/wo-p3-p1-01; HEAD 792a85e; pre-recovery 339 untracked paths (git status -uall); no tracked diff.
+INSTANCE localhost\MSSQLSERVER01
+service|full_version|engine_edition|server_time|collation
+-------|------------|--------------|-----------|---------
+MSSQLSERVER01|Microsoft SQL Server 2025 (RTM) - 17.0.1000.7 (X64) 
+	Oct 21 2025 12:05:57 
+	Copyright (C) 2025 Microsoft Corporation
+	Standard Developer Edition (64-bit) on Windows 10 Pro 10.0 <X64> (Build 19044: ) (Hypervisor)
+|2|2026-11-11 08:54:12.2027679 +07:00|SQL_Latin1_General_CP1_CI_AS
+name|database_id|state_desc|compatibility_level|recovery_model_desc
+----|-----------|----------|-------------------|-------------------
+master|1|ONLINE|170|SIMPLE
+tempdb|2|ONLINE|170|SIMPLE
+model|3|ONLINE|170|FULL
+msdb|4|ONLINE|170|SIMPLE
+FitLife_P3_P2|5|ONLINE|160|SIMPLE
+name|value|value_in_use
+----|-----|------------
+cost threshold for parallelism|5|5
+max degree of parallelism|8|8
+max server memory (MB)|2048|2048
+min server memory (MB)|1024|1024
+optimize for ad hoc workloads|0|0
+show advanced options|0|0
+SQL_EXIT=0
+INSTANCE localhost
+service|full_version|engine_edition|server_time|collation
+-------|------------|--------------|-----------|---------
+MSSQLSERVER|Microsoft SQL Server 2025 (RTM) - 17.0.1000.7 (X64) 
+	Oct 21 2025 12:05:57 
+	Copyright (C) 2025 Microsoft Corporation
+	Standard Developer Edition (64-bit) on Windows 10 Pro 10.0 <X64> (Build 19044: ) (Hypervisor)
+|2|2026-11-11 08:54:12.3736017 +07:00|SQL_Latin1_General_CP1_CI_AS
+name|database_id|state_desc|compatibility_level|recovery_model_desc
+----|-----------|----------|-------------------|-------------------
+master|1|ONLINE|170|SIMPLE
+tempdb|2|ONLINE|170|SIMPLE
+model|3|ONLINE|170|FULL
+msdb|4|ONLINE|170|SIMPLE
+QLDT1|5|ONLINE|170|FULL
+NHAHANG|6|ONLINE|170|FULL
+FOOD_DELIVERY_PRACTICE|7|ONLINE|170|FULL
+ONTAP_SQL|8|ONLINE|170|FULL
+FitLife_P3_P1|9|ONLINE|160|SIMPLE
+FitLife_P3_P2|10|ONLINE|160|SIMPLE
+FitLife_P3_UC05|11|ONLINE|160|SIMPLE
+FitLife_P3_UC05L|12|ONLINE|160|SIMPLE
+name|value|value_in_use
+----|-----|------------
+cost threshold for parallelism|5|5
+max degree of parallelism|8|8
+max server memory (MB)|2147483647|2147483647
+min server memory (MB)|0|16
+optimize for ad hoc workloads|0|0
+show advanced options|0|0
+SQL_EXIT=0
+BM-1 FitLife_P3_P2 data/log files, database settings and guarded identity
+service|db
+-------|--
+MSSQLSERVER01|FitLife_P3_P2
+name|type_desc|allocated_mb|physical_name
+----|---------|------------|-------------
+FitLife_P3_P2|ROWS|72.000000|C:\Program Files\Microsoft SQL Server\MSSQL17.MSSQLSERVER01\MSSQL\DATA\FitLife_P3_P2.mdf
+FitLife_P3_P2_log|LOG|8.000000|C:\Program Files\Microsoft SQL Server\MSSQL17.MSSQLSERVER01\MSSQL\DATA\FitLife_P3_P2_log.ldf
+recovery_model_desc|is_read_committed_snapshot_on|is_auto_create_stats_on|is_auto_update_stats_on|is_auto_update_stats_async_on
+-------------------|-----------------------------|-----------------------|-----------------------|-----------------------------
+SIMPLE|0|1|1|0
+name|marker
+----|------
+P3_Disposable|WO-P3-P2-01 isolated dataset database; safe to drop and rebuild from scripts
+SQL_EXIT=0
+Powershell
+5.1.19041.3031
+Physical disk
+SSD|RAID|238 GB

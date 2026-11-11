@@ -1,0 +1,26 @@
+﻿T-WF-01 integrated workflow: creation -> settlement -> spending -> points -> tier -> revenue (final-state checks W1-W11). Run P3-03-RUN__20261110-0737.
+Executed (UTC): 2026-11-10 07:38:57; database FitLife_P3_UC05; script tests/db/functional/T-WF-01_uc05_uc06_workflow.sql (SHA-256 C6EF83561802860117C4DDEB74A135D9963ACE9C641B67F6B362B5D3496F554B); sqlcmd exit 0
+
+T-WF-01 start (UTC) 2026-11-10 07:38:56.147; local date 2026-11-10; TEST_ONLY synthetic thresholds: Silver 0, Gold 1000000.00, Platinum 3000000.00
+Created 14 of 14 invoices through dbo.usp_P3_CreateInvoice
+W11c: caller transaction created invoice 34 and settled it (SETTLED), then rolled back; error 0
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|2|0|38
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|0|0|40
+Tier batch run 1: evaluated 40, upgrades 2, downgrades 0; run 2: upgrades 0, downgrades 0; error 0
+W1 PASS  Every header = sum of its lines (all invoices of the database); FinalAmount = harness arithmetic for the 14 workflow invoices | header/line mismatches 0; FinalAmount <> harness 0; created 14/14; creation errors 0
+W2 PASS  Settlement at most once: every call returned the expected outcome/error/points; one SETTLED per PAID invoice; repeats return the stored PaidAt; one call per hook per PAID invoice, none otherwise | unexpected call results 0; invoices violating once-only/hook rule 0
+W3 PASS  Final states as designed (12 PAID, 1 CANCELLED, 1 PENDING); PAID => PaidAt (UTC, inside the run, >= IssuedAt) and method; non-PAID => PaidAt NULL | state <> design 0; payment-state violations (whole db) 0; PaidAt outside run window 0; W14 method CASH; W11 method CASH
+W4 PASS  CANCELLED (W07) and PENDING (W09) invoices: no PaidAt, no hook call, no spending, no points, not in revenue | excluded amount 5000001.00; non-PAID with effects 0; members whose spending differs from PAID-only expectation 0; revenue including excluded amounts 0
+W5 PASS  Monthly spending = SUM(FinalAmount) of PAID invoices per member and local month (independent AT TIME ZONE oracle, whole db) = literal expectation for members 1-10 | oracle mismatches (rows missing, extra or different) 0; literal mismatches 0
+W6 PASS  D-006: PointsEarned = FLOOR(monthly TotalSpend / 100000) (member 1: 60,000 + 60,000 -> 1; member 8: 99,999.99 + 0.01 -> 1); CurrentPoints = SUM(PointsEarned) = SUM of returned increments = literal | rows with wrong PointsEarned 0; members with CurrentPoints <> SUM(PointsEarned) 0; literal/returned mismatches 0; points m1=1, m2=10, m3=9, m4=31, m5=0, m6=1, m7=2, m8=1, m9=4, m10=0
+W7 PASS  D-007/D-008/D-009: after the batch, Tier_ID = literal (spend = Gold -> Gold; Gold - 0.01 -> Silver; >= Platinum -> Platinum) = independent oracle from INVOICE (every member); second run changes nothing | oracle mismatches 0; literal mismatches 0; run 1 upgrades 2 downgrades 0; run 2 upgrades 0 downgrades 0; error 0 ; tiers m1=Silver, m2=Gold, m3=Silver, m4=Platinum, m5=Silver, m6=Silver, m7=Silver, m8=Silver, m9=Silver, m10=Silver
+W8 PASS  D-010 revenue of the local month: per branch (RPT-01) and company (RPT-02) = the harness's own FinalAmounts of PAID invoices by Branch_ID (literal) | branch mismatches 0; company mismatch 0; company 6119999.99; branch 1 1510000.00 (4); branch 2 4309999.99 (4); branch 3 300000.00 (4)
+W9 PASS  All five report routines = independent reference (AT TIME ZONE; DATEDIFF buckets; four grains; three branches); RPT-02 = SUM(RPT-01) = SUM(PAID) = SUM(monthly spending of the month) | branch-by-period diffs 0; system-by-period diffs 0; period totals 0; by-branch rows 0; system/share 0; roll-up/spending 0; rows compared 24
+W10 PASS  Unrelated state unchanged: shared fixture tables (BRANCH, EMPLOYEE, SERVICE_PLAN, PRODUCT, MEMBER_TIER), other members, other invoices, lines and spending rows | before 5CD0F8D6E0484FCC254828E37B6DDE8ECCCDDAFC4CC3B0BEFB54A6551689654F; after 5CD0F8D6E0484FCC254828E37B6DDE8ECCCDDAFC4CC3B0BEFB54A6551689654F
+W11 PASS  Injected failures leave no partial state: hook faults (W12, ops 17/19) and the method mismatch (W14, op 23) wrote nothing (see W2-W6); caller transaction with create + settle rolled back -> no invoice, line, spending, points or hook call | rolled-back invoice id 34 (settled inside: SETTLED); invoices of member 10 or that id 0; W12 inventory-hook rows before its successful call 1 (1 = only the successful call; failed attempts left none); leftover lines/spending/points/faults 0
+T-WF-01 SUMMARY: checks=11 FAIL=0; invoices created 14; calls 24
+T-WF-01_RESULT: PASS

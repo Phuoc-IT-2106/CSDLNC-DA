@@ -1,0 +1,68 @@
+ï»¿ENV-P1 â€” WO-P3-P1-01 step 1 (SQL Server preflight, read-only)
+Captured (UTC): 2026-11-07 11:38:51
+Command: sqlcmd -S localhost -E -I -b -W -v LocalComputer=<COMPUTERNAME> -i tests/db/build/preflight_p1.sql
+sqlcmd client: Version 15.0.1300.359 NT
+----
+== 1. Engine, edition, instance ==
+product_version product_major_version product_level edition engine_edition server_collation instance_name is_clustered is_hadr_enabled
+--------------- --------------------- ------------- ------- -------------- ---------------- ------------- ------------ ---------------
+17.0.1000.7 17 RTM Standard Developer Edition (64-bit) 2 SQL_Latin1_General_CP1_CI_AS (default instance) 0 0
+at_at_version
+-------------
+Microsoft SQL Server 2025 (RTM) - 17.0.1000.7 (X64) 
+	Oct 21 2025 12:05:57 
+	Copyright (C) 2025 Microsoft Corporation
+	Standard Developer Edition (64-bit) on Windows 10 Pro 10.0 <X64> (Build 19044: ) (Hypervisor)
+
+== 2. Local development instance ==
+net_transport machine_is_local_computer is_developer_edition
+------------- ------------------------- --------------------
+Shared memory 1 1
+== 3. Compatibility level support ==
+max_supported_compatibility_level supports_level_160 model_compatibility_level
+--------------------------------- ------------------ -------------------------
+170 1 170
+== 4. Permissions of the current login ==
+is_sysadmin can_create_database
+----------- -------------------
+1 1
+== 5. Time (storage is UTC, D-014) ==
+sys_utc_datetime sys_datetime_offset host_offset_minutes
+---------------- ------------------- -------------------
+2026-11-07 11:38:52.1610337 2026-11-07 18:38:52.1610337 +07:00 420
+== 6. Session SET options (sqlcmd -I) ==
+quoted_identifier ansi_nulls ansi_padding ansi_warnings arithabort concat_null_yields_null numeric_roundabort
+----------------- ---------- ------------ ------------- ---------- ----------------------- ------------------
+1 1 1 1 0 1 0
+== 7. Databases on the instance (names only; nothing is opened) ==
+name database_id compatibility_level state_desc recovery_model_desc
+---- ----------- ------------------- ---------- -------------------
+master 1 170 ONLINE SIMPLE
+tempdb 2 170 ONLINE SIMPLE
+model 3 170 ONLINE FULL
+msdb 4 170 ONLINE SIMPLE
+QLDT1 5 170 ONLINE FULL
+NHAHANG 6 170 ONLINE FULL
+FOOD_DELIVERY_PRACTICE 7 170 ONLINE FULL
+ONTAP_SQL 8 170 ONLINE FULL
+== 8. Target database FitLife_P3_P1 ==
+target target_state disposable_marker
+------ ------------ -----------------
+FitLife_P3_P1 does not exist (none)
+== 9. Verdict ==
+PREFLIGHT_RESULT: PASS
+
+----
+Preflight 1.4 command: python -I conformance.py <S-02 .docx text extract, md5 c11b9c116880 source> docs/phase2/person3/work-orders/WO-P3-P1-01_PHYSICAL_SCHEMA.md (script kept in the session scratchpad; read-only)
+== Preflight 1.4: logical-model conformance (WO-P3-P1-01 spec vs S-02 §10) ==
+INVOICE: Phase1 columns=10 spec columns=11 missing=[] extra=['PaidAt'] (registered: ['DV-01 (D-004)']) order_same=True PK=['Invoice_ID'] FKs=[('Member_ID', 'MEMBER', 'Member_ID'), ('Employee_ID', 'EMPLOYEE', 'Employee_ID'), ('Branch_ID', 'BRANCH', 'Branch_ID')]
+INVOICE_SERVICE_ITEM: Phase1 columns=8 spec columns=8 missing=[] extra=[] (registered: []) order_same=True PK=['Invoice_ID', 'LineNo'] FKs=[('Invoice_ID', 'INVOICE', 'Invoice_ID'), ('Plan_ID', 'SERVICE_PLAN', 'Plan_ID')]
+INVOICE_PRODUCT_ITEM: Phase1 columns=6 spec columns=6 missing=[] extra=[] (registered: []) order_same=True PK=['Invoice_ID', 'LineNo'] FKs=[('Invoice_ID', 'INVOICE', 'Invoice_ID'), ('Product_ID', 'PRODUCT', 'Product_ID')]
+MEMBER_MONTHLY_SPENDING: Phase1 columns=5 spec columns=5 missing=[] extra=[] (registered: []) order_same=True PK=['Member_ID', 'SpendingMonth'] FKs=[('Member_ID', 'MEMBER', 'Member_ID')]
+MEMBER (TEST_ONLY fixture): fixture columns=['Member_ID'] Phase1 PK=['Member_ID'] subset_of_phase1=True
+BRANCH (TEST_ONLY fixture): fixture columns=['Branch_ID'] Phase1 PK=['Branch_ID'] subset_of_phase1=True
+EMPLOYEE (TEST_ONLY fixture): fixture columns=['Employee_ID'] Phase1 PK=['Employee_ID'] subset_of_phase1=True
+SERVICE_PLAN (TEST_ONLY fixture): fixture columns=['Plan_ID'] Phase1 PK=['Plan_ID'] subset_of_phase1=True
+PRODUCT (TEST_ONLY fixture): fixture columns=['Product_ID'] Phase1 PK=['Product_ID'] subset_of_phase1=True
+Phase 1 FKs of the four P3 tables = WO §3.6 set of 8: True (8 found)
+CONFORMANCE_RESULT: PASS

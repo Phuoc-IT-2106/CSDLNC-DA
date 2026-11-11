@@ -1,0 +1,199 @@
+﻿A6 HARNESS ROUTING REVIEW (recovery 20261111-015043 UTC)
+Authority: WO-P3-P0-02 approval record A6, 2026-11-10.
+PASS: frozen Criteria, Method, Q, QH, QPH and Kq blocks are unchanged.
+PASS: all four harness sqlcmd invocations and both diagnostic calls route through -Server.
+PASS: helper forwards -Server/-Repo and uses portable paths.
+Original r27_diag.ps1 is preserved byte-for-byte; r27_diag_target.ps1 adapts only target routing and labels.
+No timing, threshold, query, acceptance or production logic change. No E6 executed by this patch.
+
+--- before/tests/db/diagnostics/r27_e6_probe.ps1
++++ after/tests/db/diagnostics/r27_e6_probe.ps1
+@@ -1,3 +1,4 @@
++# A6 (2026-11-11 recovery): explicit -Server routing and portable paths only; query set, sampling, gates and thresholds unchanged.
+ # R-27 closure test E6 - corrected diagnostic harness v2 (SELECT-only). Not the WO-P3-P2-02 baseline.
+ # Owner Directive "R-27 Targeted Remediation and Recheck" (2026-11-08): s3 harness-only correction (narrow BUILD_AUTHORIZED),
+ # s6 execution (VERIFY_ONLY). Derived from r27_probe.ps1 v1 (R-27-PROBE__20261108-1321, SHA-256 9d45b929...3716).
+@@ -7,7 +8,8 @@
+ # Changes no setting, schema, data, index or cache. Holds a process-scoped keep-awake request (SetThreadExecutionState),
+ # released at the end; changes no power setting.
+ param(
+-    [string]$Repo = 'C:\Users\DELL\source\repos\CSDLNC-DA',
++    [string]$Server = 'localhost',
++    [string]$Repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path,
+     [string]$Scratch = (Join-Path $env:TEMP 'p3_r27'),
+     [string]$DiagScript = '',
+     [int]$Runs = 15,
+@@ -26,7 +28,7 @@
+ $Ev = Join-Path $Repo 'docs\phase2\person3\evidence\test-results'
+ if ($EvOverride) { $Ev = $EvOverride }
+ New-Item -ItemType Directory -Force $Ev, $Scratch | Out-Null
+-if (-not $DiagScript) { $DiagScript = Join-Path $Repo 'tests\db\diagnostics\r27_diag.ps1' }
++if (-not $DiagScript) { $DiagScript = Join-Path $Repo 'tests\db\diagnostics\r27_diag_target.ps1' }
+ $RefChecksum = Join-Path $Repo 'docs\phase2\person3\evidence\test-results\CHECKSUMS__DS-L__20261108-1155_C.txt'
+ $ts = (Get-Date).ToUniversalTime().ToString('yyyyMMdd-HHmm', $inv)
+ $base = "R-27-CLOSE__$ts"
+@@ -82,7 +84,7 @@
+ 
+ Add-Type -AssemblyName System.Windows.Forms
+ Add-Type -Namespace P3 -Name Power -MemberDefinition '[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint esFlags);'
+-function SqlQ([string]$text, [string]$d = $Db) { (& sqlcmd -S localhost -E -I -b -W -s '|' -d $d -Q ("SET NOCOUNT ON; " + $text) 2>&1) | ForEach-Object { [string]$_ } }
++function SqlQ([string]$text, [string]$d = $Db) { (& sqlcmd -S $Server -E -I -b -W -s '|' -d $d -Q ("SET NOCOUNT ON; " + $text) 2>&1) | ForEach-Object { [string]$_ } }
+ function FirstRow($r) { (($r | Where-Object { $_ -match '^-?\d+\|' } | Select-Object -First 1) -split '\|') }
+ $PowerIds = @(42, 105, 107, 506, 507)
+ function PowerEvents($from, $to) {
+@@ -123,7 +125,7 @@
+     $sql.Add("PRINT '##WAITS';"); $sql.Add("SELECT wait_type, waiting_tasks_count, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID AND wait_type IN ('RESOURCE_SEMAPHORE','PAGEIOLATCH_SH','SOS_SCHEDULER_YIELD','CXPACKET','CXCONSUMER','CXSYNC_PORT','MEMORY_ALLOCATION_EXT','IO_COMPLETION','ASYNC_NETWORK_IO') ORDER BY wait_type;"); $sql.Add('GO')
+     $f = Join-Path $Scratch "r27_e6_$name.sql"; $sql | Out-File -Encoding ascii $f
+     $start = (Get-Date)
+-    $out = (& sqlcmd -S localhost -E -I -b -W -s '|' -d $Db -i $f 2>&1) | ForEach-Object { [string]$_ }
++    $out = (& sqlcmd -S $Server -E -I -b -W -s '|' -d $Db -i $f 2>&1) | ForEach-Object { [string]$_ }
+     $rc = $LASTEXITCODE
+     $end = (Get-Date)
+     [pscustomobject]@{ Name=$name; Out=$out; Rc=$rc; Start=$start; End=$end; SqlHash=(Get-FileHash -Algorithm SHA256 $f).Hash }
+@@ -178,14 +180,14 @@
+ $pre.Add((Fmt 'PRE-5 Memory gate E2 now (available {0} MB, physical_memory_low {1}, semaphore target {2} MB): {3}' $g0.AvailMb $g0.Low $g0.SemMb $(if ($g0.E2) {'PASS'} else {'FAIL'}))); if (-not $g0.E2) { $preFail++ }
+ $pre.Add((Fmt 'INFO  CPU load {0}%, % Processor Performance {1}, cached pages of the database {2}' $g0.CpuLoad $g0.PerfPct $g0.CachedPages))
+ $preFile = Join-Path $Ev "${base}__precheck.txt"
+-(@("R-27-CLOSE precheck ($(Utc) UTC). Harness r27_e6_probe.ps1 v2 SHA-256 $selfHash.") + $pre) | ForEach-Object { Mask $_ } | Out-File -Encoding utf8 $preFile
++(@("R-27-CLOSE precheck ($(Utc) UTC). Harness r27_e6_probe.ps1 v2 SHA-256 $selfHash. Server $Server.") + $pre) | ForEach-Object { Mask $_ } | Out-File -Encoding utf8 $preFile
+ $pre | ForEach-Object { $_ }
+ if ($preFail -gt 0 -and -not $NoAbort) { "PRECHECK FAILED ($preFail): no series run. Precheck recorded in $preFile"; exit 2 }
+ 
+ # ---------------- dataset checksum before ----------------
+ function Checksum([string]$label) {
+     $f = Join-Path $Ev "${base}__checksum_$label.txt"
+-    $o = (& sqlcmd -S localhost -E -I -b -W -s '|' -d $Db -v MaxGrantPercent=2 -i (Join-Path $Repo 'tests\db\seed\T-REPRO-02_checksums.sql') 2>&1) | ForEach-Object { Mask ([string]$_) }
++    $o = (& sqlcmd -S $Server -E -I -b -W -s '|' -d $Db -v MaxGrantPercent=2 -i (Join-Path $Repo 'tests\db\seed\T-REPRO-02_checksums.sql') 2>&1) | ForEach-Object { Mask ([string]$_) }
+     $o | Out-File -Encoding utf8 $f
+     $same = ((Get-Content -Encoding UTF8 $f) -join "`n") -eq ((Get-Content -Encoding UTF8 $RefChecksum) -join "`n")
+     $ds = ($o | Where-Object { $_ -match '^DATASET_CHECKSUM\|' } | Select-Object -First 1)
+@@ -196,7 +198,7 @@
+ # ---------------- run ----------------
+ [void][P3.Power]::SetThreadExecutionState([uint32]2147483651)   # ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED
+ try {
+-    & powershell -NoProfile -ExecutionPolicy Bypass -File $DiagScript -OutFile (Join-Path $Ev "R-27-DIAG__${ts}_before.txt") | Out-Null
++    & powershell -NoProfile -ExecutionPolicy Bypass -File $DiagScript -Server $Server -OutFile (Join-Path $Ev "R-27-DIAG__${ts}_before.txt") | Out-Null
+     Start-Sleep -Seconds $SettleSeconds
+     $g1a = Gate 'S1 start'; $s1 = Series 'S1'; $g1b = Gate 'S1 end'
+     $waitUntil = $s1.End.AddMinutes($GapMinutes)
+@@ -206,12 +208,12 @@
+     $drift = SqlQ "SELECT CONVERT(varchar(18), qs.query_hash, 1) AS query_hash, COUNT(*) AS cached_plans, SUM(qs.execution_count) AS execs, MIN(qs.min_grant_kb) AS min_grant_kb, MAX(qs.max_grant_kb) AS max_grant_kb, MIN(qs.min_used_grant_kb) AS min_used_kb, MAX(qs.max_used_grant_kb) AS max_used_kb, MAX(qs.max_spills) AS max_spills, MIN(qs.min_dop) AS min_dop, MAX(qs.max_dop) AS max_dop, MAX(qs.plan_generation_num) AS max_plan_gen, MIN(CONVERT(varchar(18), qs.query_plan_hash, 1)) AS min_qph, MAX(CONVERT(varchar(18), qs.query_plan_hash, 1)) AS max_qph FROM sys.dm_exec_query_stats qs WHERE qs.query_hash IN ($(($QH.Values) -join ', ')) GROUP BY qs.query_hash ORDER BY 1;"
+     $plans = [ordered]@{}
+     foreach ($k in $Q.Keys) {
+-        $po = (& sqlcmd -S localhost -E -I -b -y 0 -d $Db -Q ("SET NOCOUNT ON; SET STATISTICS XML ON; " + $Q[$k] + " SET STATISTICS XML OFF;") 2>&1) -join "`n"
++        $po = (& sqlcmd -S $Server -E -I -b -y 0 -d $Db -Q ("SET NOCOUNT ON; SET STATISTICS XML ON; " + $Q[$k] + " SET STATISTICS XML OFF;") 2>&1) -join "`n"
+         $m = [regex]::Match($po, '<ShowPlanXML[\s\S]*?</ShowPlanXML>')
+         if ($m.Success) { $pf = Join-Path $Ev "${base}__$k.sqlplan"; [IO.File]::WriteAllText($pf, (Mask $m.Value), (New-Object Text.UTF8Encoding($false))); $plans[$k] = $m.Value } else { $plans[$k] = $null }
+     }
+     $probeEnd = Get-Date
+-    & powershell -NoProfile -ExecutionPolicy Bypass -File $DiagScript -OutFile (Join-Path $Ev "R-27-DIAG__${ts}_after.txt") | Out-Null
++    & powershell -NoProfile -ExecutionPolicy Bypass -File $DiagScript -Server $Server -OutFile (Join-Path $Ev "R-27-DIAG__${ts}_after.txt") | Out-Null
+ } finally {
+     [void][P3.Power]::SetThreadExecutionState([uint32]2147483648)   # ES_CONTINUOUS: release
+ }
+@@ -258,7 +260,7 @@
+ Add ("Directive: Owner Directive 'R-27 Targeted Remediation and Recheck' (2026-11-08) s6, VERIFY_ONLY. Window (UTC): {0} to {1}." -f $probeStart.ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss', $inv), $probeEnd.ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss', $inv))
+ Add "Harness: tests/db/diagnostics/r27_e6_probe.ps1 v2, SHA-256 $selfHash. Diagnostic script: $(Split-Path $DiagScript -Leaf), SHA-256 $((Get-FileHash -Algorithm SHA256 $DiagScript).Hash)."
+ Add "Series SQL SHA-256: S1 $($s1.SqlHash); S2 $($s2.SqlHash)."
+-Add "Database FitLife_P3_P2 (DS-L, run C). SELECT-only; no cache clear; no setting changed (E5 features left as documented: see R-27-DIAG before). Keep-awake held by this process only, released at the end."
++Add "Server $Server. Database FitLife_P3_P2 (DS-L, run C). SELECT-only; no cache clear; no setting changed (E5 features left as documented: see R-27-DIAG before). Keep-awake held by this process only, released at the end."
+ Add "Engine side effects of SELECT, recorded rather than avoided: automatic statistics creation and Query Store capture (statistics object count in the gates)."
+ Add ""
+ Add "== Preconditions =="; $pre | ForEach-Object { Add "  $_" }
+SHA256 tests/db/diagnostics/r27_e6_probe.ps1 AB8D01145415E47F4450B1F3F4B911F1DD9F758A4FB9586A6542A619FA2762B2
+
+--- before/tests/db/diagnostics/r27_e6_wait_and_run.ps1
++++ after/tests/db/diagnostics/r27_e6_wait_and_run.ps1
+@@ -3,8 +3,10 @@
+ # occurred for CleanMinutes and available memory >= MinFreeMb, then runs the reviewed harness once. Kills nothing,
+ # changes nothing. The harness re-checks every precondition itself.
+ param([int]$CleanMinutes = 10, [int]$MinFreeMb = 2100, [int]$MaxWaitMinutes = 40,
+-      [string]$Harness = 'C:\Users\DELL\source\repos\CSDLNC-DA\tests\db\diagnostics\r27_e6_probe.ps1',
+-      [string]$Scratch = 'C:\Users\DELL\AppData\Local\Temp\claude\d90cc3f645cab87d\84a34247-a83b-4f83-bdc1-a0d703ac4983\scratchpad\run')
++      [string]$Server = 'localhost',
++      [string]$Repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path,
++      [string]$Harness = (Join-Path $PSScriptRoot 'r27_e6_probe.ps1'),
++      [string]$Scratch = (Join-Path $env:TEMP 'p3_r27'))
+ $ErrorActionPreference = 'Stop'
+ Add-Type -Namespace P3W -Name Power -MemberDefinition '[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint esFlags);'
+ function Utc { (Get-Date).ToUniversalTime().ToString('HH:mm:ss') }
+@@ -23,7 +25,7 @@
+         Start-Sleep -Seconds 30
+     }
+     "$(Utc) UTC conditions met; starting harness"
+-    & powershell -NoProfile -ExecutionPolicy Bypass -File $Harness -Scratch $Scratch
++    & powershell -NoProfile -ExecutionPolicy Bypass -File $Harness -Server $Server -Repo $Repo -Scratch $Scratch
+     "$(Utc) UTC harness exit=$LASTEXITCODE"
+ } finally {
+     [void][P3W.Power]::SetThreadExecutionState([uint32]2147483648)
+SHA256 tests/db/diagnostics/r27_e6_wait_and_run.ps1 AF4E242E81A080C54F6672B0F7F288717F88AB7CB7274B8A97B54252658F488D
+
+--- before/tests/db/diagnostics/r27_diag_target.ps1
++++ after/tests/db/diagnostics/r27_diag_target.ps1
+@@ -0,0 +1,64 @@
++# A6 routing adapter: derived from byte-preserved r27_diag.ps1; selected-instance D3/D4 reads use -Server. D5 remains a read-only BM-1 inventory.
++# R-27 environment diagnostic - read-only. Changes no setting, service, database or file except the output file.
++param([Parameter(Mandatory)][string]$OutFile, [string]$Server = 'localhost')
++$ErrorActionPreference = 'Continue'
++$inv = [Globalization.CultureInfo]::InvariantCulture
++$host_ = $env:COMPUTERNAME
++$lines = New-Object System.Collections.Generic.List[string]
++function Add([string]$s) { $lines.Add(($s -replace [regex]::Escape($host_), '<local-server>')) }
++function Sql([string]$server, [string]$q) {
++    (& sqlcmd -S $server -E -I -W -s '|' -l 5 -Q ("SET NOCOUNT ON; " + $q) 2>&1) | ForEach-Object { Add ([string]$_) }
++}
++Add "R-27-DIAG - read-only environment diagnostic for R-27 (Owner Directive 'Accept P2-01 and Resolve R-27', VERIFY_ONLY)."
++Add ("Captured (UTC): " + (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss', $inv) + ". Machine and server names masked as <local-server>. No setting was changed.")
++Add ""
++Add "== D1. Power =="
++$bat = Get-CimInstance Win32_Battery
++Add ("BatteryStatus (1 = discharging / on battery, 2 = on AC): {0}; charge %: {1}" -f $bat.BatteryStatus, $bat.EstimatedChargeRemaining)
++(powercfg /getactivescheme) | ForEach-Object { Add $_ }
++Add "Sleep after (STANDBYIDLE) and display off (VIDEOIDLE), seconds as hex:"
++(powercfg /query SCHEME_CURRENT SUB_SLEEP STANDBYIDLE | Select-String 'Current (AC|DC)') | ForEach-Object { Add ("  STANDBYIDLE " + $_.Line.Trim()) }
++(powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE | Select-String 'Current (AC|DC)') | ForEach-Object { Add ("  VIDEOIDLE " + $_.Line.Trim()) }
++Add ("Sleep states available: " + ((powercfg /a | Select-Object -First 4 | Select-Object -Skip 1) -join '; ').Trim())
++Add "Power events (System log, Kernel-Power 42/107/506/507, Power-Troubleshooter 1, Kernel-Power 105) in the last 24 h, UTC:"
++try {
++    Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=(Get-Date).AddHours(-24); ProviderName='Microsoft-Windows-Kernel-Power','Microsoft-Windows-Power-Troubleshooter'} -ErrorAction Stop |
++      Where-Object { $_.Id -in 1,42,105,107,506,507 } | Sort-Object TimeCreated |
++      ForEach-Object { Add ("  {0}  id={1}  {2}" -f $_.TimeCreated.ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss', $inv), $_.Id, (($_.Message -split "`n")[0]).Trim()) }
++} catch { Add "  none" }
++Add ""
++Add "== D2. Hardware and OS memory =="
++$cpu = Get-CimInstance Win32_Processor
++Add ("CPU: {0}; cores {1}; logical {2}; load % now {3}" -f $cpu.Name.Trim(), $cpu.NumberOfCores, $cpu.NumberOfLogicalProcessors, $cpu.LoadPercentage)
++$os = Get-CimInstance Win32_OperatingSystem
++Add ("OS: {0} build {1}" -f $os.Caption, $os.BuildNumber)
++Add ("RAM MB total {0}; free {1}; commit limit {2}; commit in use {3}" -f [int]($os.TotalVisibleMemorySize/1024), [int]($os.FreePhysicalMemory/1024), [int]($os.TotalVirtualMemorySize/1024), [int](($os.TotalVirtualMemorySize-$os.FreeVirtualMemory)/1024))
++Get-CimInstance Win32_PageFileUsage | ForEach-Object { Add ("Page file: allocated MB {0}; current use MB {1}; peak MB {2}" -f $_.AllocatedBaseSize, $_.CurrentUsage, $_.PeakUsage) }
++Get-PhysicalDisk | ForEach-Object { Add ("Disk: {0} {1} {2} GB" -f $_.MediaType, $_.BusType, [int]($_.Size/1GB)) }
++Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ForEach-Object { Add ("Volume {0}: size GB {1}; free GB {2}" -f $_.DeviceID, [int]($_.Size/1GB), [math]::Round($_.FreeSpace/1GB,1)) }
++Add "Top 12 process groups by private memory (MB):"
++Get-Process | Group-Object ProcessName | ForEach-Object { [pscustomobject]@{N=$_.Name; C=$_.Count; P=[int](($_.Group | Measure-Object PrivateMemorySize64 -Sum).Sum/1MB); W=[int](($_.Group | Measure-Object WorkingSet64 -Sum).Sum/1MB)} } |
++  Sort-Object P -Descending | Select-Object -First 12 | ForEach-Object { Add ("  {0,-16} x{1,-3} private {2,6}  working set {3,6}" -f $_.N, $_.C, $_.P, $_.W) }
++Add "SQL Server services:"
++Get-Service | Where-Object { $_.Name -match '^MSSQL|^SQLAgent' } | ForEach-Object { Add ("  {0}: {1} ({2})" -f $_.Name, $_.Status, $_.StartType) }
++Add ""
++Add "== D3. SQL Server $Server (selected benchmark instance) =="
++Sql $Server "SELECT total_physical_memory_kb/1024 total_mb, available_physical_memory_kb/1024 avail_mb, system_memory_state_desc FROM sys.dm_os_sys_memory;
++SELECT physical_memory_in_use_kb/1024 in_use_mb, locked_page_allocations_kb/1024 locked_mb, memory_utilization_percentage util_pct, process_physical_memory_low, page_fault_count FROM sys.dm_os_process_memory;
++SELECT committed_kb/1024 committed_mb, committed_target_kb/1024 target_mb, sql_memory_model_desc, cpu_count, sqlserver_start_time FROM sys.dm_os_sys_info;
++SELECT pool_id, resource_semaphore_id, target_memory_kb/1024 target_mb, max_target_memory_kb/1024 max_target_mb, available_memory_kb/1024 avail_mb, waiter_count, timeout_error_count, forced_grant_count FROM sys.dm_exec_query_resource_semaphores ORDER BY pool_id, resource_semaphore_id;
++SELECT name, value_in_use FROM sys.configurations WHERE name IN ('max server memory (MB)','min server memory (MB)','max degree of parallelism','cost threshold for parallelism','min memory per query (KB)') ORDER BY name;
++SELECT wait_type, waiting_tasks_count, wait_time_ms/1000 wait_s, max_wait_time_ms/1000 max_wait_s FROM sys.dm_os_wait_stats WHERE wait_type IN ('RESOURCE_SEMAPHORE','PAGEIOLATCH_SH','SOS_SCHEDULER_YIELD','CXPACKET','MEMORY_ALLOCATION_EXT') ORDER BY wait_time_ms DESC;
++CREATE TABLE #e (LogDate datetime, ProcessInfo nvarchar(50), Text nvarchar(max)); INSERT #e EXEC xp_readerrorlog 0, 1, N'paged out';
++SELECT CONVERT(char(10), LogDate, 23) log_day, COUNT(*) paged_out_messages FROM #e WHERE LogDate >= DATEADD(day, -10, GETDATE()) GROUP BY CONVERT(char(10), LogDate, 23) ORDER BY 1 DESC; DROP TABLE #e;"
++Add ""
++Add "== D4. Database-scoped settings of FitLife_P3_P2 that affect repeated executions =="
++Sql $Server "USE FitLife_P3_P2; SELECT name, CONVERT(nvarchar(20), value) value FROM sys.database_scoped_configurations WHERE name IN ('MAXDOP','DOP_FEEDBACK','CE_FEEDBACK','ROW_MODE_MEMORY_GRANT_FEEDBACK','BATCH_MODE_MEMORY_GRANT_FEEDBACK','MEMORY_GRANT_FEEDBACK_PERSISTENCE','MEMORY_GRANT_FEEDBACK_PERCENTILE_GRANT','PARAMETER_SENSITIVE_PLAN_OPTIMIZATION','OPTIONAL_PARAMETER_OPTIMIZATION','BATCH_MODE_ON_ROWSTORE') ORDER BY name;
++SELECT actual_state_desc query_store, query_capture_mode_desc FROM sys.database_query_store_options;
++SELECT compatibility_level, recovery_model_desc, is_read_committed_snapshot_on rcsi, is_auto_update_stats_on auto_update_stats FROM sys.databases WHERE name = DB_NAME();
++SELECT SUM(reserved_page_count)*8/1024 reserved_mb_all_tables FROM sys.dm_db_partition_stats;"
++Add ""
++Add "== D5. Second instance MSSQLSERVER01 =="
++Sql 'localhost\MSSQLSERVER01' "SELECT physical_memory_in_use_kb/1024 in_use_mb FROM sys.dm_os_process_memory; SELECT COUNT(*) user_databases FROM sys.databases WHERE database_id > 4; SELECT name, value_in_use FROM sys.configurations WHERE name IN ('max server memory (MB)','min server memory (MB)') ORDER BY name;"
++$lines | Out-File -Encoding utf8 $OutFile
++"written: $OutFile ($($lines.Count) lines)"
+SHA256 tests/db/diagnostics/r27_diag_target.ps1 BC7F4EC0031869AC0570804397324785208F77BE6D2A0286F30C29473B289BA2
+

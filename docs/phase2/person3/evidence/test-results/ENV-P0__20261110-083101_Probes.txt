@@ -1,0 +1,86 @@
+﻿ENV-P0 - WO-P3-P0-02 (amended 2026-11-10), stage Probes. Benchmark instance BM-1 = localhost\MSSQLSERVER01. Started (UTC) 2026-11-10 08:31:01.
+Runner SHA-256: 74AA3DD1B40D623884371A22F7E87F475175832CDAF2624DC979737C72CF71A4
+Identity: ID|MSSQLSERVER01|MSSQLSERVER01|17.0.1000.7|Standard Developer Edition (64-bit)|2|local|1
+G0 PASS  Connection reaches service MSSQLSERVER01 on the local computer (not the default instance)
+G1 PASS  Engine 17.0.1000.7, Standard Developer Edition, EngineEdition 2; current login is sysadmin
+Databases on BM-1 before: master, tempdb, model, msdb
+F0 PASS  Probe database FitLife_P3_Probe created on BM-1 (SIMPLE, compatibility 160 like the P3 databases, P3_Disposable marker)
+
+[3e] GENERATE_SERIES (compatibility 160)
+  SQL: SELECT 'N', COUNT(*) FROM GENERATE_SERIES(1, 10000);
+  sqlcmd exit 0; output: N|10000
+  RESULT 3e : SUPPORTED
+
+[setup] Probe table with 10,000 rows
+  SQL: CREATE TABLE dbo.probe_t (id int NOT NULL CONSTRAINT pk_probe_t PRIMARY KEY, grp int NOT NULL, st char(4) NOT NULL, amt decimal(18,2) NOT NULL); INSERT dbo.probe_t SELECT value, value % 10, CASE WHEN value % 2 = 0 THEN 'PAID' ELSE 'PEND' END, value FROM GENERATE_SERIES(1, 10000); SELECT 'ROWS', COUNT(*) FROM dbo.probe_t;
+  sqlcmd exit 0; output: ROWS|10000
+  RESULT setup : SUPPORTED
+
+[3a] Filtered index
+  SQL: CREATE INDEX ix_probe_filtered ON dbo.probe_t (grp) INCLUDE (amt) WHERE st = 'PAID'; SELECT 'FI', has_filter, CONVERT(varchar(100), filter_definition) FROM sys.indexes WHERE name = 'ix_probe_filtered';
+  sqlcmd exit 0; output: FI|1|([st]='PAID')
+  RESULT 3a : SUPPORTED
+  3a plan check (INFO): indexes read: [ix_probe_filtered]; uses ix_probe_filtered: True; execution mode: Row
+
+[3b] Partition function and scheme on a 3-row table
+  SQL: CREATE PARTITION FUNCTION pf_probe (int) AS RANGE RIGHT FOR VALUES (2, 3); CREATE PARTITION SCHEME ps_probe AS PARTITION pf_probe ALL TO ([PRIMARY]); CREATE TABLE dbo.probe_part (id int NOT NULL CONSTRAINT pk_probe_part PRIMARY KEY) ON ps_probe (id); INSERT dbo.probe_part VALUES (1), (2), (3); SELECT 'PART', COUNT(*), SUM(CASE WHEN rows = 1 THEN 1 ELSE 0 END) FROM sys.partitions WHERE object_id = OBJECT_ID('dbo.probe_part') AND index_id = 1; SELECT 'PFN', $PARTITION.pf_probe(id), id FROM dbo.probe_part ORDER BY id;
+  sqlcmd exit 0; output: Partition scheme 'ps_probe' has been created successfully. 'PRIMARY' is marked as the next used filegroup in partition scheme 'ps_probe'. / PART|3|3 / PFN|1|1 / PFN|2|2 / PFN|3|3
+  RESULT 3b : SUPPORTED
+
+[3c-1] Indexed view: create (SCHEMABINDING, unique clustered index)
+  SQL: EXEC (N'CREATE VIEW dbo.v_probe WITH SCHEMABINDING AS SELECT grp, SUM(amt) AS s, COUNT_BIG(*) AS c FROM dbo.probe_t WHERE st = ''PAID'' GROUP BY grp;'); CREATE UNIQUE CLUSTERED INDEX ix_v_probe ON dbo.v_probe (grp); SELECT 'IV', COUNT(*) FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.v_probe') AND index_id = 1;
+  sqlcmd exit 0; output: IV|1
+  RESULT 3c-1 : SUPPORTED
+
+[3c-2] Indexed view: optimizer matching
+  base-table query, no hint : indexes read: [ix_probe_filtered]; uses ix_v_probe: False; execution mode: Row
+  view WITH (NOEXPAND)      : indexes read: [ix_v_probe]; uses ix_v_probe: True; execution mode: Row
+  view without hint         : indexes read: [ix_probe_filtered]; uses ix_v_probe: False; execution mode: Row
+  RESULT 3c-2 : UNSUPPORTED on this engine edition: the view index is not used unless NOEXPAND is written
+  RESULT 3c-3 : SUPPORTED
+
+[3d] CREATE INDEX ... WITH (ONLINE = ON)
+  SQL: CREATE INDEX ix_probe_online ON dbo.probe_t (amt) WITH (ONLINE = ON); SELECT 'ONL', COUNT(*) FROM sys.indexes WHERE name = 'ix_probe_online';
+  sqlcmd exit 1; output: Msg 1712, Level 16, State 3, Server <local-server>\MSSQLSERVER01, Line 1 / Online index operations can only be performed in Enterprise edition of SQL Server or Azure SQL Edge.
+  RESULT 3d : UNSUPPORTED/REFUSED - Msg 1712, Level 16, State 3, Server <local-server>\MSSQLSERVER01, Line 1 Online index operations can only be performed in Enterprise edition of SQL Server or Azure SQL Edge.
+
+[3f-1] DML on a table with a filtered index and an indexed view, sqlcmd WITH -I (QUOTED_IDENTIFIER ON)
+  SQL: UPDATE dbo.probe_t SET amt = amt + 1 WHERE id = 2; SELECT 'DML', @@ROWCOUNT;
+  sqlcmd exit 0; output: DML|1
+  RESULT 3f-1 : SUPPORTED
+
+[3f-2] Same DML, sqlcmd WITHOUT -I (QUOTED_IDENTIFIER OFF): expected to be refused with message 1934
+  SQL: UPDATE dbo.probe_t SET amt = amt + 1 WHERE id = 2; SELECT 'DML', @@ROWCOUNT;
+  sqlcmd exit 1; output: Msg 1934, Level 16, State 1, Server <local-server>\MSSQLSERVER01, Line 1 / UPDATE failed because the following SET options have incorrect settings: 'QUOTED_IDENTIFIER'. Verify that SET options are correct for use with indexed views and/or indexes on computed columns and/or filtered indexes and/or query notifications and/or XML data type methods and/or spatial index operations.
+  RESULT 3f-2 : UNSUPPORTED/REFUSED - Msg 1934, Level 16, State 1, Server <local-server>\MSSQLSERVER01, Line 1 UPDATE failed because the following SET options have incorrect settings: 'QUOTED_IDENTIFIER'. Verify that SET options are correct for use with indexed views and/or indexes on computed columns and/or filtered indexes and/or query notifications and/or XML data type methods and/or spatial index operations.
+  3f-2 interpretation: refused with Msg 1934 as documented -> every P3 script and client must keep QUOTED_IDENTIFIER ON (sqlcmd -I; SqlClient default ON)
+
+[3g] Nonclustered columnstore index (roadmap candidate IX-10, optional; INFO, not a WO criterion)
+  SQL: CREATE NONCLUSTERED COLUMNSTORE INDEX ix_probe_ncci ON dbo.probe_t (grp, st, amt); SELECT 'CS', COUNT(*) FROM sys.indexes WHERE name = 'ix_probe_ncci' AND type = 6;
+  sqlcmd exit 0; output: CS|1
+  RESULT 3g : SUPPORTED
+  3g plan check (INFO): indexes read: [ix_probe_ncci]; uses ix_probe_ncci: True; execution mode: Batch
+
+[task 4] PowerShell 5.1 System.Data.SqlClient, Windows authentication, no stored credential
+  result: service|database|QUOTED_IDENTIFIER|rows = MSSQLSERVER01|FitLife_P3_Probe|1|10000
+
+Databases on BM-1 after: master, tempdb, model, msdb
+
+Feature summary (id | capability | result):
+  3e     | GENERATE_SERIES (compatibility 160) | SUPPORTED
+  setup  | Probe table with 10,000 rows | SUPPORTED (INFO)
+  3a     | Filtered index | SUPPORTED
+  3b     | Partition function and scheme on a 3-row table | SUPPORTED
+  3c-1   | Indexed view: create (SCHEMABINDING, unique clustered index) | SUPPORTED
+  3c-2   | Indexed view matched automatically (no NOEXPAND) | UNSUPPORTED/REFUSED
+  3c-3   | Indexed view usable WITH (NOEXPAND) | SUPPORTED
+  3d     | CREATE INDEX ... WITH (ONLINE = ON) | UNSUPPORTED/REFUSED
+  3f-1   | DML on a table with a filtered index and an indexed view, sqlcmd WITH -I (QUOTED_IDENTIFIER ON) | SUPPORTED
+  3f-2   | Same DML, sqlcmd WITHOUT -I (QUOTED_IDENTIFIER OFF): expected to be refused with message 1934 | UNSUPPORTED/REFUSED (INFO)
+  3g     | Nonclustered columnstore index (roadmap candidate IX-10, optional; INFO, not a WO criterion) | SUPPORTED (INFO)
+  task4  | System.Data.SqlClient connectivity | SUPPORTED
+F1 PASS  Every probe produced a recorded result (SUPPORTED or UNSUPPORTED with its message); none failed to execute
+F2 PASS  Probe database dropped; database list after = before
+
+ENV-P0 Probes SUMMARY: checks 5; FAIL 0; finished (UTC) 2026-11-10 08:31:04
+ENV-P0_Probes_RESULT: PASS

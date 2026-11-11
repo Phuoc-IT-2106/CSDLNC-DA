@@ -1,0 +1,60 @@
+﻿T-F05L loyalty and tiers incl. failure inside a batch chunk (T-F05-34). Run P3-03-RUN__20261110-0737.
+Executed (UTC): 2026-11-10 07:38:23; database FitLife_P3_UC05; script tests/db/functional/T-F05L_loyalty_tiers.sql (SHA-256 D7D16574AA9A8A9E7B705C98110D210B3FE2EEB8BBBBB70FB1CDB75DE583574D); sqlcmd exit 0
+
+Today (local) 2026-11-10; tiers (Gold/Platinum TEST_ONLY synthetic): Silver 0, Gold 1000000.00, Platinum 3000000.00
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|14|0|26
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|0|0|40
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|1|0|39
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|1|0|39
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-30|2025-12-01|2026-12-01|40|0|0|40
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-12-01|2026-01-01|2027-01-01|40|0|2|38
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|2|0|38
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-30|2025-12-01|2026-12-01|40|1|0|39
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-12-01|2026-01-01|2027-01-01|40|0|2|38
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2027-01-01|2026-02-01|2027-02-01|40|0|1|39
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-30|2025-12-01|2026-12-01|40|3|0|37
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2027-01-01|2026-02-01|2027-02-01|40|0|2|38
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|3|0|37
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-11-10|2025-12-01|2026-12-01|40|0|0|40
+case_id|test_id|result|descr|detail
+-------|-------|------|-----|------
+L01|T-F05-12|PASS|Tier selection: spend 0 -> Silver; Gold - 0.01 -> Silver; = Gold -> Gold; Gold + 0.01 -> Gold; Platinum - 0.01 -> Gold; = Platinum -> Platinum; above -> Platinum (inclusive, highest eligible)|error 0 ; batch evaluated 40, upgrades 14, downgrades 0; members 12-18 with a wrong tier: 0; tiers 12..18 = 1,1,2,2,2,3,3
+L02|T-F05-14|PASS|Second run for the same evaluation date: 0 upgrades, 0 downgrades, every member unchanged, no row written|evaluated 40; upgrades 0; downgrades 0; unchanged 40; tier/points state changed no
+L03|T-F05-12|PASS|Member at Gold - 0.01 pays 0.01 (this month): still Silver right after settlement (accepted D-009 (a) latency); the next batch upgrades exactly this member to Gold|settlement SETTLED; tier after settlement 1; tier after batch 2; batch upgrades 1, downgrades 0
+L04|T-F05-13|PASS|Platinum-level spend in the oldest window month: Platinum today and on the last day of this month; on the 1st of next month it leaves the window -> Silver with NO payment; re-evaluating today restores Platinum|payment month 2025-12-01; tier today 3; on 2026-11-30 3; on 2026-12-01 1 (batch downgrades 2); today again 3
+L05a|T-F05-33|PASS|Payment at 2025-12-31 16:59:59.999 UTC -> December 2025 row; at 17:00:00.000 UTC (= 1 Jan 00:00 local) -> January 2026 row (same month function as settlement)|rows of member 20: 2025-12-01=1000000.00; 2026-01-01=1000000.00
+L05b|T-F05-13|PASS|December/January: as of 2026-11-30 (Dec 2025..Nov 2026) both payments count; 2026-12-01 (Jan..Dec 2026) only January; 2027-01-01 (Feb 2026..Jan 2027) none -> Silver; no 1 January reset of the window itself|tiers: 2 (expected 2), 2 (expected 2), 1 (expected 1)
+L09|T-F05-34|PASS|Failure injected in the chunk of member 20 (chunk size 1): earlier chunk (member 19) committed correctly, member 20 and all later members unchanged, error passed through, no open transaction; the re-run completes and every member equals the independent oracle|error 52930 (TEST_ONLY injected failure in the batch chunk of member 20.); member 19 3->1; member 20 2->2 (unchanged); members > 20 unchanged: yes; after re-run, members with a wrong tier: 0
+L08|T-F05-35|PASS|Invalid MEMBER_TIER configuration (a second tier at 0; a duplicate threshold): batch and lookup refuse, no tier written|errors: batch 51322 / 51323; lookup 51322; state changed no
+L06|T-F05-15|PASS|Loyalty lookup: points, stored and evaluated tier, window bounds and spend, next tier and gap equal the oracle (Gold member, Silver member with 0, top-tier member without next tier); unknown / NULL member rejected|rows: 14:Gold/1000000.00/next Platinum gap 2000000.00; 12:Silver/0.00/next Gold gap 1000000.00; 18:Platinum/3001000.00/next - gap -; errors 51331 / 51330
+L07|T-F05-32|PASS|25 settled invoices of 4,000 VND in one month: points per call 0 x24 then 1 at the cumulative 100,000; one month row; CurrentPoints 1|points per call 0000000000000000000000001; balance 1; month row 100000.00/1
+T-F05L SUMMARY: cases=10 FAIL=0
+T-F05L_RESULT: PASS

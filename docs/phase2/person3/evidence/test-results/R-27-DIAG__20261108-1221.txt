@@ -1,0 +1,229 @@
+﻿R-27-DIAG - read-only environment diagnostic for R-27 (Owner Directive 'Accept P2-01 and Resolve R-27', VERIFY_ONLY).
+Captured (UTC): 2026-11-08 12:22:01. Machine and server names masked as <local-server>. No setting was changed.
+
+== D1. Power ==
+BatteryStatus (1 = discharging / on battery, 2 = on AC): 1; charge %: 47
+Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)
+Sleep after (STANDBYIDLE) and display off (VIDEOIDLE), seconds as hex:
+  STANDBYIDLE Current AC Power Setting Index: 0x00000258
+  STANDBYIDLE Current DC Power Setting Index: 0x000000f0
+  VIDEOIDLE Current AC Power Setting Index: 0x00000258
+  VIDEOIDLE Current DC Power Setting Index: 0x000000f0
+Sleep states available: Standby (S0 Low Power Idle) Network Connected;     Hibernate;     Fast Startup
+Power events (System log, Kernel-Power 42/107/506/507, Power-Troubleshooter 1, Kernel-Power 105) in the last 24 h, UTC:
+  2026-11-07 12:38:20  id=507  The system is exiting connected standby
+  2026-11-07 12:46:25  id=105  Power source change.
+  2026-11-07 12:51:15  id=506  The system is entering connected standby
+  2026-11-07 13:30:56  id=507  The system is exiting connected standby
+  2026-11-07 13:31:07  id=42  The system is entering sleep.
+  2026-11-07 13:31:08  id=107  The system has resumed from sleep.
+  2026-11-08 01:20:31  id=1  The system has returned from a low power state.
+  2026-11-08 01:21:01  id=506  The system is entering connected standby
+  2026-11-08 01:23:11  id=507  The system is exiting connected standby
+  2026-11-08 01:32:02  id=506  The system is entering connected standby
+  2026-11-08 01:34:43  id=507  The system is exiting connected standby
+  2026-11-08 01:39:13  id=506  The system is entering connected standby
+  2026-11-08 02:13:53  id=507  The system is exiting connected standby
+  2026-11-08 02:14:43  id=105  Power source change.
+  2026-11-08 02:24:29  id=506  The system is entering connected standby
+  2026-11-08 02:31:18  id=507  The system is exiting connected standby
+  2026-11-08 02:31:30  id=105  Power source change.
+  2026-11-08 02:38:47  id=506  The system is entering connected standby
+  2026-11-08 02:39:22  id=507  The system is exiting connected standby
+  2026-11-08 02:43:24  id=506  The system is entering connected standby
+  2026-11-08 02:45:28  id=105  Power source change.
+  2026-11-08 02:45:29  id=507  The system is exiting connected standby
+  2026-11-08 02:55:31  id=506  The system is entering connected standby
+  2026-11-08 02:58:03  id=507  The system is exiting connected standby
+  2026-11-08 03:08:51  id=506  The system is entering connected standby
+  2026-11-08 03:24:47  id=507  The system is exiting connected standby
+  2026-11-08 03:24:47  id=506  The system is entering connected standby
+  2026-11-08 03:24:50  id=507  The system is exiting connected standby
+  2026-11-08 03:35:19  id=506  The system is entering connected standby
+  2026-11-08 03:36:03  id=507  The system is exiting connected standby
+  2026-11-08 03:46:05  id=506  The system is entering connected standby
+  2026-11-08 04:07:53  id=507  The system is exiting connected standby
+  2026-11-08 04:08:24  id=105  Power source change.
+  2026-11-08 04:08:33  id=506  The system is entering connected standby
+  2026-11-08 04:08:34  id=507  The system is exiting connected standby
+  2026-11-08 04:08:34  id=506  The system is entering connected standby
+  2026-11-08 04:39:35  id=507  The system is exiting connected standby
+  2026-11-08 04:39:46  id=42  The system is entering sleep.
+  2026-11-08 04:39:47  id=107  The system has resumed from sleep.
+  2026-11-08 11:49:35  id=1  The system has returned from a low power state.
+  2026-11-08 12:11:24  id=506  The system is entering connected standby
+  2026-11-08 12:14:32  id=507  The system is exiting connected standby
+
+== D2. Hardware and OS memory ==
+CPU: 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz; cores 4; logical 8; load % now 22
+OS: Microsoft Windows 10 Pro build 19044
+RAM MB total 7915; free 878; commit limit 22877; commit in use 17698
+Page file: allocated MB 14961; current use MB 4317; peak MB 4875
+Disk: SSD RAID 238 GB
+Volume C:: size GB 238; free GB 12.6
+Top 12 process groups by private memory (MB):
+  Code             x17  private   2353  working set   1051
+  chrome           x14  private   1847  working set   1096
+  claude           x4   private   1736  working set    567
+  ChatGPT          x14  private   1652  working set    416
+  sqlservr         x2   private   1123  working set    220
+  Zalo             x8   private    885  working set    391
+  svchost          x87  private    675  working set    456
+  MsMpEng          x1   private    462  working set    166
+  powershell       x4   private    356  working set    238
+  OpenVPNConnect   x4   private    250  working set     37
+  explorer         x1   private    217  working set     75
+  SearchApp        x1   private    201  working set      9
+SQL Server services:
+  MSSQL$MSSQLSERVER01: Running (Automatic)
+  MSSQLSERVER: Running (Automatic)
+  SQLAgent$MSSQLSERVER01: Stopped (Manual)
+
+== D3. SQL Server MSSQLSERVER (benchmark instance) ==
+total_mb|avail_mb|system_memory_state_desc
+--------|--------|------------------------
+7914|797|Physical memory usage is steady
+in_use_mb|locked_mb|util_pct|process_physical_memory_low|page_fault_count
+---------|---------|--------|---------------------------|----------------
+158|0|42|1|5150462
+committed_mb|target_mb|sql_memory_model_desc|cpu_count|sqlserver_start_time
+------------|---------|---------------------|---------|--------------------
+377|377|CONVENTIONAL|8|2026-10-27 22:31:45.923
+pool_id|resource_semaphore_id|target_mb|max_target_mb|avail_mb|waiter_count|timeout_error_count|forced_grant_count
+-------|---------------------|---------|-------------|--------|------------|-------------------|------------------
+1|0|8|283|8|0|0|0
+1|1|0|NULL|0|0|NULL|NULL
+2|0|8|283|7|0|0|97
+2|1|0|NULL|0|0|NULL|NULL
+name|value_in_use
+----|------------
+cost threshold for parallelism|5
+max degree of parallelism|8
+max server memory (MB)|2147483647
+min memory per query (KB)|1024
+min server memory (MB)|16
+wait_type|waiting_tasks_count|wait_s|max_wait_s
+---------|-------------------|------|----------
+RESOURCE_SEMAPHORE|37|28791|25791
+CXPACKET|138247|2658|29
+PAGEIOLATCH_SH|266475|258|2
+SOS_SCHEDULER_YIELD|169485|163|29
+MEMORY_ALLOCATION_EXT|14995434|86|1
+log_day|paged_out_messages
+-------|------------------
+2026-11-08|24
+2026-11-07|1
+2026-11-06|1
+2026-11-05|1
+2026-11-04|1
+2026-11-03|1
+2026-11-02|1
+2026-11-01|1
+2026-10-31|1
+2026-10-30|3
+
+== D4. Database-scoped settings of FitLife_P3_P2 that affect repeated executions ==
+Changed database context to 'FitLife_P3_P2'.
+name|value
+----|-----
+BATCH_MODE_MEMORY_GRANT_FEEDBACK|1
+BATCH_MODE_ON_ROWSTORE|1
+CE_FEEDBACK|1
+DOP_FEEDBACK|1
+MAXDOP|0
+MEMORY_GRANT_FEEDBACK_PERCENTILE_GRANT|1
+MEMORY_GRANT_FEEDBACK_PERSISTENCE|1
+OPTIONAL_PARAMETER_OPTIMIZATION|1
+PARAMETER_SENSITIVE_PLAN_OPTIMIZATION|1
+ROW_MODE_MEMORY_GRANT_FEEDBACK|1
+query_store|query_capture_mode_desc
+-----------|-----------------------
+READ_WRITE|AUTO
+compatibility_level|recovery_model_desc|rcsi|auto_update_stats
+-------------------|-------------------|----|-----------------
+160|SIMPLE|0|1
+reserved_mb_all_tables
+----------------------
+68
+
+== D5. Second instance MSSQLSERVER01 ==
+in_use_mb
+---------
+63
+user_databases
+--------------
+0
+name|value_in_use
+----|------------
+max server memory (MB)|2147483647
+min server memory (MB)|16
+
+== D6. Additional samples (same session, read-only) ==
+Second run of the same diagnostic at 2026-11-08 12:22:35 UTC: on battery (46%); RAM free 853 MB; commit in use 17,742 MB; sys_memory 806 MB available, "Physical memory usage is steady"; SQL Server in use 161 MB, process_physical_memory_low = 1, committed 376 MB = target 376 MB; query-memory semaphore (default pool) target 8 MB of max 283 MB, available 7 MB, waiters 0, forced grants 97.
+Earlier ad-hoc sample in this session with the same DMVs (between about 12:10 and 12:21 UTC; exact second not recorded): available 1,148 MB, "Available physical memory is high"; SQL Server committed 375 MB, target 1,141 MB; query-memory semaphore target 651 MB of max 823 MB (default pool), 466 MB of 833 MB (internal pool). The pool therefore moved from about 650 MB to 8 MB within minutes, with no change to SQL Server: only the memory used by other applications changed.
+For context (WO-P3-P2-01 §13.1, observed by the executing session; not re-measured here): query-memory pool 7.68-7.8 MB of about 250 MB for most of 2026-11-08 and about 790 MB at 11:59 UTC.
+
+== Appendix: diagnostic script (PowerShell 5.1 + sqlcmd; read-only) ==
+# R-27 environment diagnostic - read-only. Changes no setting, service, database or file except the output file.
+param([Parameter(Mandatory)][string]$OutFile)
+$ErrorActionPreference = 'Continue'
+$inv = [Globalization.CultureInfo]::InvariantCulture
+$host_ = $env:COMPUTERNAME
+$lines = New-Object System.Collections.Generic.List[string]
+function Add([string]$s) { $lines.Add(($s -replace [regex]::Escape($host_), '<local-server>')) }
+function Sql([string]$server, [string]$q) {
+    (& sqlcmd -S $server -E -I -W -s '|' -l 5 -Q ("SET NOCOUNT ON; " + $q) 2>&1) | ForEach-Object { Add ([string]$_) }
+}
+Add "R-27-DIAG - read-only environment diagnostic for R-27 (Owner Directive 'Accept P2-01 and Resolve R-27', VERIFY_ONLY)."
+Add ("Captured (UTC): " + (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss', $inv) + ". Machine and server names masked as <local-server>. No setting was changed.")
+Add ""
+Add "== D1. Power =="
+$bat = Get-CimInstance Win32_Battery
+Add ("BatteryStatus (1 = discharging / on battery, 2 = on AC): {0}; charge %: {1}" -f $bat.BatteryStatus, $bat.EstimatedChargeRemaining)
+(powercfg /getactivescheme) | ForEach-Object { Add $_ }
+Add "Sleep after (STANDBYIDLE) and display off (VIDEOIDLE), seconds as hex:"
+(powercfg /query SCHEME_CURRENT SUB_SLEEP STANDBYIDLE | Select-String 'Current (AC|DC)') | ForEach-Object { Add ("  STANDBYIDLE " + $_.Line.Trim()) }
+(powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE | Select-String 'Current (AC|DC)') | ForEach-Object { Add ("  VIDEOIDLE " + $_.Line.Trim()) }
+Add ("Sleep states available: " + ((powercfg /a | Select-Object -First 4 | Select-Object -Skip 1) -join '; ').Trim())
+Add "Power events (System log, Kernel-Power 42/107/506/507, Power-Troubleshooter 1, Kernel-Power 105) in the last 24 h, UTC:"
+try {
+    Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=(Get-Date).AddHours(-24); ProviderName='Microsoft-Windows-Kernel-Power','Microsoft-Windows-Power-Troubleshooter'} -ErrorAction Stop |
+      Where-Object { $_.Id -in 1,42,105,107,506,507 } | Sort-Object TimeCreated |
+      ForEach-Object { Add ("  {0}  id={1}  {2}" -f $_.TimeCreated.ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss', $inv), $_.Id, (($_.Message -split "`n")[0]).Trim()) }
+} catch { Add "  none" }
+Add ""
+Add "== D2. Hardware and OS memory =="
+$cpu = Get-CimInstance Win32_Processor
+Add ("CPU: {0}; cores {1}; logical {2}; load % now {3}" -f $cpu.Name.Trim(), $cpu.NumberOfCores, $cpu.NumberOfLogicalProcessors, $cpu.LoadPercentage)
+$os = Get-CimInstance Win32_OperatingSystem
+Add ("OS: {0} build {1}" -f $os.Caption, $os.BuildNumber)
+Add ("RAM MB total {0}; free {1}; commit limit {2}; commit in use {3}" -f [int]($os.TotalVisibleMemorySize/1024), [int]($os.FreePhysicalMemory/1024), [int]($os.TotalVirtualMemorySize/1024), [int](($os.TotalVirtualMemorySize-$os.FreeVirtualMemory)/1024))
+Get-CimInstance Win32_PageFileUsage | ForEach-Object { Add ("Page file: allocated MB {0}; current use MB {1}; peak MB {2}" -f $_.AllocatedBaseSize, $_.CurrentUsage, $_.PeakUsage) }
+Get-PhysicalDisk | ForEach-Object { Add ("Disk: {0} {1} {2} GB" -f $_.MediaType, $_.BusType, [int]($_.Size/1GB)) }
+Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ForEach-Object { Add ("Volume {0}: size GB {1}; free GB {2}" -f $_.DeviceID, [int]($_.Size/1GB), [math]::Round($_.FreeSpace/1GB,1)) }
+Add "Top 12 process groups by private memory (MB):"
+Get-Process | Group-Object ProcessName | ForEach-Object { [pscustomobject]@{N=$_.Name; C=$_.Count; P=[int](($_.Group | Measure-Object PrivateMemorySize64 -Sum).Sum/1MB); W=[int](($_.Group | Measure-Object WorkingSet64 -Sum).Sum/1MB)} } |
+  Sort-Object P -Descending | Select-Object -First 12 | ForEach-Object { Add ("  {0,-16} x{1,-3} private {2,6}  working set {3,6}" -f $_.N, $_.C, $_.P, $_.W) }
+Add "SQL Server services:"
+Get-Service | Where-Object { $_.Name -match '^MSSQL|^SQLAgent' } | ForEach-Object { Add ("  {0}: {1} ({2})" -f $_.Name, $_.Status, $_.StartType) }
+Add ""
+Add "== D3. SQL Server MSSQLSERVER (benchmark instance) =="
+Sql 'localhost' "SELECT total_physical_memory_kb/1024 total_mb, available_physical_memory_kb/1024 avail_mb, system_memory_state_desc FROM sys.dm_os_sys_memory;
+SELECT physical_memory_in_use_kb/1024 in_use_mb, locked_page_allocations_kb/1024 locked_mb, memory_utilization_percentage util_pct, process_physical_memory_low, page_fault_count FROM sys.dm_os_process_memory;
+SELECT committed_kb/1024 committed_mb, committed_target_kb/1024 target_mb, sql_memory_model_desc, cpu_count, sqlserver_start_time FROM sys.dm_os_sys_info;
+SELECT pool_id, resource_semaphore_id, target_memory_kb/1024 target_mb, max_target_memory_kb/1024 max_target_mb, available_memory_kb/1024 avail_mb, waiter_count, timeout_error_count, forced_grant_count FROM sys.dm_exec_query_resource_semaphores ORDER BY pool_id, resource_semaphore_id;
+SELECT name, value_in_use FROM sys.configurations WHERE name IN ('max server memory (MB)','min server memory (MB)','max degree of parallelism','cost threshold for parallelism','min memory per query (KB)') ORDER BY name;
+SELECT wait_type, waiting_tasks_count, wait_time_ms/1000 wait_s, max_wait_time_ms/1000 max_wait_s FROM sys.dm_os_wait_stats WHERE wait_type IN ('RESOURCE_SEMAPHORE','PAGEIOLATCH_SH','SOS_SCHEDULER_YIELD','CXPACKET','MEMORY_ALLOCATION_EXT') ORDER BY wait_time_ms DESC;
+CREATE TABLE #e (LogDate datetime, ProcessInfo nvarchar(50), Text nvarchar(max)); INSERT #e EXEC xp_readerrorlog 0, 1, N'paged out';
+SELECT CONVERT(char(10), LogDate, 23) log_day, COUNT(*) paged_out_messages FROM #e WHERE LogDate >= DATEADD(day, -10, GETDATE()) GROUP BY CONVERT(char(10), LogDate, 23) ORDER BY 1 DESC; DROP TABLE #e;"
+Add ""
+Add "== D4. Database-scoped settings of FitLife_P3_P2 that affect repeated executions =="
+Sql 'localhost' "USE FitLife_P3_P2; SELECT name, CONVERT(nvarchar(20), value) value FROM sys.database_scoped_configurations WHERE name IN ('MAXDOP','DOP_FEEDBACK','CE_FEEDBACK','ROW_MODE_MEMORY_GRANT_FEEDBACK','BATCH_MODE_MEMORY_GRANT_FEEDBACK','MEMORY_GRANT_FEEDBACK_PERSISTENCE','MEMORY_GRANT_FEEDBACK_PERCENTILE_GRANT','PARAMETER_SENSITIVE_PLAN_OPTIMIZATION','OPTIONAL_PARAMETER_OPTIMIZATION','BATCH_MODE_ON_ROWSTORE') ORDER BY name;
+SELECT actual_state_desc query_store, query_capture_mode_desc FROM sys.database_query_store_options;
+SELECT compatibility_level, recovery_model_desc, is_read_committed_snapshot_on rcsi, is_auto_update_stats_on auto_update_stats FROM sys.databases WHERE name = DB_NAME();
+SELECT SUM(reserved_page_count)*8/1024 reserved_mb_all_tables FROM sys.dm_db_partition_stats;"
+Add ""
+Add "== D5. Second instance MSSQLSERVER01 =="
+Sql 'localhost\MSSQLSERVER01' "SELECT physical_memory_in_use_kb/1024 in_use_mb FROM sys.dm_os_process_memory; SELECT COUNT(*) user_databases FROM sys.databases WHERE database_id > 4; SELECT name, value_in_use FROM sys.configurations WHERE name IN ('max server memory (MB)','min server memory (MB)') ORDER BY name;"
+$lines | Out-File -Encoding utf8 $OutFile
+"written: $OutFile ($($lines.Count) lines)"

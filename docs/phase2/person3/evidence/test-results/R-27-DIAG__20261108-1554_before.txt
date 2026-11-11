@@ -1,0 +1,178 @@
+﻿R-27-DIAG - read-only environment diagnostic for R-27 (Owner Directive 'Accept P2-01 and Resolve R-27', VERIFY_ONLY).
+Captured (UTC): 2026-11-08 15:54:40. Machine and server names masked as <local-server>. No setting was changed.
+
+== D1. Power ==
+BatteryStatus (1 = discharging / on battery, 2 = on AC): 2; charge %: 100
+Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)
+Sleep after (STANDBYIDLE) and display off (VIDEOIDLE), seconds as hex:
+  STANDBYIDLE Current AC Power Setting Index: 0x00000258
+  STANDBYIDLE Current DC Power Setting Index: 0x000000f0
+  VIDEOIDLE Current AC Power Setting Index: 0x00000258
+  VIDEOIDLE Current DC Power Setting Index: 0x000000f0
+Sleep states available: Standby (S0 Low Power Idle) Network Connected;     Hibernate;     Fast Startup
+Power events (System log, Kernel-Power 42/107/506/507, Power-Troubleshooter 1, Kernel-Power 105) in the last 24 h, UTC:
+  2026-11-08 01:20:31  id=1  The system has returned from a low power state.
+  2026-11-08 01:21:01  id=506  The system is entering connected standby
+  2026-11-08 01:23:11  id=507  The system is exiting connected standby
+  2026-11-08 01:32:02  id=506  The system is entering connected standby
+  2026-11-08 01:34:43  id=507  The system is exiting connected standby
+  2026-11-08 01:39:13  id=506  The system is entering connected standby
+  2026-11-08 02:13:53  id=507  The system is exiting connected standby
+  2026-11-08 02:14:43  id=105  Power source change.
+  2026-11-08 02:24:29  id=506  The system is entering connected standby
+  2026-11-08 02:31:18  id=507  The system is exiting connected standby
+  2026-11-08 02:31:30  id=105  Power source change.
+  2026-11-08 02:38:47  id=506  The system is entering connected standby
+  2026-11-08 02:39:22  id=507  The system is exiting connected standby
+  2026-11-08 02:43:24  id=506  The system is entering connected standby
+  2026-11-08 02:45:28  id=105  Power source change.
+  2026-11-08 02:45:29  id=507  The system is exiting connected standby
+  2026-11-08 02:55:31  id=506  The system is entering connected standby
+  2026-11-08 02:58:03  id=507  The system is exiting connected standby
+  2026-11-08 03:08:51  id=506  The system is entering connected standby
+  2026-11-08 03:24:47  id=507  The system is exiting connected standby
+  2026-11-08 03:24:47  id=506  The system is entering connected standby
+  2026-11-08 03:24:50  id=507  The system is exiting connected standby
+  2026-11-08 03:35:19  id=506  The system is entering connected standby
+  2026-11-08 03:36:03  id=507  The system is exiting connected standby
+  2026-11-08 03:46:05  id=506  The system is entering connected standby
+  2026-11-08 04:07:53  id=507  The system is exiting connected standby
+  2026-11-08 04:08:24  id=105  Power source change.
+  2026-11-08 04:08:33  id=506  The system is entering connected standby
+  2026-11-08 04:08:34  id=507  The system is exiting connected standby
+  2026-11-08 04:08:34  id=506  The system is entering connected standby
+  2026-11-08 04:39:35  id=507  The system is exiting connected standby
+  2026-11-08 04:39:46  id=42  The system is entering sleep.
+  2026-11-08 04:39:47  id=107  The system has resumed from sleep.
+  2026-11-08 11:49:35  id=1  The system has returned from a low power state.
+  2026-11-08 12:11:24  id=506  The system is entering connected standby
+  2026-11-08 12:14:32  id=507  The system is exiting connected standby
+  2026-11-08 12:34:12  id=105  Power source change.
+  2026-11-08 12:42:57  id=105  Power source change.
+  2026-11-08 12:42:59  id=105  Power source change.
+  2026-11-08 12:43:07  id=105  Power source change.
+  2026-11-08 12:43:09  id=105  Power source change.
+  2026-11-08 12:52:14  id=506  The system is entering connected standby
+  2026-11-08 13:00:58  id=507  The system is exiting connected standby
+  2026-11-08 13:14:42  id=105  Power source change.
+  2026-11-08 13:20:44  id=105  Power source change.
+  2026-11-08 13:20:45  id=105  Power source change.
+  2026-11-08 13:21:11  id=105  Power source change.
+  2026-11-08 13:21:43  id=105  Power source change.
+  2026-11-08 13:24:26  id=105  Power source change.
+  2026-11-08 13:42:05  id=506  The system is entering connected standby
+  2026-11-08 13:54:48  id=507  The system is exiting connected standby
+  2026-11-08 14:05:21  id=506  The system is entering connected standby
+  2026-11-08 14:41:01  id=507  The system is exiting connected standby
+  2026-11-08 14:41:18  id=105  Power source change.
+  2026-11-08 14:49:12  id=105  Power source change.
+  2026-11-08 14:49:16  id=105  Power source change.
+  2026-11-08 14:49:17  id=105  Power source change.
+  2026-11-08 14:59:01  id=506  The system is entering connected standby
+  2026-11-08 15:24:19  id=507  The system is exiting connected standby
+  2026-11-08 15:40:52  id=506  The system is entering connected standby
+  2026-11-08 15:43:40  id=507  The system is exiting connected standby
+
+== D2. Hardware and OS memory ==
+CPU: 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz; cores 4; logical 8; load % now 4
+OS: Microsoft Windows 10 Pro build 19044
+RAM MB total 7915; free 2074; commit limit 22877; commit in use 12907
+Page file: allocated MB 14961; current use MB 2523; peak MB 4875
+Disk: SSD RAID 238 GB
+Volume C:: size GB 238; free GB 11.6
+Top 12 process groups by private memory (MB):
+  Code             x17  private   2338  working set   1036
+  claude           x5   private   2151  working set    699
+  sqlservr         x2   private   1173  working set    238
+  svchost          x85  private    683  working set    546
+  powershell       x6   private    553  working set    512
+  MsMpEng          x1   private    451  working set    223
+  SearchApp        x1   private    243  working set     42
+  explorer         x1   private    207  working set     74
+  dwm              x1   private    139  working set     37
+  conhost          x18  private    115  working set     44
+  SupportAssistAgent x1   private     89  working set     52
+  Dell.TechHub.Instrumentation.SubAgent x1   private     88  working set     93
+SQL Server services:
+  MSSQL$MSSQLSERVER01: Running (Automatic)
+  MSSQLSERVER: Running (Automatic)
+  SQLAgent$MSSQLSERVER01: Stopped (Manual)
+
+== D3. SQL Server MSSQLSERVER (benchmark instance) ==
+total_mb|avail_mb|system_memory_state_desc
+--------|--------|------------------------
+7914|2120|Physical memory usage is steady
+in_use_mb|locked_mb|util_pct|process_physical_memory_low|page_fault_count
+---------|---------|--------|---------------------------|----------------
+130|0|35|1|5755623
+committed_mb|target_mb|sql_memory_model_desc|cpu_count|sqlserver_start_time
+------------|---------|---------------------|---------|--------------------
+370|371|CONVENTIONAL|8|2026-10-27 22:31:45.923
+pool_id|resource_semaphore_id|target_mb|max_target_mb|avail_mb|waiter_count|timeout_error_count|forced_grant_count
+-------|---------------------|---------|-------------|--------|------------|-------------------|------------------
+1|0|8|286|8|0|0|0
+1|1|0|NULL|0|0|NULL|NULL
+2|0|9|286|8|0|0|98
+2|1|0|NULL|0|0|NULL|NULL
+name|value_in_use
+----|------------
+cost threshold for parallelism|5
+max degree of parallelism|8
+max server memory (MB)|2147483647
+min memory per query (KB)|1024
+min server memory (MB)|16
+wait_type|waiting_tasks_count|wait_s|max_wait_s
+---------|-------------------|------|----------
+RESOURCE_SEMAPHORE|40|29113|25791
+CXPACKET|141218|2665|29
+PAGEIOLATCH_SH|280097|264|2
+SOS_SCHEDULER_YIELD|220975|188|29
+MEMORY_ALLOCATION_EXT|15725399|90|1
+log_day|paged_out_messages
+-------|------------------
+2026-11-08|34
+2026-11-07|1
+2026-11-06|1
+2026-11-05|1
+2026-11-04|1
+2026-11-03|1
+2026-11-02|1
+2026-11-01|1
+2026-10-31|1
+2026-10-30|3
+
+== D4. Database-scoped settings of FitLife_P3_P2 that affect repeated executions ==
+Changed database context to 'FitLife_P3_P2'.
+name|value
+----|-----
+BATCH_MODE_MEMORY_GRANT_FEEDBACK|1
+BATCH_MODE_ON_ROWSTORE|1
+CE_FEEDBACK|1
+DOP_FEEDBACK|1
+MAXDOP|0
+MEMORY_GRANT_FEEDBACK_PERCENTILE_GRANT|1
+MEMORY_GRANT_FEEDBACK_PERSISTENCE|1
+OPTIONAL_PARAMETER_OPTIMIZATION|1
+PARAMETER_SENSITIVE_PLAN_OPTIMIZATION|1
+ROW_MODE_MEMORY_GRANT_FEEDBACK|1
+query_store|query_capture_mode_desc
+-----------|-----------------------
+READ_WRITE|AUTO
+compatibility_level|recovery_model_desc|rcsi|auto_update_stats
+-------------------|-------------------|----|-----------------
+160|SIMPLE|0|1
+reserved_mb_all_tables
+----------------------
+68
+
+== D5. Second instance MSSQLSERVER01 ==
+in_use_mb
+---------
+69
+user_databases
+--------------
+0
+name|value_in_use
+----|------------
+max server memory (MB)|2147483647
+min server memory (MB)|16

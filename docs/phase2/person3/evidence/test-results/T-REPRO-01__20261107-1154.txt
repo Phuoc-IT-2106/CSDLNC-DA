@@ -1,0 +1,70 @@
+﻿T-REPRO-01 — WO-P3-P1-01: clean build twice from the documented sequence (F001 TEST_ONLY -> V001 -> V002); safe-procedure check. Instance: local default (localhost), Windows authentication. The server/machine name is masked as <local-server> at capture (it contains a personal name). This run supersedes run 20261107-1148 (identical procedure; that file printed the machine name).
+==== SAFETY-1: the build must refuse to drop FitLife_P3_P1 when the P3_Disposable marker is missing ====
+---- remove marker (authorized target only)  (UTC 2026-11-07 11:54:14)
+Command: sqlcmd -S localhost -E -I -b -d FitLife_P3_P1 -Q EXEC sys.sp_dropextendedproperty @name = N'P3_Disposable'; PRINT 'marker removed';
+marker removed
+
+exit code: 0
+---- rebuild attempt without marker (expected: refused with 51011)  (UTC 2026-11-07 11:54:14)
+Command: sqlcmd -S localhost -E -I -b -i tests/db/build/rebuild_isolated_db.sql
+Msg 51011, Level 16, State 1, Server <local-server>, Line 9
+Refusing to drop: FitLife_P3_P1 exists but has no P3_Disposable marker (unknown data). Inspect it manually.
+
+exit code: 1
+---- database still exists and still holds its tables  (UTC 2026-11-07 11:54:14)
+Command: sqlcmd -S localhost -E -I -b -W -Q SET NOCOUNT ON; SELECT CASE WHEN DB_ID(N'FitLife_P3_P1') IS NOT NULL THEN 'exists' ELSE 'missing' END AS db_state, (SELECT COUNT(*) FROM FitLife_P3_P1.sys.tables) AS user_tables;
+db_state user_tables
+-------- -----------
+exists 9
+
+exit code: 0
+---- restore marker  (UTC 2026-11-07 11:54:14)
+Command: sqlcmd -S localhost -E -I -b -d FitLife_P3_P1 -Q EXEC sys.sp_addextendedproperty @name = N'P3_Disposable', @value = N'WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts'; PRINT 'marker restored';
+marker restored
+
+exit code: 0
+SAFETY-1 RESULT: PASS
+==== BUILD A ====
+---- build A  (UTC 2026-11-07 11:54:14)
+Command: sqlcmd -S localhost -E -I -b -i tests/db/build/rebuild_isolated_db.sql
+Dropped previous disposable database FitLife_P3_P1 (marker: WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts)
+Changed database context to 'FitLife_P3_P1'.
+Created FitLife_P3_P1 (compatibility level 160, SIMPLE recovery, P3_Disposable marker)
+F001 (TEST_ONLY) applied: key-only fixtures MEMBER, BRANCH, EMPLOYEE, SERVICE_PLAN, PRODUCT
+V001 applied: INVOICE, INVOICE_SERVICE_ITEM, INVOICE_PRODUCT_ITEM, MEMBER_MONTHLY_SPENDING
+V002 applied: INVOICE.PaidAt, 12 CHECK constraints, 4 DEFAULT constraints
+BUILD_RESULT: OK (FitLife_P3_P1)
+
+exit code: 0
+==== BUILD B (rebuild over the marked disposable database) ====
+---- build B  (UTC 2026-11-07 11:54:16)
+Command: sqlcmd -S localhost -E -I -b -i tests/db/build/rebuild_isolated_db.sql
+Dropped previous disposable database FitLife_P3_P1 (marker: WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts)
+Changed database context to 'FitLife_P3_P1'.
+Created FitLife_P3_P1 (compatibility level 160, SIMPLE recovery, P3_Disposable marker)
+F001 (TEST_ONLY) applied: key-only fixtures MEMBER, BRANCH, EMPLOYEE, SERVICE_PLAN, PRODUCT
+V001 applied: INVOICE, INVOICE_SERVICE_ITEM, INVOICE_PRODUCT_ITEM, MEMBER_MONTHLY_SPENDING
+V002 applied: INVOICE.PaidAt, 12 CHECK constraints, 4 DEFAULT constraints
+BUILD_RESULT: OK (FitLife_P3_P1)
+
+exit code: 0
+==== COMPARISON ====
+build A exit=0; build B exit=0; both printed BUILD_RESULT: OK = True
+T-SCH-01 output A == B: True (exit A=0, B=0)
+T-SCH-02 output A == B: True (exit A=0, B=0)
+---- database list after the runs (compare with ENV-P1 before list)  (UTC 2026-11-07 11:54:18)
+Command: sqlcmd -S localhost -E -I -b -W -Q SET NOCOUNT ON; SELECT name, database_id, compatibility_level, state_desc, recovery_model_desc FROM sys.databases ORDER BY database_id;
+name database_id compatibility_level state_desc recovery_model_desc
+---- ----------- ------------------- ---------- -------------------
+master 1 170 ONLINE SIMPLE
+tempdb 2 170 ONLINE SIMPLE
+model 3 170 ONLINE FULL
+msdb 4 170 ONLINE SIMPLE
+QLDT1 5 170 ONLINE FULL
+NHAHANG 6 170 ONLINE FULL
+FOOD_DELIVERY_PRACTICE 7 170 ONLINE FULL
+ONTAP_SQL 8 170 ONLINE FULL
+FitLife_P3_P1 9 160 ONLINE SIMPLE
+
+exit code: 0
+T-REPRO-01_RESULT: PASS

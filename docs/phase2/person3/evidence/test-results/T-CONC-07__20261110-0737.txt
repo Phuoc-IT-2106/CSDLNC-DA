@@ -1,0 +1,24 @@
+﻿T-CONC-07 - tier batch vs tier batch: application-lock serialisation, timeout and error paths (WO-P3-P3-03 Part C).
+Started (UTC): 2026-11-10 07:39:06.394; database FitLife_P3_UC05; evaluation date (local) 2026-11-10; members 21-26; Gold threshold (TEST_ONLY synthetic) 1000000.00
+Harness SHA-256: D199DAA22C0CF734319DE6E30C3DB69FDFE769F0922DD04E896ADA43640924AF
+Pre-test quiescent run: error 0; upgrades 1; downgrades 0; application-lock holders: 
+
+T1 - stale-overwrite scenario (run A holds an old snapshot, payment commits, run B starts)
+  T1 PASS  Run B never overlaps run A: it waits on the application lock, then reads fresh data; no stale overwrite; member 22 Gold; all tiers = oracle | A held after its snapshot: LCK_M_U on KEY: 11:72057594047234048 (d123aa1a66e6); member 22 invoice PAID while A held; B waiting: X WAIT 0:[P3_usp_P3_EvaluateTiers]:(500fefaa)                                                                                                                                                                                                                          ; A error 0 , upgrades 0, downgrades 0; B error 0 , upgrades 1, downgrades 0; member 22 tier 2 (Gold = 2); oracle mismatches 0
+
+T2 - application lock held by another session: 60 s wait, error 51324, nothing written
+  T2 PASS  While another session holds the lock, a run fails with 51324 and writes nothing; after release a run upgrades member 23 | sp_getapplock by holder: 0; run error 51324 after about 60 s (context only); tier hash unchanged: True; member 23 tier during hold 1 (base 1); release 0; next run error 0 upgrades 1; member 23 tier 2
+
+T3 - error inside a run (1222 at the chunk of member 25): lock released, no open transaction, re-run completes
+  T3 PASS  A run failing inside a chunk passes the error on, keeps no application lock and no open transaction; the failed chunk wrote nothing; an immediate re-run completes | run error 1222 (Lock request time out period exceeded.); application-lock holders after the error: []; open transactions of that session: 0; member 25 tier after failure 1; re-run error 0 upgrades 1; member 25 tier 2
+
+T4 - client timeout (attention) during a run: characterisation of the session-owned lock
+  T4 PASS  After a client timeout, closing the cancelled session releases everything and a re-run completes with the correct tier (characterisation recorded in the detail) | client error -2 (Execution Timeout Expired.  The timeout period elapsed prior to completion of the operation or the server is not responding.
+Operation cancelled by user.); while the cancelled session stays open: application-lock holders [54:GRANT], its open transactions 0, probe sp_getapplock(timeout 0) = -1 (negative = lock still held); after closing it: holders [], probe 0; re-run error 0; member 26 tier 2
+T4 OBSERVATION: session-owned application lock STAYS HELD by a client-cancelled session until that session closes (open transactions: 0); other runs get 51324 meanwhile
+
+Z - final state
+  Z PASS  Final run consistent and idempotent; tiers = oracle; CurrentPoints = SUM(PointsEarned); no open transaction or application lock left | final run upgrades 0 downgrades 0; second run upgrades 0 downgrades 0; oracle mismatches 0; points mismatches 0; open transactions 0; lock holders []
+
+T-CONC-07 SUMMARY: checks 5; FAIL 0
+T-CONC-07_RESULT: PASS

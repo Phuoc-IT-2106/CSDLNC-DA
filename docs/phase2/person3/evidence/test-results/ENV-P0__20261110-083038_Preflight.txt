@@ -1,0 +1,51 @@
+﻿ENV-P0 - WO-P3-P0-02 (amended 2026-11-10), stage Preflight. Benchmark instance BM-1 = localhost\MSSQLSERVER01. Started (UTC) 2026-11-10 08:30:38.
+Runner SHA-256: 74AA3DD1B40D623884371A22F7E87F475175832CDAF2624DC979737C72CF71A4
+Identity: ID|MSSQLSERVER01|MSSQLSERVER01|17.0.1000.7|Standard Developer Edition (64-bit)|2|local|1
+G0 PASS  Connection reaches service MSSQLSERVER01 on the local computer (not the default instance)
+G1 PASS  Engine 17.0.1000.7, Standard Developer Edition, EngineEdition 2; current login is sysadmin
+Host: CPU 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz, cores 4, logical 8; RAM 7915 MB, free 623 MB; commit 20152 of 23907 MB; OS Microsoft Windows 10 Pro build 19044; battery status 2 (2 = AC), charge 100%
+Volume C:: free 10.4 GB of 238 GB
+Power scheme: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)
+Heaviest process groups (working set MB):
+  chrome x19: 1485
+  Code x18: 1381
+  claude x5: 533
+  svchost x88: 440
+  ChatGPT x14: 335
+  Zalo x8: 236
+  powershell x4: 204
+  MsMpEng x1: 202
+-- BM-1 configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2147483647|2147483647
+  CFG|min server memory (MB)|0|16
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|606|Physical memory usage is steady
+  PROC|59|1|0
+  SYSINFO|238|239|CONVENTIONAL
+  SEM|5|180|2
+  USERDB_COUNT|0
+  SESSIONS|1
+  REQUESTS|0
+  PATH|C:\Program Files\Microsoft SQL Server\MSSQL17.MSSQLSERVER01\MSSQL\DATA\
+P1 PASS  Target names FitLife_P3_Probe and FitLife_P3_P2 do not exist on BM-1 (no unknown database would be overwritten) | existing: 
+User databases on BM-1: 0
+-- Default instance MSSQLSERVER (read only) configuration and memory (name|value|value_in_use; MEM total|available|state; PROC in_use_mb|physical_low|locked_kb; SYSINFO committed|target|model; SEM target|max|forced) --
+  CFG|cost threshold for parallelism|5|5
+  CFG|max degree of parallelism|8|8
+  CFG|max server memory (MB)|2147483647|2147483647
+  CFG|min server memory (MB)|0|16
+  CFG|optimize for ad hoc workloads|0|0
+  CFG|show advanced options|0|0
+  MEM|7914|598|Physical memory usage is steady
+  PROC|91|1|0
+  SYSINFO|396|397|CONVENTIONAL
+  SEM|9|298|152
+P2 PASS  At least 3 GB free on the data volume for the DS-L build (data about 0.1 GB plus log and tempdb growth) | free 10.4 GB
+P3 PASS  No other user request running on BM-1
+Creation and cleanup procedures confirmed: FitLife_P3_Probe is created, marked (P3_Disposable = WO-P3-P0-02...) and dropped by stage Probes of this runner; FitLife_P3_P2 is built by tests/db/build/rebuild_p2_db.sql (marker WO-P3-P2-01...) through tests/db/seed/run_p2_dataset.ps1 -Server and can be dropped only by tests/db/build/drop_p2_db.sql (marker guard) run with -S localhost\MSSQLSERVER01.
+
+ENV-P0 Preflight SUMMARY: checks 5; FAIL 0; finished (UTC) 2026-11-10 08:30:41
+ENV-P0_Preflight_RESULT: PASS

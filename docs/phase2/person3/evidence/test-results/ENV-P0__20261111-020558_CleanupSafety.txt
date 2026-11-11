@@ -1,0 +1,37 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261111090558
+Username: HUU-PHUOC-2K6\DELL
+RunAs User: HUU-PHUOC-2K6\DELL
+Configuration Name: 
+Machine: HUU-PHUOC-2K6 (Microsoft Windows NT 10.0.19044.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\DELL\AppData\Local\Temp\p3_bm1_cleanup.ps1
+Process ID: 26060
+PSVersion: 5.1.19041.3031
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.3031
+BuildVersion: 10.0.19041.3031
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+
+FreePhysicalMemory     : 948048
+TotalVisibleMemorySize : 8104744
+FreeVirtualMemory      : 10032904
+
+
+
+
+
+
+
+POWER_ORIGINAL_VERIFIED actual=00000000-0000-0000-0000-000000000000 effective=00000000-0000-0000-0000-000000000000
+
+CLEANUP_RESULT: PASS; original BM-1 configuration restored, default instance unchanged, original power mode verified. Marked DS-L retained; probe absent.
+**********************
+Windows PowerShell transcript end
+End time: 20261111090601
+**********************

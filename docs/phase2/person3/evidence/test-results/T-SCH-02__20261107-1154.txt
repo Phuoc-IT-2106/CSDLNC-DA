@@ -1,0 +1,103 @@
+﻿T-SCH-02 — WO-P3-P1-01 §8.2 conformance (two runs: after build A and after build B). Server name masked as <local-server>.
+---- T-SCH-02 run A (after build A)  (UTC 2026-11-07 11:54:15)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P1 -i tests/db/schema/T-SCH-02_conformance.sql
+check_id|result|descr|detail
+--------|------|-----|------
+C1|PASS|Columns of all 9 tables: name, order, type, nullability, identity (35 columns)|35 expected = 35 actual; no differences
+C2|PASS|Constraint set: 9 PK (key columns), 8 FK, 13 CHECK, 4 DEFAULT, 0 UNIQUE; nothing extra or missing|expected 34 = actual 34
+C3|PASS|Foreign keys: exactly 8, all owned by P3 tables, NO ACTION on delete and update, enabled and trusted|count=8; on fixtures=0; all NO_ACTION, enabled, trusted
+C4|PASS|Classification: exactly 9 user tables; 5 fixtures marked TEST_ONLY_FIXTURE with 1 key column and only their PK; 4 P3 tables unmarked|BRANCH=TEST_ONLY_FIXTURE, EMPLOYEE=TEST_ONLY_FIXTURE, INVOICE=P3_OWNED (no fixture marker), INVOICE_PRODUCT_ITEM=P3_OWNED (no fixture marker), INVOICE_SERVICE_ITEM=P3_OWNED (no fixture marker), MEMBER=TEST_ONLY_FIXTURE, MEMBER_MONTHLY_SPENDING=P3_OWNED (no fixture marker), PRODUCT=TEST_ONLY_FIXTURE, SERVICE_PLAN=TEST_ONLY_FIXTURE
+C5|PASS|Inventory: no views, procedures, functions, triggers, sequences or synonyms; only the 9 clustered PK indexes; no partition function or scheme|other objects: none; clustered PK indexes: 9; non-PK indexes: 0; partition functions+schemes: 0
+C6|PASS|All 13 CHECK constraints enabled and trusted; compatibility level 160; P3_Disposable marker present|untrusted/disabled: none; compatibility_level=160; marker=WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+-- catalog listing: constraints (type, name, table, keys/columns/definition) --
+typ|name|tbl|detail
+---|----|---|------
+PK|PK_BRANCH|BRANCH|Branch_ID
+PK|PK_EMPLOYEE|EMPLOYEE|Employee_ID
+C|CK_INVOICE_Amounts|INVOICE|([GrossAmount]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[GrossAmount])
+C|CK_INVOICE_FinalAmount|INVOICE|([FinalAmount]=([GrossAmount]-[DiscountAmount]) AND [FinalAmount]>=(0))
+C|CK_INVOICE_MethodWhenPaid|INVOICE|([PaymentStatus]<>'PAID' OR [PaymentMethod] IS NOT NULL)
+C|CK_INVOICE_PaidAtAfterIssued|INVOICE|([PaidAt]>=[IssuedAt])
+C|CK_INVOICE_PaidAtStatus|INVOICE|([PaymentStatus]='PAID' AND [PaidAt] IS NOT NULL OR [PaymentStatus]<>'PAID' AND [PaidAt] IS NULL)
+C|CK_INVOICE_PaymentMethod|INVOICE|([PaymentMethod]='CARD' OR [PaymentMethod]='VNPAY' OR [PaymentMethod]='CASH')
+C|CK_INVOICE_PaymentStatus|INVOICE|([PaymentStatus]='CANCELLED' OR [PaymentStatus]='PAID' OR [PaymentStatus]='PENDING')
+D|DF_INVOICE_PaymentStatus|INVOICE|PaymentStatus = ('PENDING')
+F|FK_INVOICE_BRANCH|INVOICE|Branch_ID->BRANCH.Branch_ID
+F|FK_INVOICE_EMPLOYEE|INVOICE|Employee_ID->EMPLOYEE.Employee_ID
+F|FK_INVOICE_MEMBER|INVOICE|Member_ID->MEMBER.Member_ID
+PK|PK_INVOICE|INVOICE|Invoice_ID
+C|CK_INVOICE_PRODUCT_ITEM_Amounts|INVOICE_PRODUCT_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice]*[Quantity])
+C|CK_INVOICE_PRODUCT_ITEM_Quantity|INVOICE_PRODUCT_ITEM|([Quantity]>(0))
+F|FK_INVOICE_PRODUCT_ITEM_INVOICE|INVOICE_PRODUCT_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_PRODUCT_ITEM_PRODUCT|INVOICE_PRODUCT_ITEM|Product_ID->PRODUCT.Product_ID
+PK|PK_INVOICE_PRODUCT_ITEM|INVOICE_PRODUCT_ITEM|Invoice_ID,LineNo
+C|CK_INVOICE_SERVICE_ITEM_Amounts|INVOICE_SERVICE_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice])
+C|CK_INVOICE_SERVICE_ITEM_Validity|INVOICE_SERVICE_ITEM|([ValidUntil]>=[ValidFrom])
+F|FK_INVOICE_SERVICE_ITEM_INVOICE|INVOICE_SERVICE_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN|INVOICE_SERVICE_ITEM|Plan_ID->SERVICE_PLAN.Plan_ID
+PK|PK_INVOICE_SERVICE_ITEM|INVOICE_SERVICE_ITEM|Invoice_ID,LineNo
+PK|PK_MEMBER|MEMBER|Member_ID
+C|CK_MEMBER_MONTHLY_SPENDING_FirstDay|MEMBER_MONTHLY_SPENDING|(datepart(day,[SpendingMonth])=(1))
+C|CK_MEMBER_MONTHLY_SPENDING_NonNegative|MEMBER_MONTHLY_SPENDING|([TotalSpend]>=(0) AND [PointsEarned]>=(0))
+D|DF_MEMBER_MONTHLY_SPENDING_PointsEarned|MEMBER_MONTHLY_SPENDING|PointsEarned = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_TotalSpend|MEMBER_MONTHLY_SPENDING|TotalSpend = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_UpdatedAt|MEMBER_MONTHLY_SPENDING|UpdatedAt = (sysutcdatetime())
+F|FK_MEMBER_MONTHLY_SPENDING_MEMBER|MEMBER_MONTHLY_SPENDING|Member_ID->MEMBER.Member_ID
+PK|PK_MEMBER_MONTHLY_SPENDING|MEMBER_MONTHLY_SPENDING|Member_ID,SpendingMonth
+PK|PK_PRODUCT|PRODUCT|Product_ID
+PK|PK_SERVICE_PLAN|SERVICE_PLAN|Plan_ID
+T-SCH-02 SUMMARY: checks=6 FAIL=0
+T-SCH-02_RESULT: PASS
+
+exit code: 0
+---- T-SCH-02 run B (after build B)  (UTC 2026-11-07 11:54:17)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P1 -i tests/db/schema/T-SCH-02_conformance.sql
+check_id|result|descr|detail
+--------|------|-----|------
+C1|PASS|Columns of all 9 tables: name, order, type, nullability, identity (35 columns)|35 expected = 35 actual; no differences
+C2|PASS|Constraint set: 9 PK (key columns), 8 FK, 13 CHECK, 4 DEFAULT, 0 UNIQUE; nothing extra or missing|expected 34 = actual 34
+C3|PASS|Foreign keys: exactly 8, all owned by P3 tables, NO ACTION on delete and update, enabled and trusted|count=8; on fixtures=0; all NO_ACTION, enabled, trusted
+C4|PASS|Classification: exactly 9 user tables; 5 fixtures marked TEST_ONLY_FIXTURE with 1 key column and only their PK; 4 P3 tables unmarked|BRANCH=TEST_ONLY_FIXTURE, EMPLOYEE=TEST_ONLY_FIXTURE, INVOICE=P3_OWNED (no fixture marker), INVOICE_PRODUCT_ITEM=P3_OWNED (no fixture marker), INVOICE_SERVICE_ITEM=P3_OWNED (no fixture marker), MEMBER=TEST_ONLY_FIXTURE, MEMBER_MONTHLY_SPENDING=P3_OWNED (no fixture marker), PRODUCT=TEST_ONLY_FIXTURE, SERVICE_PLAN=TEST_ONLY_FIXTURE
+C5|PASS|Inventory: no views, procedures, functions, triggers, sequences or synonyms; only the 9 clustered PK indexes; no partition function or scheme|other objects: none; clustered PK indexes: 9; non-PK indexes: 0; partition functions+schemes: 0
+C6|PASS|All 13 CHECK constraints enabled and trusted; compatibility level 160; P3_Disposable marker present|untrusted/disabled: none; compatibility_level=160; marker=WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+-- catalog listing: constraints (type, name, table, keys/columns/definition) --
+typ|name|tbl|detail
+---|----|---|------
+PK|PK_BRANCH|BRANCH|Branch_ID
+PK|PK_EMPLOYEE|EMPLOYEE|Employee_ID
+C|CK_INVOICE_Amounts|INVOICE|([GrossAmount]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[GrossAmount])
+C|CK_INVOICE_FinalAmount|INVOICE|([FinalAmount]=([GrossAmount]-[DiscountAmount]) AND [FinalAmount]>=(0))
+C|CK_INVOICE_MethodWhenPaid|INVOICE|([PaymentStatus]<>'PAID' OR [PaymentMethod] IS NOT NULL)
+C|CK_INVOICE_PaidAtAfterIssued|INVOICE|([PaidAt]>=[IssuedAt])
+C|CK_INVOICE_PaidAtStatus|INVOICE|([PaymentStatus]='PAID' AND [PaidAt] IS NOT NULL OR [PaymentStatus]<>'PAID' AND [PaidAt] IS NULL)
+C|CK_INVOICE_PaymentMethod|INVOICE|([PaymentMethod]='CARD' OR [PaymentMethod]='VNPAY' OR [PaymentMethod]='CASH')
+C|CK_INVOICE_PaymentStatus|INVOICE|([PaymentStatus]='CANCELLED' OR [PaymentStatus]='PAID' OR [PaymentStatus]='PENDING')
+D|DF_INVOICE_PaymentStatus|INVOICE|PaymentStatus = ('PENDING')
+F|FK_INVOICE_BRANCH|INVOICE|Branch_ID->BRANCH.Branch_ID
+F|FK_INVOICE_EMPLOYEE|INVOICE|Employee_ID->EMPLOYEE.Employee_ID
+F|FK_INVOICE_MEMBER|INVOICE|Member_ID->MEMBER.Member_ID
+PK|PK_INVOICE|INVOICE|Invoice_ID
+C|CK_INVOICE_PRODUCT_ITEM_Amounts|INVOICE_PRODUCT_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice]*[Quantity])
+C|CK_INVOICE_PRODUCT_ITEM_Quantity|INVOICE_PRODUCT_ITEM|([Quantity]>(0))
+F|FK_INVOICE_PRODUCT_ITEM_INVOICE|INVOICE_PRODUCT_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_PRODUCT_ITEM_PRODUCT|INVOICE_PRODUCT_ITEM|Product_ID->PRODUCT.Product_ID
+PK|PK_INVOICE_PRODUCT_ITEM|INVOICE_PRODUCT_ITEM|Invoice_ID,LineNo
+C|CK_INVOICE_SERVICE_ITEM_Amounts|INVOICE_SERVICE_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice])
+C|CK_INVOICE_SERVICE_ITEM_Validity|INVOICE_SERVICE_ITEM|([ValidUntil]>=[ValidFrom])
+F|FK_INVOICE_SERVICE_ITEM_INVOICE|INVOICE_SERVICE_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN|INVOICE_SERVICE_ITEM|Plan_ID->SERVICE_PLAN.Plan_ID
+PK|PK_INVOICE_SERVICE_ITEM|INVOICE_SERVICE_ITEM|Invoice_ID,LineNo
+PK|PK_MEMBER|MEMBER|Member_ID
+C|CK_MEMBER_MONTHLY_SPENDING_FirstDay|MEMBER_MONTHLY_SPENDING|(datepart(day,[SpendingMonth])=(1))
+C|CK_MEMBER_MONTHLY_SPENDING_NonNegative|MEMBER_MONTHLY_SPENDING|([TotalSpend]>=(0) AND [PointsEarned]>=(0))
+D|DF_MEMBER_MONTHLY_SPENDING_PointsEarned|MEMBER_MONTHLY_SPENDING|PointsEarned = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_TotalSpend|MEMBER_MONTHLY_SPENDING|TotalSpend = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_UpdatedAt|MEMBER_MONTHLY_SPENDING|UpdatedAt = (sysutcdatetime())
+F|FK_MEMBER_MONTHLY_SPENDING_MEMBER|MEMBER_MONTHLY_SPENDING|Member_ID->MEMBER.Member_ID
+PK|PK_MEMBER_MONTHLY_SPENDING|MEMBER_MONTHLY_SPENDING|Member_ID,SpendingMonth
+PK|PK_PRODUCT|PRODUCT|Product_ID
+PK|PK_SERVICE_PLAN|SERVICE_PLAN|Plan_ID
+T-SCH-02 SUMMARY: checks=6 FAIL=0
+T-SCH-02_RESULT: PASS
+
+exit code: 0

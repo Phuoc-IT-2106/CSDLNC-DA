@@ -1,0 +1,36 @@
+PASS | Original unchanged: docs/phase2/person3/work-orders/WO-P3-P4-01_UC06_INDEX_EXPERIMENTS.md | 
+PASS | No new broken links: docs/phase2/person3/work-orders/WO-P3-P4-01_UC06_INDEX_EXPERIMENTS.md | []
+PASS | Original unchanged: docs/phase2/person3/01_REQUIREMENTS_TRACEABILITY.md | 
+PASS | No new broken links: docs/phase2/person3/01_REQUIREMENTS_TRACEABILITY.md | []
+PASS | Original unchanged: docs/phase2/person3/07_UC06_REVENUE_PLAN.md | 
+PASS | No new broken links: docs/phase2/person3/07_UC06_REVENUE_PLAN.md | []
+PASS | Original unchanged: docs/phase2/person3/02_GAP_ANALYSIS.md | 
+PASS | No new broken links: docs/phase2/person3/02_GAP_ANALYSIS.md | []
+PASS | Original unchanged: docs/phase2/person3/work-orders/README.md | 
+PASS | No new broken links: docs/phase2/person3/work-orders/README.md | []
+PASS | Original unchanged: docs/phase2/person3/16_READINESS_REPORT.md | 
+PASS | No new broken links: docs/phase2/person3/16_READINESS_REPORT.md | []
+PASS | Original unchanged: docs/phase2/person3/15_ROADMAP_AND_WORK_ORDERS.md | 
+PASS | No new broken links: docs/phase2/person3/15_ROADMAP_AND_WORK_ORDERS.md | []
+PASS | Original unchanged: docs/phase2/person3/13_DELIVERABLES_AND_EVIDENCE.md | 
+PASS | No new broken links: docs/phase2/person3/13_DELIVERABLES_AND_EVIDENCE.md | []
+PASS | Original unchanged: docs/phase2/person3/README.md | 
+PASS | No new broken links: docs/phase2/person3/README.md | []
+PASS | Original unchanged: docs/phase2/person3/evidence/README.md | 
+PASS | No new broken links: docs/phase2/person3/evidence/README.md | []
+PASS | Original unchanged: docs/phase2/person3/SESSION_LOG.md | 
+PASS | No new broken links: docs/phase2/person3/SESSION_LOG.md | []
+PASS | Session history append-only | 
+PASS | Original obligations unchanged: ## 4. Tasks | 
+PASS | Original obligations unchanged: ## 7. Acceptance criteria | 
+PASS | Protected code, contracts, approvals and existing evidence unchanged | 221 files; mismatches=[]
+PASS | Part F VERIFIED visible: README.md | 
+PASS | Part F VERIFIED visible: work-orders/README.md | 
+PASS | Part F VERIFIED visible: 15_ROADMAP_AND_WORK_ORDERS.md | 
+PASS | Part F VERIFIED visible: 16_READINESS_REPORT.md | 
+PASS | WO index six data columns | | [WO-P3-P4-01](WO-P3-P4-01_UC06_INDEX_EXPERIMENTS.md) | UC06 report routines and index experiments | P4 | BUILD_AUTHORIZED + VERIFY_ONLY | **Whole WO IN_PROGRESS; Part F VERIFIED** (2026-11-10); Part X PROPOSED / execution BLOCKED | Part F: D-010 approved T2 and gate exception §2a. Part X: own approval, P2-02/R-27 and creation-cost baseline |
+PASS | Captured log copied exactly: RECOVERY-UC06-RECHECK__20261110-045109.txt | 
+PASS | Captured log copied exactly: RECOVERY-UC06__20261110-043548.txt | 
+PASS | Captured log copied exactly: RECOVERY-UC06__20261110-043655.txt | 
+PASS | Captured log copied exactly: RECOVERY-UC06__20261110-043737.txt | 
+DOC_AUDIT SUMMARY: checks=35 PASS=35 FAIL=0

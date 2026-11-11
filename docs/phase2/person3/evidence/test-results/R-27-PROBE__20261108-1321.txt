@@ -1,0 +1,224 @@
+﻿R-27-PROBE - stability probe for R-27 (closure test E6). DIAGNOSTIC measurement: not the WO-P3-P2-02 baseline and not a performance result.
+Directive: Owner Directive 'R-27 Remediation & Person 3 Progress Review' (2026-11-08) section 4, VERIFY_ONLY. Window (UTC): 2026-11-08 13:21:34 to 2026-11-08 13:31:59.
+Database FitLife_P3_P2 (DS-L, run C; dataset checksum 26ABB277...CA1F). SELECT-only; no cache clear; no setting changed; keep-awake held by the probe process only (SetThreadExecutionState), released at the end.
+Operator conditions: the Owner closed heavy applications and kept AC power for the window; peer session csdlnc-da-11 asked to stay idle.
+Engine side effects of SELECT, recorded rather than avoided: automatic statistics creation and Query Store capture (statistics object count in the gates below).
+
+== Pre-registered criteria ==
+  C-LR   Logical reads of each query identical in every measured run of both series.
+  C-CPU  Median CPU time of S1 vs S2: |m1 - m2| / min(m1, m2) <= 10%.
+  C-EL   Median elapsed time of S1 vs S2: |m1 - m2| / min(m1, m2) <= 10%.
+  C-IQR  Per series and query: IQR / median <= 20% (CPU and elapsed).
+  C-RES  Resolution rule (added before this run; STATISTICS TIME reports whole milliseconds): where a median is < 5 ms in both series, C-CPU/C-EL become |m1 - m2| <= 1 ms and C-IQR becomes IQR <= 2 ms.
+  G-E1   At each series start and end: on AC power; no Kernel-Power 42/506 or Power-Troubleshooter 1 event inside the probe window.
+  G-E2   At each series start and end: available memory >= 2,048 MB; process_physical_memory_low = 0; query-memory semaphore (default pool) target >= 256 MB.
+  G-E3   Per series: RESOURCE_SEMAPHORE waits of the probe session = 0; forced_grant_count unchanged; no spill or memory-grant warning in the captured plans.
+  G-ISO  No other user session active on FitLife_P3_P2 at series start.
+  Statistics: median and quartiles by linear interpolation (type 7). Comparisons use relative difference over the smaller median (stricter than over the mean).
+  Verdict: PASS only if every criterion and every gate passes. The verdict is a diagnostic result, not a baseline measurement.
+
+== Queries (diagnostic shapes of the documented candidates; literals fixed) ==
+  P1  /* R27-PROBE-P1 (Q-BIL-A shape) */ SELECT i.Invoice_ID, i.IssuedAt, i.PaidAt, i.PaymentStatus, i.FinalAmount, l.[LineNo], l.kind, l.item_id, l.amount FROM dbo.INVOICE i LEFT JOIN (SELECT Invoice_ID, [LineNo], 'S' AS kind, Plan_ID AS item_id, UnitPrice - DiscountAmount AS amount FROM dbo.INVOICE_SERVICE_ITEM UNION ALL SELECT Invoice_ID, [LineNo], 'P', Product_ID, UnitPrice * Quantity - DiscountAmount FROM dbo.INVOICE_PRODUCT_ITEM) l ON l.Invoice_ID = i.Invoice_ID WHERE i.Invoice_ID = 162001;
+  P2  /* R27-PROBE-P2 (Q-UC06-A shape) */ SELECT SUM(FinalAmount) AS revenue, COUNT_BIG(*) AS invoices FROM dbo.INVOICE WHERE Branch_ID = 1 AND PaymentStatus = 'PAID' AND PaidAt >= '2025-05-31T17:00:00' AND PaidAt < '2025-06-30T17:00:00';
+  P3  /* R27-PROBE-P3 (Q-UC06-B shape) */ SELECT Branch_ID, SUM(FinalAmount) AS revenue, COUNT_BIG(*) AS invoices FROM dbo.INVOICE WHERE PaymentStatus = 'PAID' AND PaidAt >= '2024-12-31T17:00:00' AND PaidAt < '2025-12-31T17:00:00' GROUP BY Branch_ID ORDER BY Branch_ID;
+  P4  /* R27-PROBE-P4 (Q-UC06-F shape) */ SELECT p.Product_ID, SUM(p.Quantity) AS qty, SUM(p.UnitPrice * p.Quantity - p.DiscountAmount) AS revenue FROM dbo.INVOICE_PRODUCT_ITEM p JOIN dbo.INVOICE i ON i.Invoice_ID = p.Invoice_ID WHERE i.Branch_ID = 1 AND i.PaymentStatus = 'PAID' AND i.PaidAt >= '2025-03-31T17:00:00' AND i.PaidAt < '2025-06-30T17:00:00' GROUP BY p.Product_ID ORDER BY revenue DESC;
+
+== Gates ==
+label|utc|ac|charge%|cpu_load%|avail_mb|memory_state|phys_low|sem_target_mb|forced_grants|other_sessions_on_db|stats_objects|E2
+S1 start|2026-11-08 13:21:43|True|66|40|1784|Available physical memory is high|0|1149|98|0|29|False
+S1 end|2026-11-08 13:21:52|False|66|26|1754|Available physical memory is high|0|1208|98|0|29|False
+S2 start|2026-11-08 13:31:54|True|69|2|2376|Available physical memory is high|0|1665|98|0|29|True
+S2 end|2026-11-08 13:31:59|True|70|1|2309|Available physical memory is high|0|1674|98|0|29|True
+G-E1  FAIL  (AC at all gates: False; power events in window: 0)
+G-E2  FAIL
+G-E3  PASS  (RESOURCE_SEMAPHORE waits in probe sessions: 0; forced-grant delta: 0; plans with spill or grant warnings: 0)
+G-ISO PASS
+sqlcmd exit codes: S1=0 S2=0; parsed measured runs: 120 (expected 120)
+PARSE/EXECUTION CHECK: PASS
+
+== Session waits per series (probe session only) ==
+S1:
+  wait_type|waiting_tasks_count|wait_time_ms
+  CXCONSUMER|1194|6223
+  CXPACKET|166|398
+  MEMORY_ALLOCATION_EXT|16988|73
+  PAGEIOLATCH_SH|46|8
+  SOS_SCHEDULER_YIELD|1322|66
+S2:
+  wait_type|waiting_tasks_count|wait_time_ms
+  CXCONSUMER|919|2888
+  CXPACKET|281|517
+  MEMORY_ALLOCATION_EXT|17079|43
+  PAGEIOLATCH_SH|61|16
+  SOS_SCHEDULER_YIELD|567|20
+
+== Results per query ==
+query|series|n|logical_reads(min..max)|cpu_median|cpu_q1|cpu_q3|cpu_min|cpu_max|el_median|el_q1|el_q3|el_min|el_max
+P1|S1|15|8..8|0.0|0.0|0.0|0|0|0.0|0.0|0.0|0|0
+P1|S2|15|8..8|0.0|0.0|0.0|0|16|0.0|0.0|0.0|0|1
+P2|S1|15|3281..3281|62.0|54.5|63.0|47|63|57.0|52.0|61.0|48|72
+P2|S2|15|3281..3281|31.0|23.5|31.5|15|47|34.0|22.0|35.5|20|41
+P3|S1|15|3281..3281|343.0|328.0|352.0|281|453|344.0|329.5|367.5|314|461
+P3|S2|15|3281..3281|125.0|109.5|148.5|93|187|133.0|111.5|147.5|109|176
+P4|S1|15|7245..7245|205.0|180.5|258.5|126|312|41.0|40.0|45.5|39|66
+P4|S2|15|7245..7245|126.0|123.0|204.5|16|233|23.0|21.5|27.5|19|41
+
+== Verdict per query ==
+  P1  PASS  C-LR PASS (reads 8); CPU: resolution rule |d|=0.0 ms, IQR 0.0/0.0 ms [PASS]; elapsed: resolution rule |d|=0.0 ms, IQR 0.0/0.0 ms [PASS]
+  P2  FAIL  C-LR PASS (reads 3281); CPU: median diff 100.0% (<=10%), IQR/median 13.7% / 25.8% (<=20%) [FAIL]; elapsed: median diff 67.6% (<=10%), IQR/median 15.8% / 39.7% (<=20%) [FAIL]
+  P3  FAIL  C-LR PASS (reads 3281); CPU: median diff 174.4% (<=10%), IQR/median 7.0% / 31.2% (<=20%) [FAIL]; elapsed: median diff 158.6% (<=10%), IQR/median 11.0% / 27.1% (<=20%) [FAIL]
+  P4  FAIL  C-LR PASS (reads 7245); CPU: median diff 62.7% (<=10%), IQR/median 38.0% / 64.7% (<=20%) [FAIL]; elapsed: median diff 78.3% (<=10%), IQR/median 13.4% / 26.1% (<=20%) [FAIL]
+
+== Plan-cache view after both series (grant, spill and DOP ranges across all executions; adaptive-feature drift) ==
+  probe|cached_plans|execs|min_grant_kb|max_grant_kb|min_used_kb|max_used_kb|max_spills|min_dop|max_dop|max_plan_gen
+  -----|------------|-----|------------|------------|-----------|-----------|----------|-------|-------|------------
+  R27-PROBE-P1|1|16|0|0|0|0|0|1|1|1
+  R27-PROBE-P3|1|16|1584|1584|328|328|0|1|1|1
+  R27-PROBE-P4|1|16|36424|36424|8536|8536|0|8|8|1
+
+== Actual plans (one execution per query after the series) ==
+  P1: file R-27-PROBE__20261108-1321__P1.sqlplan; DOP=1; operators: Nested Loops, Clustered Index Seek, Concatenation, Compute Scalar
+      grant: <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0" GrantedMemory="0" MaxUsedMemory="0">
+      warnings: none
+  P2: file R-27-PROBE__20261108-1321__P2.sqlplan; DOP=1; operators: Compute Scalar, Stream Aggregate, Clustered Index Scan
+      grant: <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0" GrantedMemory="0" MaxUsedMemory="0">
+      warnings: none
+  P3: file R-27-PROBE__20261108-1321__P3.sqlplan; DOP=1; operators: Sort, Hash Match, Clustered Index Scan
+      grant: <MemoryGrantInfo SerialRequiredMemory="1536" SerialDesiredMemory="1584" RequiredMemory="1536" DesiredMemory="1584" RequestedMemory="1584" GrantWaitTime="0" MaxQueryMemory="431160" GrantedMemory="1584" MaxUsedMemory="328">
+      warnings: none
+  P4: file R-27-PROBE__20261108-1321__P4.sqlplan; DOP=8; operators: Sort, Parallelism, Stream Aggregate, Hash Match, Bitmap, Clustered Index Scan, Compute Scalar
+      grant: <MemoryGrantInfo SerialRequiredMemory="2560" SerialDesiredMemory="15088" RequiredMemory="23880" DesiredMemory="36424" RequestedMemory="36424" GrantWaitTime="0" MaxQueryMemory="431160" GrantedMemory="36424" MaxUsedMemory="8536">
+      warnings: none
+
+== Raw measured runs (series|query|run|logical_reads|cpu_ms|elapsed_ms) ==
+S1|P1|0|8|0|1
+S1|P2|0|3281|32|58
+S1|P3|0|3281|141|151
+S1|P4|0|7245|293|156
+S1|P1|1|8|0|0
+S1|P2|1|3281|62|61
+S1|P3|1|3281|453|461
+S1|P4|1|7245|280|66
+S1|P1|2|8|0|0
+S1|P2|2|3281|63|65
+S1|P3|2|3281|344|366
+S1|P4|2|7245|233|40
+S1|P1|3|8|0|0
+S1|P2|3|3281|62|53
+S1|P3|3|3281|297|314
+S1|P4|3|7245|219|39
+S1|P1|4|8|0|0
+S1|P2|4|3281|63|51
+S1|P3|4|3281|343|334
+S1|P4|4|7245|174|39
+S1|P1|5|8|0|0
+S1|P2|5|3281|63|52
+S1|P3|5|3281|328|341
+S1|P4|5|7245|189|40
+S1|P1|6|8|0|0
+S1|P2|6|3281|62|49
+S1|P3|6|3281|344|344
+S1|P4|6|7245|187|42
+S1|P1|7|8|0|0
+S1|P2|7|3281|62|52
+S1|P3|7|3281|328|355
+S1|P4|7|7245|296|42
+S1|P1|8|8|0|0
+S1|P2|8|3281|47|57
+S1|P3|8|3281|281|326
+S1|P4|8|7245|126|47
+S1|P1|9|8|0|0
+S1|P2|9|3281|47|58
+S1|P3|9|3281|328|318
+S1|P4|9|7245|204|40
+S1|P1|10|8|0|0
+S1|P2|10|3281|63|48
+S1|P3|10|3281|328|333
+S1|P4|10|7245|138|40
+S1|P1|11|8|0|0
+S1|P2|11|3281|63|72
+S1|P3|11|3281|375|386
+S1|P4|11|7245|205|46
+S1|P1|12|8|0|0
+S1|P2|12|3281|62|63
+S1|P3|12|3281|360|369
+S1|P4|12|7245|251|39
+S1|P1|13|8|0|0
+S1|P2|13|3281|63|61
+S1|P3|13|3281|312|314
+S1|P4|13|7245|266|46
+S1|P1|14|8|0|0
+S1|P2|14|3281|47|57
+S1|P3|14|3281|344|350
+S1|P4|14|7245|139|41
+S1|P1|15|8|0|0
+S1|P2|15|3281|47|59
+S1|P3|15|3281|406|410
+S1|P4|15|7245|312|45
+S2|P1|0|8|0|2
+S2|P2|0|3281|31|50
+S2|P3|0|3281|156|161
+S2|P4|0|7245|402|65
+S2|P1|1|8|0|1
+S2|P2|1|3281|47|38
+S2|P3|1|3281|141|146
+S2|P4|1|7245|233|21
+S2|P1|2|8|0|0
+S2|P2|2|3281|31|39
+S2|P3|2|3281|93|120
+S2|P4|2|7245|123|19
+S2|P1|3|8|0|0
+S2|P2|3|3281|32|34
+S2|P3|3|3281|125|136
+S2|P4|3|7245|206|22
+S2|P1|4|8|0|0
+S2|P2|4|3281|16|22
+S2|P3|4|3281|141|133
+S2|P4|4|7245|202|26
+S2|P1|5|8|0|0
+S2|P2|5|3281|31|20
+S2|P3|5|3281|156|161
+S2|P4|5|7245|16|22
+S2|P1|6|8|0|0
+S2|P2|6|3281|16|22
+S2|P3|6|3281|187|176
+S2|P4|6|7245|93|20
+S2|P1|7|8|0|0
+S2|P2|7|3281|31|34
+S2|P3|7|3281|141|133
+S2|P4|7|7245|205|28
+S2|P1|8|8|16|0
+S2|P2|8|3281|31|36
+S2|P3|8|3281|125|116
+S2|P4|8|7245|126|22
+S2|P1|9|8|0|0
+S2|P2|9|3281|31|33
+S2|P3|9|3281|125|110
+S2|P4|9|7245|124|28
+S2|P1|10|8|0|0
+S2|P2|10|3281|31|34
+S2|P3|10|3281|110|109
+S2|P4|10|7245|78|25
+S2|P1|11|8|0|0
+S2|P2|11|3281|15|21
+S2|P3|11|3281|157|149
+S2|P4|11|7245|204|41
+S2|P1|12|8|0|0
+S2|P2|12|3281|47|35
+S2|P3|12|3281|109|112
+S2|P4|12|7245|155|21
+S2|P1|13|8|0|0
+S2|P2|13|3281|31|30
+S2|P3|13|3281|172|168
+S2|P4|13|7245|123|23
+S2|P1|14|8|0|0
+S2|P2|14|3281|16|21
+S2|P3|14|3281|109|111
+S2|P4|14|7245|126|27
+S2|P1|15|8|0|0
+S2|P2|15|3281|47|41
+S2|P3|15|3281|109|110
+S2|P4|15|7245|220|30
+
+Raw sqlcmd output: R-27-PROBE__20261108-1321__raw_S1.txt, R-27-PROBE__20261108-1321__raw_S2.txt. Environment snapshots: R-27-DIAG__20261108-1321_before.txt, R-27-DIAG__20261108-1321_after.txt.
+R-27-PROBE_RESULT: FAIL (4 failing items)

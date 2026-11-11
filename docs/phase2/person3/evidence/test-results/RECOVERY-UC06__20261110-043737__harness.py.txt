@@ -1,0 +1,106 @@
+from pathlib import Path
+import hashlib, re, json, subprocess, datetime, sys
+ROOT=Path(r'C:\Users\DELL\source\repos\CSDLNC-DA')
+OUT=Path(__file__).parent
+UTC=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')
+RUN='RECOVERY-UC06__'+UTC
+LOG=OUT/(RUN+'.txt')
+manifest={p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in ROOT.rglob('*') if p.is_file() and '.git' not in p.relative_to(ROOT).parts}
+(OUT/'before_manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
+results=[]
+def log(s):
+    with LOG.open('a',encoding='utf-8') as f: f.write(str(s)+'\n')
+def check(name,ok,detail=''):
+    results.append((name,bool(ok)))
+    line=f'{"PASS" if ok else "FAIL"} | {name} | {detail}'
+    log(line); print(line,flush=True)
+def sql(label,db,args):
+    p=subprocess.run(['sqlcmd','-S','localhost','-E','-I','-b','-l','10','-t','180','-d',db,'-W','-s','|']+args,cwd=ROOT,capture_output=True)
+    txt=p.stdout.decode('utf-8',errors='replace')+p.stderr.decode('utf-8',errors='replace')
+    log('\n== '+label+' ==\n'+txt)
+    if p.returncode: raise RuntimeError(f'{label}: sqlcmd exit {p.returncode}: {txt[-1000:]}')
+    return txt
+log('SESSION RECOVERY: WO-P3-P4-01 Part F; read-only database validation; no rebuild, deployment, benchmark or configuration change.')
+log('Definition comparison removes leading batch comments and normalizes CREATE OR ALTER to the stored CREATE verb, plus line endings/outer whitespace; every remaining character is compared. Previous recovery attempts failed only in the scratch harness (sqlcmd formatting flags and CREATE normalization); no database defect or mutation.')
+log('UTC started: '+UTC+'; reused full run UC06-RUN__20261110-0206; R-27 remains OPEN.')
+log('Branch: '+subprocess.check_output(['git','branch','--show-current'],cwd=ROOT,text=True).strip())
+log('HEAD: '+subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip())
+try:
+    prior=(ROOT/'docs/phase2/person3/evidence/test-results/UC06-RUN__20261110-0206.txt').read_text(encoding='utf-8-sig')
+    for filename in ['UC06-RUN__20261110-0206.txt','UC05LOY-RUN__20261109-1636.txt']:
+        t=(ROOT/'docs/phase2/person3/evidence/test-results'/filename).read_text(encoding='utf-8-sig')
+        entries=re.findall(r'^\s+([A-F0-9]{64})\s+((?:db|tests)/\S+)',t,re.M)
+        mismatches=[p for h,p in entries if hashlib.sha256((ROOT/p).read_bytes()).hexdigest().upper()!=h]
+        check('Recorded source hashes '+filename,bool(entries) and not mismatches,f'{len(entries)} hashes; mismatches={mismatches}')
+    steps=re.findall(r'^STEP (\S+) (PASS|FAIL):',prior,re.M)
+    check('Reused UC06 run complete',len(steps)==78 and all(v=='PASS' for _,v in steps) and 'UC06-RUN_RESULT: PASS' in prior,f'{len(steps)} steps; all success markers; 16 functional cases and UC05 regression recorded')
+    stateq="SET NOCOUNT ON; SELECT 'ENGINE',CONVERT(varchar(40),SERVERPROPERTY('ProductVersion')),CONVERT(varchar(100),SERVERPROPERTY('Edition')),SERVERPROPERTY('EngineEdition'); SELECT 'DATABASE',name,state_desc,compatibility_level FROM sys.databases WHERE name IN ('FitLife_P3_P1','FitLife_P3_P2','FitLife_P3_UC05','FitLife_P3_UC05L'); SELECT 'ACTIVE',s.session_id,s.open_transaction_count,DB_NAME(COALESCE(r.database_id,s.database_id)) FROM sys.dm_exec_sessions s LEFT JOIN sys.dm_exec_requests r ON r.session_id=s.session_id WHERE s.is_user_process=1 AND s.session_id<>@@SPID AND (s.open_transaction_count>0 OR r.session_id IS NOT NULL); SELECT 'OPEN_TX',dt.transaction_id,st.session_id,DB_NAME(dt.database_id) FROM sys.dm_tran_database_transactions dt JOIN sys.dm_tran_session_transactions st ON st.transaction_id=dt.transaction_id WHERE dt.database_id IN (DB_ID('FitLife_P3_UC05'),DB_ID('FitLife_P3_UC05L')) AND st.is_user_transaction=1;"
+    state=sql('Instance and interrupted transaction check','master',['-Q',stateq])
+    check('Instance identity', 'ENGINE|17.0.1000.7|Standard Developer Edition (64-bit)|2' in state)
+    check('No active user requests or open user transactions',not re.search(r'^(ACTIVE|OPEN_TX)\|',state,re.M))
+    fp_before=sql('Other database fingerprint before','master',['-v','TargetDb=FitLife_P3_UC05','-i','tests/db/build/fingerprint_instance.sql'])
+    expected_digests={'FitLife_P3_UC05':'DDCAA7E8F3FCD3AEFEC76185FB2990BB29C0FBA8749E444367CA6608542DC57B','FitLife_P3_UC05L':'33106AC02E0DA0602F9666393D7BA536BCA7728E39DC537C2229C66970717FBA'}
+    expected_data='26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F'
+    data_before={}; cat_before={}
+    for db in ['FitLife_P3_P2','FitLife_P3_UC05','FitLife_P3_UC05L']:
+        early=(OUT/'RECOVERY-UC06__20261110-043548.txt').read_text(encoding='utf-8')
+        t=re.search(r'== Data checksum before '+re.escape(db)+r' ==(.*?)(?=\n== |\Z)',early,re.S).group(1)
+        log('REUSED unchanged checksum precheck from RECOVERY-UC06__20261110-043548 (no database mutations since): '+db+'\n'+t)
+        data_before[db]=re.search(r'DATASET_CHECKSUM\|([A-F0-9]{64})',t).group(1)
+        check('Dataset '+db, db=='FitLife_P3_UC05' or data_before[db]==expected_data,data_before[db])
+    for db in expected_digests:
+        marker=sql('Disposable marker '+db,db,['-Q',"SET NOCOUNT ON; SELECT 'MARKER',CONVERT(nvarchar(400),value) FROM sys.extended_properties WHERE class=0 AND name=N'P3_Disposable';"])
+        check('Disposable marker '+db, bool(re.search(r'^MARKER\|WO-P3-',marker,re.M)))
+        # Compare deployed module definitions directly with local CREATE OR ALTER batches, ignoring line endings and surrounding whitespace only.
+        q="SET NOCOUNT ON; SELECT o.name,CONVERT(varchar(max),CONVERT(varbinary(max),m.definition),2) FROM sys.sql_modules m JOIN sys.objects o ON o.object_id=m.object_id WHERE o.schema_id=SCHEMA_ID('dbo') AND (o.name LIKE 'usp[_]P3[_]%' OR o.name LIKE 'tvf[_]P3[_]%') ORDER BY o.name;"
+        p=subprocess.run(['sqlcmd','-S','localhost','-E','-I','-b','-l','10','-d',db,'-s','|','-y','0','-w','65535','-Q',q],cwd=ROOT,capture_output=True)
+        if p.returncode: raise RuntimeError('module definitions query failed: '+p.stderr.decode('utf-8',errors='replace'))
+        def normalize_module(d):
+            d=d.replace('\r\n','\n')
+            match=re.search(r'(?im)^CREATE\s+(?:OR\s+ALTER\s+)?(?:PROCEDURE|FUNCTION)\b',d)
+            if not match: return d.strip()
+            return re.sub(r'\ACREATE\s+(?:OR\s+ALTER\s+)?(PROCEDURE|FUNCTION)\b',r'CREATE \1',d[match.start():],count=1,flags=re.I).strip()
+        deployed={}
+        for line in p.stdout.decode('utf-8',errors='replace').splitlines():
+            if '|' not in line: continue
+            name,h=line.split('|',1); name=name.strip(); h=h.strip()
+            if re.fullmatch('[A-Fa-f0-9]+',h): deployed[name]=normalize_module(bytes.fromhex(h).decode('utf-16-le'))
+        local={}
+        for file in list((ROOT/'db/procedures').glob('*.sql'))+list((ROOT/'db/reference').glob('*.sql')):
+            for batch in re.split(r'^GO\s*$',file.read_text(encoding='utf-8-sig'),flags=re.M|re.I):
+                m=re.search(r'CREATE OR ALTER (?:PROCEDURE|FUNCTION) dbo\.(\w+)',batch,re.I)
+                if m: local[m.group(1)]=normalize_module(batch[m.start():])
+        diff=[name for name,d in deployed.items() if name not in local or d!=local[name]]
+        rpt=[n for n in deployed if n.startswith('usp_P3_Rpt') or n.startswith('tvf_P3_Report')]
+        check('Deployed definitions equal local source '+db,len(rpt)==7 and not diff,f'{len(deployed)} modules; revenue={len(rpt)}; mismatches={diff}')
+        for name,d in deployed.items(): log('MODULE_NORMALIZED_SHA256|'+db+'|'+name+'|'+hashlib.sha256(d.encode('utf-8')).hexdigest())
+        cat=sql('Catalog before '+db,db,['-i','tests/db/schema/catalog_digest.sql'])
+        cat_before[db]=re.search(r'CATALOG_DIGEST\|([A-F0-9]{64})',cat).group(1)
+        check('Catalog equals completed run '+db,cat_before[db]==expected_digests[db],cat_before[db])
+        t=sql('T-SCH-06 '+db,db,['-i','tests/db/schema/T-SCH-06_revenue_catalog_and_scope.sql'])
+        check('T-SCH-06 '+db,'T-SCH-06_RESULT: PASS' in t)
+    if not all(ok for _,ok in results): raise RuntimeError('Recovery preconditions failed; no further tests run')
+    t=sql('Current UC05 regression-state integrity','FitLife_P3_UC05',['-i','tests/db/functional/V-UC06R_integrity.sql'])
+    check('V-UC06R','V-UC06R_RESULT: PASS' in t)
+    t=sql('Revenue reconciliation on preserved UC05 data','FitLife_P3_UC05',['-v','SpendingCheck=1','-i','tests/db/reconciliation/T-REC_revenue.sql'])
+    check('T-REC-05 current UC05','T-REC-05_RESULT: PASS' in t)
+    for db,date in [('FitLife_P3_UC05','2026-11-10'),('FitLife_P3_UC05L','2026-01-15')]:
+        t=sql('Loyalty reconciliation '+db,db,['-v','AsOfDate='+date,'-i','tests/db/reconciliation/T-REC_loyalty.sql'])
+        check('T-REC-01/02/04 '+db,'T-REC_loyalty_RESULT: PASS' in t,'AsOfDate='+date+' (last recorded batch date)')
+    log('REUSED: T-F06 16 cases, T-REC-05 DS-L and all UC05 mutation/concurrency suites from the hash-validated 0206 run. Not rerun: valid fixture data would have to be rebuilt; source/deployed definitions and DS-L checksum match.')
+    for db in expected_digests:
+        t=sql('Catalog after '+db,db,['-i','tests/db/schema/catalog_digest.sql'])
+        check('Catalog unchanged '+db,cat_before[db] in t)
+        t=sql('Data checksum after '+db,db,['-v','MaxGrantPercent=10','-i','tests/db/seed/T-REPRO-02_checksums.sql'])
+        check('Dataset unchanged '+db,data_before[db] in t)
+    fp_after=sql('Other database fingerprint after','master',['-v','TargetDb=FitLife_P3_UC05','-i','tests/db/build/fingerprint_instance.sql'])
+    check('Other database fingerprint unchanged',fp_before==fp_after)
+    state=sql('Final transaction check','master',['-Q',stateq])
+    check('No interrupted transaction after recovery',not re.search(r'^(ACTIVE|OPEN_TX)\|',state,re.M))
+except Exception as e:
+    check('Recovery execution',False,str(e))
+finally:
+    summary=f'RECOVERY SUMMARY: checks={len(results)} PASS={sum(ok for _,ok in results)} FAIL={sum(not ok for _,ok in results)}'
+    log(summary);print(summary)
+    (OUT/'recovery_result.json').write_text(json.dumps({'run':RUN,'log':str(LOG),'checks':results,'passed':all(ok for _,ok in results)},indent=2),encoding='utf-8')
+    print('LOG='+str(LOG))

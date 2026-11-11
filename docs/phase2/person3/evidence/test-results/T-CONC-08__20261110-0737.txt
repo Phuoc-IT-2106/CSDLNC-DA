@@ -1,0 +1,19 @@
+﻿T-CONC-08 - settlement vs cancellation of the same invoice, both winners forced (WO-P3-P3-03 Part C).
+Started (UTC): 2026-11-10 07:40:15.703; database FitLife_P3_UC05; 3 invoices per order; members 27 (cancel first) and 28 (settle first)
+Harness SHA-256: 6A2D34328F1459690428DC94784EC6634B433F5A51784302734A7B988CA7594B
+  CancelFirst invoice 172: first C waited [LCK_M_U behind session 55] -> err 0 outcome CANCELLED; second S waited [LCK_M_U behind session 56] -> err 51204; final CANCELLED, PaidAt set 0, hook calls 0/0
+  CancelFirst invoice 173: first C waited [LCK_M_U behind session 55] -> err 0 outcome CANCELLED; second S waited [LCK_M_U behind session 56] -> err 51204; final CANCELLED, PaidAt set 0, hook calls 0/0
+  CancelFirst invoice 174: first C waited [LCK_M_U behind session 55] -> err 0 outcome CANCELLED; second S waited [LCK_M_U behind session 56] -> err 51204; final CANCELLED, PaidAt set 0, hook calls 0/0
+  SettleFirst invoice 175: first S waited [LCK_M_U behind session 55] -> err 0 outcome SETTLED; second C waited [LCK_M_U behind session 56] -> err 51223; final PAID, PaidAt set 1, hook calls 1/1
+  SettleFirst invoice 176: first S waited [LCK_M_U behind session 55] -> err 0 outcome SETTLED; second C waited [LCK_M_U behind session 56] -> err 51223; final PAID, PaidAt set 1, hook calls 1/1
+  SettleFirst invoice 177: first S waited [LCK_M_U behind session 55] -> err 0 outcome SETTLED; second C waited [LCK_M_U behind session 56] -> err 51223; final PAID, PaidAt set 1, hook calls 1/1
+
+Checks:
+  C1 PASS  Both operations waited behind the blocker; the first queued operation won every time (CANCELLED in CancelFirst, PAID in SettleFirst) | invoices 6; violations 0
+  C2 PASS  The loser got exactly its defined error: queued settlement 51204 (invoice CANCELLED), queued cancellation 51223 (invoice PAID) | violations 0; errors: CancelFirst:51204,CancelFirst:51204,CancelFirst:51204,SettleFirst:51223,SettleFirst:51223,SettleFirst:51223
+  C3 PASS  CANCELLED invoices: no PaidAt, no hook call, no spending row, no points (member 27) | invoices with effects 0; member 27 spending rows 0, points 0
+  C4 PASS  PAID invoices: one call per hook; member 28 spending = sum of the amounts; PointsEarned = FLOOR; CurrentPoints = SUM(PointsEarned) | invoices with wrong effects 0; spending 240000.00 vs 240000; points 2 vs SUM(PointsEarned) 2
+  C5 PASS  No open transaction left | sessions with open transactions 0
+
+T-CONC-08 SUMMARY: checks 5; FAIL 0
+T-CONC-08_RESULT: PASS

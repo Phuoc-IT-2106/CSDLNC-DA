@@ -1,0 +1,125 @@
+﻿T-SCH-01 — WO-P3-P1-01 §8.1 constraint tests (two runs: after build A and after build B). Server name masked as <local-server>.
+---- T-SCH-01 run A (after build A)  (UTC 2026-11-07 11:54:14)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P1 -i tests/db/schema/T-SCH-01_constraints.sql
+case_id|kind|result|descr|detail
+-------|----|------|-----|------
+P01|P|PASS|PENDING invoice + service line + product line, valid FKs; status defaults to PENDING|accepted; PaymentStatus=PENDING, PaymentMethod NULL, PaidAt NULL
+P02|P|PASS|PENDING -> PAID with CASH and PaidAt after IssuedAt|rows updated: 1
+P03|P|PASS|PENDING with VNPAY recorded at creation; PENDING -> CANCELLED without PaidAt|accepted
+P04|P|PASS|MEMBER_MONTHLY_SPENDING row with SpendingMonth = 2026-11-01|accepted
+P07|P|PASS|Defaults: TotalSpend 0, PointsEarned 0, UpdatedAt = SYSUTCDATETIME() (UTC, D-014)|defaults applied; UpdatedAt within 10 minutes of SYSUTCDATETIME()
+P08|P|PASS|Service line with ValidUntil >= ValidFrom and PTSessionsRemaining set|rows updated: 1
+P09|P|PASS|PAID invoice with CARD and PaidAt|accepted
+P05|P|PASS|V-TOT finds no inconsistent invoice among the consistent ones|V-TOT rows: 0
+P06|P|PASS|Header 999,999 vs lines 100,000: accepted by all CHECKs (X1 is cross-table); V-TOT reports exactly this invoice|V-TOT rows: 1; reported the inconsistent invoice: yes
+N01|N|PASS|Status 'DONE'|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaymentStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'PaymentStatus'.
+N02|N|PASS|Method 'BITCOIN'|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaymentMethod". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'PaymentMethod'.
+N03|N|PASS|PAID with PaidAt NULL|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N04a|N|PASS|PENDING with PaidAt set|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N04b|N|PASS|CANCELLED invoice given a PaidAt|547: The UPDATE statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N05|N|PASS|PaidAt earlier than IssuedAt|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtAfterIssued". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N06|N|PASS|PAID with method NULL|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_MethodWhenPaid". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N07a|N|PASS|Negative GrossAmount (also makes FinalAmount negative)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N07b|N|PASS|Negative DiscountAmount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N07c|N|PASS|Discount greater than Gross (also makes FinalAmount negative)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N08|N|PASS|FinalAmount <> Gross - Discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_FinalAmount". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N09a|N|PASS|Invoice with unknown member key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_MEMBER". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER", column 'Member_ID'.
+N09b|N|PASS|Invoice with unknown employee key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_EMPLOYEE". The conflict occurred in database "FitLife_P3_P1", table "dbo.EMPLOYEE", column 'Employee_ID'.
+N09c|N|PASS|Invoice with unknown branch key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_BRANCH". The conflict occurred in database "FitLife_P3_P1", table "dbo.BRANCH", column 'Branch_ID'.
+N10a|N|PASS|Invoice with NULL PaymentStatus|515: Cannot insert the value NULL into column 'PaymentStatus', table 'FitLife_P3_P1.dbo.INVOICE'; column does not allow nulls. INSERT fails.
+N10b|N|PASS|Invoice with NULL Member_ID|515: Cannot insert the value NULL into column 'Member_ID', table 'FitLife_P3_P1.dbo.INVOICE'; column does not allow nulls. INSERT fails.
+N11|N|PASS|SpendingMonth 2026-11-15 (not the first day)|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_FirstDay". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER_MONTHLY_SPENDING", column 'SpendingMonth'.
+N12|N|PASS|Duplicate (Member_ID, SpendingMonth)|2627: Violation of PRIMARY KEY constraint 'PK_MEMBER_MONTHLY_SPENDING'. Cannot insert duplicate key in object 'dbo.MEMBER_MONTHLY_SPENDING'. The duplicate key value is (1, 2026-11-01).
+N13a|N|PASS|Negative TotalSpend|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_NonNegative". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER_MONTHLY_SPENDING".
+N13b|N|PASS|Negative PointsEarned|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_NonNegative". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER_MONTHLY_SPENDING".
+N14|N|PASS|Spending row for an unknown member key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_MEMBER_MONTHLY_SPENDING_MEMBER". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER", column 'Member_ID'.
+N15|N|PASS|Service line with ValidUntil < ValidFrom (BR13)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Validity". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N16|N|PASS|Product line with Quantity 0|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Quantity". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM", column 'Quantity'.
+N17a|N|PASS|Service line with negative UnitPrice|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N17b|N|PASS|Service line with negative discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N17c|N|PASS|Service line discount greater than line price|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N17d|N|PASS|Product line with negative UnitPrice|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM".
+N17e|N|PASS|Product line discount greater than UnitPrice x Quantity|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM".
+N17f|N|PASS|Product line with negative discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM".
+N18a|N|PASS|Service line for an unknown invoice|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_SERVICE_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Invoice_ID'.
+N18b|N|PASS|Service line for an unknown plan key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN". The conflict occurred in database "FitLife_P3_P1", table "dbo.SERVICE_PLAN", column 'Plan_ID'.
+N18c|N|PASS|Product line for an unknown invoice|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_PRODUCT_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Invoice_ID'.
+N18d|N|PASS|Product line for an unknown product key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_PRODUCT_ITEM_PRODUCT". The conflict occurred in database "FitLife_P3_P1", table "dbo.PRODUCT", column 'Product_ID'.
+N19a|N|PASS|Delete a referenced member (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_MEMBER". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Member_ID'.
+N19b|N|PASS|Delete a referenced branch (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_BRANCH". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Branch_ID'.
+N19c|N|PASS|Delete a referenced employee (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_EMPLOYEE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Employee_ID'.
+N19d|N|PASS|Delete a referenced plan (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM", column 'Plan_ID'.
+N19e|N|PASS|Delete a referenced product (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_PRODUCT_ITEM_PRODUCT". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM", column 'Product_ID'.
+N19f|N|PASS|Delete an invoice that has lines|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_SERVICE_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM", column 'Invoice_ID'.
+N20a|N|PASS|Duplicate service line (Invoice_ID, LineNo)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE_SERVICE_ITEM'. Cannot insert duplicate key in object 'dbo.INVOICE_SERVICE_ITEM'. The duplicate key value is (1, 1).
+N20b|N|PASS|Duplicate product line (Invoice_ID, LineNo)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE_PRODUCT_ITEM'. Cannot insert duplicate key in object 'dbo.INVOICE_PRODUCT_ITEM'. The duplicate key value is (1, 1).
+N21|N|PASS|Duplicate Invoice_ID (explicit key with IDENTITY_INSERT)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE'. Cannot insert duplicate key in object 'dbo.INVOICE'. The duplicate key value is (1).
+N22|N|PASS|PAID -> PENDING while keeping PaidAt|547: The UPDATE statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+I01|I|INFO|PAID -> PENDING with PaidAt and PaymentMethod cleared (transition rule T2)|accepted by the schema, as documented: transition rules T1-T4 need the old value and are enforced by the UC05 routines (WO-P3-P3-01), not by CHECK constraints
+POST|P|PASS|All test rows rolled back (P3 and fixture tables empty)|remaining rows: 0
+T-SCH-01 SUMMARY: cases=54 PASS=53 FAIL=0 INFO=1
+T-SCH-01_RESULT: PASS
+
+exit code: 0
+---- T-SCH-01 run B (after build B)  (UTC 2026-11-07 11:54:16)
+Command: sqlcmd -S localhost -E -I -b -W -s | -d FitLife_P3_P1 -i tests/db/schema/T-SCH-01_constraints.sql
+case_id|kind|result|descr|detail
+-------|----|------|-----|------
+P01|P|PASS|PENDING invoice + service line + product line, valid FKs; status defaults to PENDING|accepted; PaymentStatus=PENDING, PaymentMethod NULL, PaidAt NULL
+P02|P|PASS|PENDING -> PAID with CASH and PaidAt after IssuedAt|rows updated: 1
+P03|P|PASS|PENDING with VNPAY recorded at creation; PENDING -> CANCELLED without PaidAt|accepted
+P04|P|PASS|MEMBER_MONTHLY_SPENDING row with SpendingMonth = 2026-11-01|accepted
+P07|P|PASS|Defaults: TotalSpend 0, PointsEarned 0, UpdatedAt = SYSUTCDATETIME() (UTC, D-014)|defaults applied; UpdatedAt within 10 minutes of SYSUTCDATETIME()
+P08|P|PASS|Service line with ValidUntil >= ValidFrom and PTSessionsRemaining set|rows updated: 1
+P09|P|PASS|PAID invoice with CARD and PaidAt|accepted
+P05|P|PASS|V-TOT finds no inconsistent invoice among the consistent ones|V-TOT rows: 0
+P06|P|PASS|Header 999,999 vs lines 100,000: accepted by all CHECKs (X1 is cross-table); V-TOT reports exactly this invoice|V-TOT rows: 1; reported the inconsistent invoice: yes
+N01|N|PASS|Status 'DONE'|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaymentStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'PaymentStatus'.
+N02|N|PASS|Method 'BITCOIN'|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaymentMethod". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'PaymentMethod'.
+N03|N|PASS|PAID with PaidAt NULL|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N04a|N|PASS|PENDING with PaidAt set|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N04b|N|PASS|CANCELLED invoice given a PaidAt|547: The UPDATE statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N05|N|PASS|PaidAt earlier than IssuedAt|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtAfterIssued". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N06|N|PASS|PAID with method NULL|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_MethodWhenPaid". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N07a|N|PASS|Negative GrossAmount (also makes FinalAmount negative)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N07b|N|PASS|Negative DiscountAmount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N07c|N|PASS|Discount greater than Gross (also makes FinalAmount negative)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N08|N|PASS|FinalAmount <> Gross - Discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_FinalAmount". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+N09a|N|PASS|Invoice with unknown member key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_MEMBER". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER", column 'Member_ID'.
+N09b|N|PASS|Invoice with unknown employee key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_EMPLOYEE". The conflict occurred in database "FitLife_P3_P1", table "dbo.EMPLOYEE", column 'Employee_ID'.
+N09c|N|PASS|Invoice with unknown branch key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_BRANCH". The conflict occurred in database "FitLife_P3_P1", table "dbo.BRANCH", column 'Branch_ID'.
+N10a|N|PASS|Invoice with NULL PaymentStatus|515: Cannot insert the value NULL into column 'PaymentStatus', table 'FitLife_P3_P1.dbo.INVOICE'; column does not allow nulls. INSERT fails.
+N10b|N|PASS|Invoice with NULL Member_ID|515: Cannot insert the value NULL into column 'Member_ID', table 'FitLife_P3_P1.dbo.INVOICE'; column does not allow nulls. INSERT fails.
+N11|N|PASS|SpendingMonth 2026-11-15 (not the first day)|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_FirstDay". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER_MONTHLY_SPENDING", column 'SpendingMonth'.
+N12|N|PASS|Duplicate (Member_ID, SpendingMonth)|2627: Violation of PRIMARY KEY constraint 'PK_MEMBER_MONTHLY_SPENDING'. Cannot insert duplicate key in object 'dbo.MEMBER_MONTHLY_SPENDING'. The duplicate key value is (1, 2026-11-01).
+N13a|N|PASS|Negative TotalSpend|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_NonNegative". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER_MONTHLY_SPENDING".
+N13b|N|PASS|Negative PointsEarned|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_NonNegative". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER_MONTHLY_SPENDING".
+N14|N|PASS|Spending row for an unknown member key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_MEMBER_MONTHLY_SPENDING_MEMBER". The conflict occurred in database "FitLife_P3_P1", table "dbo.MEMBER", column 'Member_ID'.
+N15|N|PASS|Service line with ValidUntil < ValidFrom (BR13)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Validity". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N16|N|PASS|Product line with Quantity 0|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Quantity". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM", column 'Quantity'.
+N17a|N|PASS|Service line with negative UnitPrice|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N17b|N|PASS|Service line with negative discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N17c|N|PASS|Service line discount greater than line price|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM".
+N17d|N|PASS|Product line with negative UnitPrice|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM".
+N17e|N|PASS|Product line discount greater than UnitPrice x Quantity|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM".
+N17f|N|PASS|Product line with negative discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM".
+N18a|N|PASS|Service line for an unknown invoice|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_SERVICE_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Invoice_ID'.
+N18b|N|PASS|Service line for an unknown plan key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN". The conflict occurred in database "FitLife_P3_P1", table "dbo.SERVICE_PLAN", column 'Plan_ID'.
+N18c|N|PASS|Product line for an unknown invoice|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_PRODUCT_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Invoice_ID'.
+N18d|N|PASS|Product line for an unknown product key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_PRODUCT_ITEM_PRODUCT". The conflict occurred in database "FitLife_P3_P1", table "dbo.PRODUCT", column 'Product_ID'.
+N19a|N|PASS|Delete a referenced member (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_MEMBER". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Member_ID'.
+N19b|N|PASS|Delete a referenced branch (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_BRANCH". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Branch_ID'.
+N19c|N|PASS|Delete a referenced employee (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_EMPLOYEE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE", column 'Employee_ID'.
+N19d|N|PASS|Delete a referenced plan (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM", column 'Plan_ID'.
+N19e|N|PASS|Delete a referenced product (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_PRODUCT_ITEM_PRODUCT". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_PRODUCT_ITEM", column 'Product_ID'.
+N19f|N|PASS|Delete an invoice that has lines|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_SERVICE_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE_SERVICE_ITEM", column 'Invoice_ID'.
+N20a|N|PASS|Duplicate service line (Invoice_ID, LineNo)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE_SERVICE_ITEM'. Cannot insert duplicate key in object 'dbo.INVOICE_SERVICE_ITEM'. The duplicate key value is (1, 1).
+N20b|N|PASS|Duplicate product line (Invoice_ID, LineNo)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE_PRODUCT_ITEM'. Cannot insert duplicate key in object 'dbo.INVOICE_PRODUCT_ITEM'. The duplicate key value is (1, 1).
+N21|N|PASS|Duplicate Invoice_ID (explicit key with IDENTITY_INSERT)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE'. Cannot insert duplicate key in object 'dbo.INVOICE'. The duplicate key value is (1).
+N22|N|PASS|PAID -> PENDING while keeping PaidAt|547: The UPDATE statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_P1", table "dbo.INVOICE".
+I01|I|INFO|PAID -> PENDING with PaidAt and PaymentMethod cleared (transition rule T2)|accepted by the schema, as documented: transition rules T1-T4 need the old value and are enforced by the UC05 routines (WO-P3-P3-01), not by CHECK constraints
+POST|P|PASS|All test rows rolled back (P3 and fixture tables empty)|remaining rows: 0
+T-SCH-01 SUMMARY: cases=54 PASS=53 FAIL=0 INFO=1
+T-SCH-01_RESULT: PASS
+
+exit code: 0

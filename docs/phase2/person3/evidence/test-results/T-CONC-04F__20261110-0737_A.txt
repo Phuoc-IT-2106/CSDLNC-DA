@@ -1,0 +1,19 @@
+﻿T-CONC-04F - settlement concurrent with the tier batch (WO-P3-P3-02). Run A.
+Started (UTC): 2026-11-10 07:38:25.915; database FitLife_P3_UC05; 8 settlement sessions x 25 invoices; 2 batch sessions (chunk 5); members 21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36; evaluation date (local) 2026-11-10
+Harness SHA-256: 82AACCCCEF257042F857EF94396E70F6A4E2B6E3F6B6D328AAD967733DF77827
+Gold threshold read from MEMBER_TIER (TEST_ONLY synthetic): 1000000.00
+Pre-run quiescent evaluation: error 0; upgrades 0; downgrades 0
+Prepared 200 PENDING invoices
+Gate released (UTC): 2026-11-10 07:38:28.706; all sessions finished (UTC): 2026-11-10 07:38:29.361 (context only, not a measurement)
+Final quiescent run 1: error 0; upgrades 0; downgrades 0. Run 2: error 0; upgrades 0; downgrades 0
+
+Checks:
+  C1 PASS  Every settlement SETTLED; every batch run succeeded | settlements 200 of 200, failed 0; batch runs 18, failed 0; deadlock retries 0; worker errors 0 
+  C2 PASS  No incorrect Tier_ID change: no batch run reported a downgrade while spending only grew | concurrent runs: upgrades 8, downgrades 0; final runs downgrades 0 + 0
+  C3 PASS  After the final run every member's Tier_ID equals the tier computed independently from INVOICE | members with a wrong tier: 0
+  C4 PASS  No lost update: month spending grew by exactly the harness amounts; CurrentPoints = SUM(PointsEarned); point increase = SUM of returned increments | members checked 16; mismatches 0
+  C5 PASS  Batch runs overlapped settlement activity | batch runs overlapping the settlement period: 11 of 18
+  C6 PASS  Second final run changes nothing (idempotent) | upgrades 0; downgrades 0
+
+T-CONC-04F SUMMARY: run A; checks 6; FAIL 0
+T-CONC-04F_RESULT: PASS

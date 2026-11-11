@@ -1,0 +1,17 @@
+﻿T-F05-U0 regression (T-F05-36, T-F05-37, K01). Run UC06-RUN__20261110-0206.
+Executed (UTC): 2026-11-10 02:07:35; database FitLife_P3_UC05; script tests/db/functional/T-F05-U0_settlement_baseline.sql (SHA-256 FD4F1C822DCB845122764AC2CC4C71B256838CFDC177E5C3FD5EC5DF5FB76B89); sqlcmd exit 0
+
+Tier configuration (Gold/Platinum TEST_ONLY synthetic): Silver id 1 = 0; Gold id 2 = 1000000.00; Platinum id 3 = 3000000.00
+case_id|test_id|result|descr|detail
+-------|-------|------|-----|------
+U01|T-F05-36|PASS|U0 keeps the settlement contract (PAID, PaidAt, spending, points, one call per hook); window spend Gold - 0.01 -> Silver|error 0 ; outcome SETTLED; tier 1; points 9; balance 9
+U02|T-F05-36|PASS|Window spend exactly = Gold threshold -> Gold (inclusive comparison, D-008 rule)|error 0 ; outcome SETTLED; tier 2
+U03|T-F05-36|PASS|Repeated U0 settlement: ALREADY_SETTLED, whole state (status, spending, points, tier, hook log) unchanged|error 0; outcome ALREADY_SETTLED; state changed no
+U04|T-F05-36|PASS|Window recomputed from INVOICE (D-007): month 12 back (Platinum-level) ignored, month 11 back counted; spend = Gold -> stale Platinum lowered to Gold|error 0 ; outcome SETTLED; oracle window spend 1000000.00; tier 2; history months 2025-11-01 (out) / 2025-12-01 (in)
+U05|T-F05-36|PASS|Contrast: the production routine usp_P3_SettleInvoice (U1) settles Platinum-level spending without touching Tier_ID - re-ranking is U0-only (reference) or the periodic batch|error 0; outcome SETTLED; tier after U1 1
+U06|T-F05-36|PASS|Rejected U0 requests (CANCELLED invoice 51204, invalid method 51202, invalid tier configuration 51311): nothing written|errors 51204 / 51202 / 51311; state changed no
+U07|T-F05-37|PASS|Failure injected at the U0 tier update: status, PaidAt, spending, points, hook calls and tier all rolled back; afterwards the invoice settles once (Gold)|error 52920 (TEST_ONLY injected failure at the U0 tier update.); state changed no; retry SETTLED, tier 2
+U08|T-F05-37|PASS|Inside a caller transaction: rollback removes the U0 settlement and its re-rank; a later error leaves XACT_STATE -1 and one rollback removes everything|inside: SETTLED tier 3; second error 51204, XACT_STATE -1; state after rollbacks = before: yes
+K01|AC4|PASS|No database module references U0 (definitions and dependency view); U0 marked REFERENCE_ONLY; approved settlement routine unchanged (definition hash = WO-P3-P3-01 run 1447)|modules mentioning U0: 0; referencing entities: 0; marker: REFERENCE_ONLY (U0 benchmark-only baseline; not an application path); settle SHA-256 96C877A800B0EBE004F6B6F44780B7A5C11530F36F8BEA9A9E2C96C07FD47E44
+T-F05-U0 SUMMARY: cases=9 FAIL=0
+T-F05-U0_RESULT: PASS

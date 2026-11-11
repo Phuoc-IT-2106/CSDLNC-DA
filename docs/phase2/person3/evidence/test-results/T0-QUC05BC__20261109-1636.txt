@@ -1,0 +1,38 @@
+﻿T0-QUC05BC - WO-P3-P3-02 task 0: B0 capture of Q-UC05-B and Q-UC05-C on DS-L (FitLife_P3_UC05L). Run 20261109-1636.
+Captured (UTC): 2026-11-09 16:40:46; compatibility level 160; invoices 324000; non-PK indexes 0 (configuration B0); loyalty routines not yet deployed
+Timing: NOT recorded (R-27 OPEN; DIAGNOSTIC_ONLY on this machine). Valid evidence here: plans, logical reads, row counts, result hashes.
+Statistics: UPDATE STATISTICS WITH FULLSCAN on INVOICE, INVOICE_SERVICE_ITEM, INVOICE_PRODUCT_ITEM, MEMBER_MONTHLY_SPENDING (10 section 4.3 step 2).
+
+== Q-UC05-B P1: file SHA-256 108D684A8858706D82B26CAB0EECF0BCD7037C79515C818E98F4F12A3078171A
+   parameters: @FromMonth=2025-01-01, @Member_ID=1, @NextMonth=2026-01-01
+   rows 1; ordered-result SHA-256 19A3DA049F3B7A5FEA09BD7D077C0A0507179811AF753867C4BD84EE929D6C70
+   logical reads total 7; STATISTICS IO (raw):
+     Table 'MEMBER_MONTHLY_SPENDING'. Scan count 1, logical reads 3, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'MEMBER_TIER'. Scan count 0, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'MEMBER'. Scan count 0, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan: execution-plans/Q-UC05-B__B0__DS-L__P1__20261109-1636.sqlplan; physical operators: Compute Scalar > Nested Loops > Nested Loops > Clustered Index Seek > Clustered Index Seek > Compute Scalar > Compute Scalar > Stream Aggregate > Clustered Index Seek
+
+== Q-UC05-B P2: file SHA-256 108D684A8858706D82B26CAB0EECF0BCD7037C79515C818E98F4F12A3078171A
+   parameters: @FromMonth=2025-01-01, @Member_ID=30000, @NextMonth=2026-01-01
+   rows 1; ordered-result SHA-256 DC011F12FA725D7D076CA23B5118F2EDD5AAF4DB154F8133DF81169AE8AB70AB
+   logical reads total 7; STATISTICS IO (raw):
+     Table 'MEMBER_MONTHLY_SPENDING'. Scan count 1, logical reads 3, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'MEMBER_TIER'. Scan count 0, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+     Table 'MEMBER'. Scan count 0, logical reads 2, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan: execution-plans/Q-UC05-B__B0__DS-L__P2__20261109-1636.sqlplan; physical operators: Compute Scalar > Nested Loops > Nested Loops > Clustered Index Seek > Clustered Index Seek > Compute Scalar > Compute Scalar > Stream Aggregate > Clustered Index Seek
+
+== Q-UC05-C P1: file SHA-256 24872C9B583938ACCE22B1DDA19C34E8D66BC5B63B51A0FA7F430037098BBF6D
+   parameters: @FromMonth=2025-01-01, @NextMonth=2026-01-01
+   rows 29870; ordered-result SHA-256 74004627A37A3A9AD320B6F4E4E2C309259239B52FE20D6CECD5BA21F9EBF418
+   logical reads total 759; STATISTICS IO (raw):
+     Table 'MEMBER_MONTHLY_SPENDING'. Scan count 1, logical reads 759, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan: execution-plans/Q-UC05-C__B0__DS-L__P1__20261109-1636.sqlplan; physical operators: Stream Aggregate > Clustered Index Scan
+
+== Q-UC05-C P2: file SHA-256 24872C9B583938ACCE22B1DDA19C34E8D66BC5B63B51A0FA7F430037098BBF6D
+   parameters: @FromMonth=2025-02-01, @NextMonth=2026-02-01
+   rows 29804; ordered-result SHA-256 452A436F5ED360FCB32697AB88E46A21C11B7CA9B7EC97046D05E5DF1E255323
+   logical reads total 759; STATISTICS IO (raw):
+     Table 'MEMBER_MONTHLY_SPENDING'. Scan count 1, logical reads 759, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.
+   actual plan: execution-plans/Q-UC05-C__B0__DS-L__P2__20261109-1636.sqlplan; physical operators: Stream Aggregate > Clustered Index Scan
+
+T0-QUC05BC_RESULT: CAPTURED (B0 plans, logical reads, row counts; no timing)

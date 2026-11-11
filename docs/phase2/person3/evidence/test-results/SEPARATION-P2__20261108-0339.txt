@@ -1,0 +1,31 @@
+SEPARATION-P2 - WO-P3-P2-01 static separation check (read-only scan of the scripts; no database access). Comments and string literals are ignored; table references are identifiers after FROM/JOIN/INTO/UPDATE/TABLE or with a dbo. prefix.
+
+Files (SHA-256):
+  db\seed\S001__p3_dataset_generator.sql  2bb5a101c5382aaca945e90fb8f52417308cd2b647ac6676310047b77d690ff5
+  db\seed\profiles.json  415583893eb48dbf1347da02b2b4efbfe937b6323b7cdcda1bf3fa3d950a6f3e
+  tests\db\fixtures\F001D__TEST_ONLY_fixture_key_rows.sql  ca492a71edffca48580fb4b93ba68f245db3b19518a0846b204143063afaf112
+  tests\db\build\rebuild_p2_db.sql  19e96bb76d66f8d8fec06b06097b403e527344306d9577f3582be7ce7300d3c7
+  tests\db\build\drop_p2_db.sql  2ae58578461f47e8ec3fdad35f3f0d1ee9e84d824f956997c1dc376bec9d90a7
+  db\migrations\V001__p3_billing_and_spending_tables.sql  65a31c124b57dea63d8998f59cf5fd4ab50df1875dfa87d6821ff270758b8094
+  db\migrations\V002__p3_settlement_and_spending_constraints.sql  adcf99e6d954a3202622b7bffb25358bfbe90c9c174cd871dd8b8459c5fafd67
+
+PASS S001 creates only #temp tables: CREATE TABLE targets: #day, #month, #branch, #mu, #mem, #price, #inv, #u, #boundary, #lu, #line
+PASS S001 has no index, view, routine, trigger, partition, ALTER or DROP statement: found: none
+PASS S001 inserts into permanent tables only the four P3 tables: permanent INSERT targets: INVOICE, INVOICE_PRODUCT_ITEM, INVOICE_SERVICE_ITEM, MEMBER_MONTHLY_SPENDING
+PASS S001 updates no permanent table: UPDATE targets: dd, #branch, #u, c
+PASS S001 writes no fixture table: fixture INSERT targets: none
+PASS db\seed\S001__p3_dataset_generator.sql references no other member's table: permanent tables referenced: BRANCH, EMPLOYEE, INVOICE, INVOICE_PRODUCT_ITEM, INVOICE_SERVICE_ITEM, MEMBER, MEMBER_MONTHLY_SPENDING, PRODUCT, SERVICE_PLAN; other-member tables: none
+PASS tests\db\fixtures\F001D__TEST_ONLY_fixture_key_rows.sql references no other member's table: permanent tables referenced: BRANCH, EMPLOYEE, INVOICE, MEMBER, PRODUCT, SERVICE_PLAN; other-member tables: none
+PASS db\seed\profiles.json references no other member's table: permanent tables referenced: none; other-member tables: none
+PASS F001D inserts only into the five fixtures: INSERT targets: BRANCH, EMPLOYEE, MEMBER, PRODUCT, SERVICE_PLAN
+PASS F001D inserts key columns only: column lists: Branch_ID; Employee_ID; Member_ID; Plan_ID; Product_ID
+PASS F001D creates no table or column: none
+PASS tests\db\build\rebuild_p2_db.sql refuses FitLife_P3_P1: guard present
+PASS tests\db\build\drop_p2_db.sql refuses FitLife_P3_P1: guard present
+PASS tests\db\fixtures\F001D__TEST_ONLY_fixture_key_rows.sql refuses FitLife_P3_P1: guard present
+PASS db\seed\S001__p3_dataset_generator.sql refuses FitLife_P3_P1: guard present
+PASS No script under db/ references tests/db/fixtures: files: none
+PASS Migrations V001/V002 unchanged in scope: create or alter only the four P3 tables: tables: INVOICE, INVOICE_PRODUCT_ITEM, INVOICE_SERVICE_ITEM, MEMBER_MONTHLY_SPENDING
+
+SEPARATION-P2 SUMMARY: checks=17 FAIL=0
+SEPARATION-P2_RESULT: PASS

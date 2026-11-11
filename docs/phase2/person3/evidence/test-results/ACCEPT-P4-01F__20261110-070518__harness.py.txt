@@ -1,0 +1,159 @@
+"""ACCEPT-P4-01F: read-only Owner-acceptance re-check of WO-P3-P4-01 Part F (2026-11-10 directive
+"Accept UC06 functional results & execute integrated correctness verification", section 2).
+Re-validates that the recorded Part F evidence is still valid. Re-runs NO functional test, deploys nothing,
+rebuilds nothing, changes no setting. Writes only the evidence log."""
+from pathlib import Path
+import hashlib, re, subprocess, datetime, os
+
+ROOT = Path(r'C:\Users\DELL\source\repos\CSDLNC-DA')
+EV = ROOT / 'docs/phase2/person3/evidence/test-results'
+UTC = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')
+LOG = EV / f'ACCEPT-P4-01F__{UTC}.txt'
+results = []
+MASK = [m for m in {os.environ.get('COMPUTERNAME', '')} if len(m) > 2]
+
+
+def hide(s):
+    for m in MASK:
+        s = re.sub(re.escape(m), '<local-server>', s, flags=re.I)
+    return s
+
+
+def log(s):
+    with LOG.open('a', encoding='utf-8') as f:
+        f.write(hide(str(s)) + '\n')
+
+
+def check(name, ok, detail=''):
+    results.append((name, bool(ok)))
+    line = f'{"PASS" if ok else "FAIL"} | {name} | {detail}'
+    log(line)
+    print(hide(line), flush=True)
+
+
+def sql(label, db, args, quiet=False):
+    p = subprocess.run(['sqlcmd', '-S', 'localhost', '-E', '-I', '-b', '-l', '10', '-t', '600', '-d', db, '-W', '-s', '|'] + args,
+                       cwd=ROOT, capture_output=True)
+    txt = p.stdout.decode('utf-8', errors='replace') + p.stderr.decode('utf-8', errors='replace')
+    if not quiet:
+        log('\n== ' + label + ' ==\n' + txt)
+    if p.returncode:
+        raise RuntimeError(f'{label}: sqlcmd exit {p.returncode}: {txt[-800:]}')
+    return txt
+
+
+log('ACCEPT-P4-01F - Owner acceptance re-check of WO-P3-P4-01 Part F (read-only).')
+log('Scope: evidence validity only. No functional test re-run (directive section 2: "Do not rerun completed tests unnecessarily"), '
+    'no deployment, no rebuild, no data change, no setting change. R-27 OPEN; no timing in this log.')
+log('UTC started: ' + UTC)
+log('Branch: ' + subprocess.check_output(['git', 'branch', '--show-current'], cwd=ROOT, text=True).strip())
+log('HEAD: ' + subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip())
+try:
+    # ---- 1. Recorded evidence ----
+    run = (EV / 'UC06-RUN__20261110-0206.txt').read_text(encoding='utf-8-sig')
+    steps = re.findall(r'^STEP (\S+) (PASS|FAIL):', run, re.M)
+    check('E1 UC06-RUN__20261110-0206: 78/78 steps PASS and run result PASS',
+          len(steps) == 78 and all(v == 'PASS' for _, v in steps) and 'UC06-RUN_RESULT: PASS' in run,
+          f'{len(steps)} steps; FAIL {sum(v == "FAIL" for _, v in steps)}')
+    stage = {k: [s for s, _ in steps if s.startswith(k)] for k in 'ABCDZ'}
+    log('Steps per stage: ' + ', '.join(f'{k}={len(v)}' for k, v in stage.items()) + f'; other={len(steps) - sum(len(v) for v in stage.values())}')
+    files = {
+        'E2 T-F06 functional cases (revenue correctness, UTC/local boundaries)': ('T-F06__20261110-0206.txt', r'T-F06_RESULT: PASS', r'T-F06 SUMMARY[^\n]*'),
+        'E3 T-REC-05 fixtures (branch/company reconciliation)': ('T-REC-05__20261110-0206_fixtures.txt', r'T-REC-05_RESULT: PASS', r'T-REC-05 SUMMARY[^\n]*'),
+        'E4 T-REC-05 regression data incl. spending cross-check': ('T-REC-05__20261110-0206_regression.txt', r'T-REC-05_RESULT: PASS', r'T-REC-05 SUMMARY[^\n]*'),
+        'E5 T-REC-05 DS-L (independent reconciliation at scale)': ('T-REC-05__20261110-0206_DS-L.txt', r'T-REC-05_RESULT: PASS', r'T-REC-05 SUMMARY[^\n]*'),
+        'E6 Billing regression T-F05 (creation)': ('T-F05-CREATE__20261110-0206.txt', r'T-F05_RESULT: PASS', r'T-F05 SUMMARY[^\n]*'),
+        'E7 Billing regression T-F05S (settlement/cancellation)': ('T-F05S-SETTLE__20261110-0206.txt', r'T-F05S_RESULT: PASS', r'T-F05S SUMMARY[^\n]*'),
+        'E8 Loyalty regression T-F05L': ('T-F05L__20261110-0206.txt', r'T-F05L_RESULT: PASS', r'T-F05L SUMMARY[^\n]*'),
+        'E9 Recovery targeted retry (DS-L loyalty reconciliation)': ('RECOVERY-UC06-RECHECK__20261110-045109.txt', r'FAIL=0', r'SUMMARY[^\n]*'),
+    }
+    for name, (fn, pat, summ) in files.items():
+        p = EV / fn
+        t = p.read_text(encoding='utf-8-sig', errors='replace') if p.exists() else ''
+        m = re.search(summ, t)
+        check(name, bool(t) and re.search(pat, t) is not None, f'{fn}: ' + (m.group(0).strip() if m else 'missing'))
+    rec = (EV / 'RECOVERY-UC06__20261110-043737.txt').read_text(encoding='utf-8-sig')
+    m = re.search(r'RECOVERY SUMMARY: checks=(\d+) PASS=(\d+) FAIL=(\d+)', rec)
+    check('E10 Recovery re-check recorded (25 PASS + 1 timeout, resolved by E9)', m is not None and m.groups() == ('26', '25', '1'), m.group(0) if m else 'missing')
+
+    # ---- 2. SQL definition consistency: source files unchanged since the accepted run ----
+    for fn in ['UC06-RUN__20261110-0206.txt', 'UC05LOY-RUN__20261109-1636.txt']:
+        t = (EV / fn).read_text(encoding='utf-8-sig')
+        entries = re.findall(r'^\s+([A-F0-9]{64})\s+((?:db|tests)/\S+)', t, re.M)
+        bad = [p for h, p in entries if hashlib.sha256((ROOT / p).read_bytes()).hexdigest().upper() != h]
+        check(f'S1 Source hashes recorded in {fn} = current files', bool(entries) and not bad, f'{len(entries)} files; mismatches={bad}')
+    t0 = datetime.datetime(2026, 11, 10, 2, 6, 20, tzinfo=datetime.timezone.utc).timestamp()
+    newer = sorted(p.relative_to(ROOT).as_posix() for d in ('db', 'tests') for p in (ROOT / d).rglob('*') if p.is_file() and p.stat().st_mtime > t0)
+    check('S2 No file under db/ or tests/ modified after the accepted run started (2026-11-10 02:06:20 UTC)', not newer, f'newer={newer}')
+
+    # ---- 3. Instance state ----
+    stateq = ("SET NOCOUNT ON; SELECT 'ENGINE',CONVERT(varchar(40),SERVERPROPERTY('ProductVersion')),CONVERT(varchar(100),SERVERPROPERTY('Edition')),SERVERPROPERTY('EngineEdition'); "
+              "SELECT 'DATABASE',name,state_desc,compatibility_level,is_read_committed_snapshot_on,snapshot_isolation_state_desc FROM sys.databases WHERE name LIKE 'FitLife[_]P3[_]%' ORDER BY name; "
+              "SELECT 'ACTIVE',s.session_id,s.open_transaction_count,DB_NAME(COALESCE(r.database_id,s.database_id)) FROM sys.dm_exec_sessions s LEFT JOIN sys.dm_exec_requests r ON r.session_id=s.session_id "
+              "WHERE s.is_user_process=1 AND s.session_id<>@@SPID AND (s.open_transaction_count>0 OR r.session_id IS NOT NULL);")
+    state = sql('Instance state', 'master', ['-Q', stateq])
+    check('I1 Instance identity (SQL Server 17.0.1000.7, Standard Developer, EngineEdition 2)', 'ENGINE|17.0.1000.7|Standard Developer Edition (64-bit)|2' in state)
+    check('I2 No active user request or open user transaction', not re.search(r'^ACTIVE\|', state, re.M))
+    check('I3 P3 databases ONLINE, compatibility 160, RCSI and snapshot isolation OFF (D-019 (a) unchanged)',
+          all(re.search(rf'^DATABASE\|{db}\|ONLINE\|160\|0\|OFF', state, re.M) for db in ['FitLife_P3_P1', 'FitLife_P3_P2', 'FitLife_P3_UC05', 'FitLife_P3_UC05L']))
+    fp_before = sql('Instance fingerprint before (FitLife_P3_UC05 excluded)', 'master', ['-v', 'TargetDb=FitLife_P3_UC05', '-i', 'tests/db/build/fingerprint_instance.sql'])
+
+    # ---- 4. Deployed definitions and catalogs ----
+    expected_digests = {'FitLife_P3_UC05': 'DDCAA7E8F3FCD3AEFEC76185FB2990BB29C0FBA8749E444367CA6608542DC57B',
+                        'FitLife_P3_UC05L': '33106AC02E0DA0602F9666393D7BA536BCA7728E39DC537C2229C66970717FBA'}
+
+    def normalize_module(d):
+        d = d.replace('\r\n', '\n')
+        m = re.search(r'(?im)^CREATE\s+(?:OR\s+ALTER\s+)?(?:PROCEDURE|FUNCTION)\b', d)
+        if not m:
+            return d.strip()
+        return re.sub(r'\ACREATE\s+(?:OR\s+ALTER\s+)?(PROCEDURE|FUNCTION)\b', r'CREATE \1', d[m.start():], count=1, flags=re.I).strip()
+
+    local = {}
+    for f in list((ROOT / 'db/procedures').glob('*.sql')) + list((ROOT / 'db/reference').glob('*.sql')):
+        for batch in re.split(r'^GO\s*$', f.read_text(encoding='utf-8-sig'), flags=re.M | re.I):
+            m = re.search(r'CREATE OR ALTER (?:PROCEDURE|FUNCTION) dbo\.(\w+)', batch, re.I)
+            if m:
+                local[m.group(1)] = normalize_module(batch[m.start():])
+    for db, exp in expected_digests.items():
+        mk = sql('Disposable marker ' + db, db, ['-Q', "SET NOCOUNT ON; SELECT 'MARKER',CONVERT(nvarchar(400),value) FROM sys.extended_properties WHERE class=0 AND name=N'P3_Disposable';"])
+        check(f'D1 {db}: disposable marker present', re.search(r'^MARKER\|WO-P3-', mk, re.M) is not None)
+        q = ("SET NOCOUNT ON; SELECT o.name,CONVERT(varchar(max),CONVERT(varbinary(max),m.definition),2) FROM sys.sql_modules m JOIN sys.objects o ON o.object_id=m.object_id "
+             "WHERE o.schema_id=SCHEMA_ID('dbo') AND (o.name LIKE 'usp[_]P3[_]%' OR o.name LIKE 'tvf[_]P3[_]%') ORDER BY o.name;")
+        p = subprocess.run(['sqlcmd', '-S', 'localhost', '-E', '-I', '-b', '-l', '10', '-d', db, '-s', '|', '-y', '0', '-w', '65535', '-Q', q], cwd=ROOT, capture_output=True)
+        if p.returncode:
+            raise RuntimeError('module query failed: ' + p.stderr.decode('utf-8', errors='replace'))
+        deployed = {}
+        for line in p.stdout.decode('utf-8', errors='replace').splitlines():
+            if '|' in line:
+                n, h = line.split('|', 1)
+                n, h = n.strip(), h.strip()
+                if re.fullmatch('[A-Fa-f0-9]+', h):
+                    deployed[n] = normalize_module(bytes.fromhex(h).decode('utf-16-le'))
+        diff = [n for n, d in deployed.items() if n not in local or d != local[n]]
+        rpt = [n for n in deployed if n.startswith('usp_P3_Rpt') or n.startswith('tvf_P3_Report')]
+        check(f'D2 {db}: deployed P3 module definitions = current source', len(rpt) == 7 and not diff, f'{len(deployed)} modules; report objects={len(rpt)}; mismatches={diff}')
+        cat = sql('Catalog digest ' + db, db, ['-i', 'tests/db/schema/catalog_digest.sql'])
+        dg = re.search(r'CATALOG_DIGEST\|([A-F0-9]{64})', cat)
+        check(f'D3 {db}: catalog digest = digest of the accepted run (no table, constraint, index change)', dg is not None and dg.group(1) == exp, dg.group(1) if dg else 'missing')
+        t = sql('T-SCH-06 ' + db, db, ['-i', 'tests/db/schema/T-SCH-06_revenue_catalog_and_scope.sql'])
+        check(f'D4 {db}: T-SCH-06 read-only scope check (no unauthorized object, no shared-module change)', 'T-SCH-06_RESULT: PASS' in t)
+
+    # ---- 5. Dataset integrity ----
+    ref = (EV / 'CHECKSUMS__DS-L__20261108-1155_C.txt').read_text(encoding='utf-8-sig')
+    refline = next(l.strip() for l in ref.splitlines() if l.startswith('DATASET_CHECKSUM'))
+    for db in ['FitLife_P3_UC05L', 'FitLife_P3_P2']:
+        t = sql('Dataset checksum ' + db, db, ['-v', 'MaxGrantPercent=10', '-i', 'tests/db/seed/T-REPRO-02_checksums.sql'])
+        m = re.search(r'^DATASET_CHECKSUM[^\r\n]*', t, re.M)
+        check(f'X1 {db}: DS-L dataset checksum = run C reference', m is not None and m.group(0).strip() == refline, m.group(0).strip() if m else 'missing')
+
+    fp_after = sql('Instance fingerprint after', 'master', ['-v', 'TargetDb=FitLife_P3_UC05', '-i', 'tests/db/build/fingerprint_instance.sql'])
+    check('Z1 Instance fingerprint after = before (this check changed nothing)', fp_before == fp_after)
+except Exception as e:  # noqa: BLE001
+    check('Execution', False, str(e))
+finally:
+    s = f'ACCEPT-P4-01F SUMMARY: checks={len(results)} PASS={sum(ok for _, ok in results)} FAIL={sum(not ok for _, ok in results)}'
+    log(s)
+    log('ACCEPT-P4-01F_RESULT: ' + ('PASS' if results and all(ok for _, ok in results) else 'FAIL'))
+    print(s)
+    print('LOG=' + str(LOG))

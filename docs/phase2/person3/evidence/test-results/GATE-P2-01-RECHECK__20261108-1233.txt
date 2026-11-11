@@ -1,0 +1,162 @@
+GATE-P2-01-RECHECK - independent read-only re-check of WO-P3-P2-01 for the Owner's acceptance. Session csdlnc-da-32. Target FitLife_P3_P2 (holds DS-L, run C). No data, schema or setting was changed.
+Recorded in one pass, 2026-11-08 12:33:04 to 2026-11-08 12:34:13 UTC, by a recorder script. This file supersedes GATE-P2-01-RECHECK__20261108-1206.txt: its R1 block had been corrected in place after capture, which evidence/README rule 1 forbids. That file was moved out of the repository and is not evidence.
+
+== R1. Script versions (10 SHA-256 values per manifest vs the current files) ==
+PASS DATASET-MANIFEST__DS-L__20261108-0345_A.md
+PASS DATASET-MANIFEST__DS-L__20261108-0408_B.md
+PASS DATASET-MANIFEST__DS-L__20261108-1155_C.md
+PASS DATASET-MANIFEST__DS-M__20261108-0338_A.md
+PASS DATASET-MANIFEST__DS-S__20261108-0337_A.md
+PASS DATASET-MANIFEST__DS-S__20261108-0338_B.md
+
+== R2. Reproducibility files (file SHA-256) ==
+32f837044a81be34975ea2bc83b4ca2afb2404e9feb66840b81a9c13df07e124 *CHECKSUMS__DS-L__20261108-0345_A.txt
+32f837044a81be34975ea2bc83b4ca2afb2404e9feb66840b81a9c13df07e124 *CHECKSUMS__DS-L__20261108-0408_B.txt
+32f837044a81be34975ea2bc83b4ca2afb2404e9feb66840b81a9c13df07e124 *CHECKSUMS__DS-L__20261108-1155_C.txt
+2fd2dc33e87739fb7ecd24d4dbec5836b2b8995c9ac529313fa3b532cd72ea9d *CHECKSUMS__DS-S__20261108-0337_A.txt
+2fd2dc33e87739fb7ecd24d4dbec5836b2b8995c9ac529313fa3b532cd72ea9d *CHECKSUMS__DS-S__20261108-0338_B.txt
+PASS DS-L A = B = C
+PASS DS-S A = B
+
+== R3. T-REPRO-02_checksums.sql on the live database (exit 0) ==
+tbl|row_count|sha256
+---|---------|------
+INVOICE|324000|B321C5C8E689358C865EDA03B5D98BFF2DA8F92248CB5CEEDEC82E5E853A4FB7
+INVOICE_SERVICE_ITEM|65177|F087DEEB3C1FAA14D80ACC396B133F1DDAE5A63B5C6E20E4B09049FC8F6C8281
+INVOICE_PRODUCT_ITEM|712789|EC62F651B28F857F648A5C394ACFE48B1D32921396E36F83653817A4EEA4CBF1
+MEMBER_MONTHLY_SPENDING|169040|D25C9C8EFC99AE2C1782CC4A49800862E9BF117E51E34E62DCDBA4CF938E7BFC
+MEMBER (TEST_ONLY keys)|30000|B876C95BA3DFAF2B11377790815E242164DE5963E015BD5BBB7793D5DFC6E062
+BRANCH (TEST_ONLY keys)|12|7909937ABE135B51143FAF006BA1713D4C139E3337325AD10F9B81807CD66786
+EMPLOYEE (TEST_ONLY keys)|120|1C4732EAF0B754EF54C34467457CBBE4D233B277B73E72505AAEF7DBB4C5BD08
+SERVICE_PLAN (TEST_ONLY keys)|30|A8DA6DC1099B8B38805D26F04C1E8A49B9D3870506F9586535105A3C3BE64FDB
+PRODUCT (TEST_ONLY keys)|200|2066223C021D5FE0C60E02FCC68BFE6F618DE108F9E5AFC21200D86B620C305B
+item|sha256
+----|------
+DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+PASS live = CHECKSUMS__DS-L__20261108-1155_C.txt (= A = B)
+
+== R4. T-SEED_dataset_checks.sql on the live database, DS-L profile, Demo70k=2 (exit 0) ==
+== Results ==
+test_id|check_id|result|descr|detail
+-------|--------|------|-----|------
+T-SEED-01|C01|PASS|INVOICE per local month = InvoicesPerMonth x day weights (exact)|2025-01=27000/27000 2025-02=27000/27000 2025-03=27000/27000 2025-04=27000/27000 2025-05=27000/27000 2025-06=27000/27000 2025-07=27000/27000 2025-08=27000/27000 2025-09=27000/27000 2025-10=27000/27000 2025-11=27000/27000 2025-12=27000/27000
+T-SEED-01|C02|PASS|INVOICE_PRODUCT_ITEM within tolerance of N x (1 - service share) x 2.75|actual=712789 expected=712800 tol%=2
+T-SEED-01|C03|PASS|INVOICE_SERVICE_ITEM within tolerance of N x service share|actual=65177 expected=64800 tol%=2
+T-SEED-01|C04|PASS|RQ-A06 demonstration tables >= 70,000 rows (Demo70k: 1 = INVOICE, product lines; 2 = also monthly spending)|INVOICE=324000 INVOICE_PRODUCT_ITEM=712789 INVOICE_SERVICE_ITEM=65177 MEMBER_MONTHLY_SPENDING=169040 Demo70k=2
+T-SEED-01|C05|PASS|TEST_ONLY fixture key rows = profile|MEMBER=30000 BRANCH=12 EMPLOYEE=120 SERVICE_PLAN=30 PRODUCT=200
+T-SEED-02|C06|PASS|No orphan rows on the 8 foreign keys (explicit anti-joins)|orphans=0
+T-SEED-02|C07|PASS|8 FK and 13 CHECK constraints enabled and trusted|fk_trusted=8 check_trusted=13 disabled_or_untrusted=0
+T-SEED-02|C08|PASS|All 13 CHECK definitions re-evaluated on every row: no violation|constraints=13 violations=0
+T-SEED-02|C09|PASS|Every invoice has at least one line (BR12)|invoices_without_lines=0
+T-SEED-02|C10|PASS|Line numbers 1..n per invoice; no line number used in both item tables|violations=0
+T-SEED-02|C11|PASS|No duplicate monthly aggregate key (Member_ID, SpendingMonth)|duplicate_keys=0
+T-SEED-02|C12|PASS|Fixtures still key-only (5 tables x 1 column) and marked TEST_ONLY_FIXTURE|fixture_columns=5 marked=5
+T-SEED-02|C13|PASS|Schema unchanged by seeding: 9 tables, no nonclustered index, view, routine, trigger or partition function (B0)|extra_objects=0
+T-SEED-03|C14|PASS|CANCELLED share|actual%=2.035 configured%=2 tol_pp=2.000
+T-SEED-03|C15|PASS|PENDING share among non-cancelled invoices of the pending window|actual%=28.914 configured%=30 n=2587 tol_pp=3.604 window_from=2025-12-29
+T-SEED-03|C16|PASS|PENDING invoices exist only in the last days of the dataset|pending_outside_window=0
+T-SEED-03|C17|PASS|Payment method mix of PAID invoices (CASH 40 / VNPAY 35 / CARD 25)|CASH%=39.893 VNPAY%=35.141 CARD%=24.967 tol_pp=2.000
+T-SEED-03|C18|PASS|Service-invoice share|actual%=20.116 configured%=20 tol_pp=2.000
+T-SEED-03|C19|PASS|Mean lines per product invoice (configured 2.75)|actual=2.7540 tolerance=0.0500
+T-SEED-03|C20|PASS|Branch shares vs weights (3 large 1.5 / 6 medium 1.0 / 3 small 0.5); max deviation in pp|max_dev_pp=0.339 branch:actual/expected% 1:12.84/12.50 2:12.47/12.50 3:12.44/12.50 4:8.45/8.33 5:8.10/8.33 6:8.33/8.33 7:8.11/8.33 8:8.42/8.33 9:8.45/8.33 10:4.03/4.17 11:4.33/4.17 12:4.03/4.17
+T-SEED-03|C21|PASS|Member skew: share of invoices from the top 20% of members (configured heavy share; tolerance 5 pp)|top20%_share%=60.123 configured%=60 members_with_invoices=29885 of 30000
+T-SEED-03|C22|PASS|Share of discounted lines|actual%=20.039 configured%=20 tol_pp=2.000
+T-SEED-03|C23|PASS|Issue times within opening hours 06:00-22:00 local; evening-peak (17:00-20:00) share|outside_hours=0 peak%=47.254 expected%=47.188
+T-SEED-04|C24|PASS|PAID: PaidAt and method set, PaidAt >= IssuedAt; PENDING/CANCELLED: no PaidAt, no method (D-005)|violations=0
+T-SEED-04|C25|PASS|All IssuedAt and PaidAt inside the dataset range (UTC bounds of the local range)|outside=0 utc_range=[2024-12-31 17:00:00.000, 2025-12-31 17:00:00.000)
+T-SEED-04|C26|PASS|Issue-to-payment delay at most 24 h|over_24h=0 max_delay_ms=43196843
+T-SEED-05|C27|PASS|Boundary rows at 23:59:59.999, 00:00:00.000 and 03:30 local for every month boundary (only 23:59:59.999 at the range end)|boundaries=12 (end=1) missing=0
+T-SEED-05|C28|PASS|Payments at 00:00-06:59 local on the 1st (UTC month = previous month) exist and are counted in the local month|rows=402 counted_in_local_month=402
+V-TOT|C29|PASS|Gross = sum of line gross, Discount = sum of line discounts, Final = Gross - Discount (D-023)|mismatching_invoices=0
+T-REC-01|C30|PASS|(member, month): TotalSpend = sum of FinalAmount of PAID invoices in the local month of PaidAt; no missing or extra rows|mismatches=0
+T-REC-01|C31|PASS|UpdatedAt = last PaidAt of the member-month (generator convention)|mismatches=0
+T-REC-02|C32|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per member-month|mismatches=0
+T-REC-02|C33|PASS|Incremental replay (each PAID invoice in PaidAt order adds new floor - previous floor) = PointsEarned|mismatches=0
+T-REC-02|C34|INFO|D-006 effect: monthly-cumulative points vs a per-invoice floor; spending residual not carried to the next month|points_monthly_rule=6110230 points_if_per_invoice=6055718 residual_vnd_not_carried=7537761600
+T-SEED SUMMARY: checks=34 PASS=33 FAIL=0 INFO=1
+T-SEED_RESULT: PASS
+
+== R5. Independent invariant queries written by the auditor; local month by AT TIME ZONE (exit 0) ==
+k|inv|ipi|isi|mms
+-|---|---|---|---
+rows|324000|712789|65177|169040
+k|n
+-|-
+vtot_mismatch|0
+k|n
+-|-
+rec01_mismatch|0
+k|n
+-|-
+d006_mismatch|0
+k|n
+-|-
+dup_member_month|0
+k|n
+-|-
+utc_month_differs_from_local|431
+k|total|bad
+-|-----|---
+fk|8|0
+k|total|bad
+-|-----|---
+ck|13|0
+k|n
+-|-
+nonclustered_or_extra_idx|0
+k|n
+-|-
+partition_fn|0
+k|n
+-|-
+views_procs_trg|0
+k|n
+-|-
+other_member_tables|0
+k|n
+-|-
+fixture_nonkey_columns|0
+k|v
+-|-
+marker|WO-P3-P2-01 isolated dataset database; safe to drop and rebuild from scripts
+Expected: rows 324000|712789|65177|169040; every mismatch, duplicate and structural count 0; fk 8/0; ck 13/0.
+
+== R6. Documentation corrections reported by the completion audit ==
+PASS 15 rule 7 shows WO-P3-P1-01 PASSED
+PASS 15 diagram shows WO-P3-P1-01 PASSED
+PASS WO-P3-P2-01 13.6 AC4 labels the scratchpad trial as not evidence
+
+== Appendix: R5 query text ==
+SET NOCOUNT ON;
+IF DB_NAME() <> N'FitLife_P3_P2' THROW 51099, N'wrong db', 1;
+-- row counts
+SELECT 'rows' k, (SELECT COUNT_BIG(*) FROM dbo.INVOICE) inv, (SELECT COUNT_BIG(*) FROM dbo.INVOICE_PRODUCT_ITEM) ipi, (SELECT COUNT_BIG(*) FROM dbo.INVOICE_SERVICE_ITEM) isi, (SELECT COUNT_BIG(*) FROM dbo.MEMBER_MONTHLY_SPENDING) mms;
+-- V-TOT: header vs lines
+WITH l AS (SELECT Invoice_ID, SUM(UnitPrice*Quantity) g, SUM(DiscountAmount) d FROM dbo.INVOICE_PRODUCT_ITEM GROUP BY Invoice_ID
+           UNION ALL SELECT Invoice_ID, SUM(UnitPrice), SUM(DiscountAmount) FROM dbo.INVOICE_SERVICE_ITEM GROUP BY Invoice_ID),
+     t AS (SELECT Invoice_ID, SUM(g) g, SUM(d) d FROM l GROUP BY Invoice_ID)
+SELECT 'vtot_mismatch' k, COUNT(*) n FROM dbo.INVOICE i LEFT JOIN t ON t.Invoice_ID=i.Invoice_ID
+WHERE t.Invoice_ID IS NULL OR i.GrossAmount<>t.g OR i.DiscountAmount<>t.d OR i.FinalAmount<>i.GrossAmount-i.DiscountAmount;
+-- T-REC-01 with real time-zone conversion (UTC PaidAt -> Asia/Ho_Chi_Minh)
+WITH p AS (SELECT Member_ID, DATEFROMPARTS(YEAR(lt),MONTH(lt),1) m, FinalAmount FROM (SELECT Member_ID, FinalAmount,
+             CAST((PaidAt AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' AS datetime2(3)) lt FROM dbo.INVOICE WHERE PaymentStatus='PAID') x),
+     a AS (SELECT Member_ID, m, SUM(FinalAmount) s FROM p GROUP BY Member_ID, m)
+SELECT 'rec01_mismatch' k, COUNT(*) n FROM a FULL JOIN dbo.MEMBER_MONTHLY_SPENDING s ON s.Member_ID=a.Member_ID AND s.SpendingMonth=a.m
+WHERE a.Member_ID IS NULL OR s.Member_ID IS NULL OR a.s<>s.TotalSpend;
+-- D-006
+SELECT 'd006_mismatch' k, COUNT(*) n FROM dbo.MEMBER_MONTHLY_SPENDING WHERE PointsEarned <> FLOOR(TotalSpend/100000);
+-- non-PAID invoices must not contribute: members-months only from PAID already covered; duplicates
+SELECT 'dup_member_month' k, COUNT(*) n FROM (SELECT Member_ID, SpendingMonth FROM dbo.MEMBER_MONTHLY_SPENDING GROUP BY Member_ID, SpendingMonth HAVING COUNT(*)>1) d;
+-- early-morning-of-1st payments (UTC month <> local month)
+SELECT 'utc_month_differs_from_local' k, COUNT(*) n FROM dbo.INVOICE WHERE PaymentStatus='PAID'
+  AND MONTH(PaidAt) <> MONTH(CAST((PaidAt AT TIME ZONE 'UTC') AT TIME ZONE 'SE Asia Standard Time' AS datetime2(3)));
+-- constraints and indexes
+SELECT 'fk' k, COUNT(*) total, SUM(CASE WHEN is_disabled=1 OR is_not_trusted=1 THEN 1 ELSE 0 END) bad FROM sys.foreign_keys;
+SELECT 'ck' k, COUNT(*) total, SUM(CASE WHEN is_disabled=1 OR is_not_trusted=1 THEN 1 ELSE 0 END) bad FROM sys.check_constraints;
+SELECT 'nonclustered_or_extra_idx' k, COUNT(*) n FROM sys.indexes i JOIN sys.tables t ON t.object_id=i.object_id WHERE i.type_desc<>'CLUSTERED' AND i.type>0;
+SELECT 'partition_fn' k, COUNT(*) n FROM sys.partition_functions;
+SELECT 'views_procs_trg' k, COUNT(*) n FROM sys.objects WHERE type IN ('V','P','FN','IF','TF','TR') AND is_ms_shipped=0;
+SELECT 'other_member_tables' k, COUNT(*) n FROM sys.tables WHERE name NOT IN ('INVOICE','INVOICE_SERVICE_ITEM','INVOICE_PRODUCT_ITEM','MEMBER_MONTHLY_SPENDING','MEMBER','BRANCH','EMPLOYEE','SERVICE_PLAN','PRODUCT');
+SELECT 'fixture_nonkey_columns' k, COUNT(*) n FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id WHERE t.name IN ('MEMBER','BRANCH','EMPLOYEE','SERVICE_PLAN','PRODUCT') AND c.name NOT IN ('Member_ID','Branch_ID','Employee_ID','Plan_ID','Product_ID');
+SELECT 'marker' k, CONVERT(nvarchar(200),value) v FROM sys.extended_properties WHERE class=0 AND name='P3_Disposable';
+RESULT: PASS - acceptance criteria 1-8 of WO-P3-P2-01 confirmed; no inconsistency found.

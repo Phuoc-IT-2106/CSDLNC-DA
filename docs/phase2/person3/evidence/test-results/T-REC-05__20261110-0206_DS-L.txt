@@ -1,0 +1,50 @@
+﻿T-REC-05 on DS-L: every routine vs independent references for every branch x month; line level; revenue = UC05 monthly spending. Run UC06-RUN__20261110-0206.
+Executed (UTC): 2026-11-10 02:09:27; database FitLife_P3_UC05L; script tests/db/reconciliation/T-REC_revenue.sql (SHA-256 5CF9C38CC9CE8A5DDFF66D420ABB2EF449427343B7AEDA686E3207F4075ECD21); sqlcmd exit 0
+
+check_id|result|descr|detail
+--------|------|-----|------
+V1|PASS|Branch revenue of every branch x local month (one row and OUTPUT values per call) = independent reference; 0.00 / 0 where the branch has no paid invoice|branches 12 x months 14 (2024-12 .. 2026-01) = 168 calls; results 168; mismatches 0; branch-months with zero invoices 24
+V2|PASS|Company-wide revenue of every local month = independent reference = sum of the branch reports of the same month (D-010 rule 9)|months 14; mismatching months 0; months with zero revenue 2
+V3|PASS|Branch comparison of every local month: rows = reference rows (no row for a branch without a paid sale); system total and count on every row = reference; SharePct = ROUND(revenue * 100 / total, 2); shares sum to 100 within 0.01 per branch|rows 144 (reference 144); row differences 0; rows with a wrong total or share 0; months whose shares miss 100 by more than the rounding bound 0; sum of shares per month between 99.98 and 100.01
+V4|PASS|Branch revenue per local day, month, quarter and year over the whole range, every branch: rows = reference rows (buckets from AT TIME ZONE local dates)|rows 4584 (reference 4584): QUARTER 48, DAY 4380, MONTH 144, YEAR 12; differences 0
+V5|PASS|System revenue per local period and branch, four grains over the whole range: rows = reference rows; the company-wide total of each period = reference|rows 4584 (reference 4584); row differences 0; rows with a wrong period total 0
+V6|PASS|Detail = aggregate: per branch, day = month = quarter = year rows = sum of its monthly totals; sum of all branch-months = system total of the whole range = sum of the daily system rows = SUM(FinalAmount) of PAID invoices; invoice count = number of PAID invoices (each exactly once)|branch x grain totals differing 0; system (whole range) 618560761600.00 / 316660; sum of branch-months 618560761600.00 / 316660; daily system rows 618560761600.00 / 316660; PAID invoices read directly 618560761600.00 / 316660
+V7|PASS|PENDING and CANCELLED invoices contribute nothing: none has a PaidAt; all invoices - reported revenue = amount of the non-PAID invoices|all invoices 633031912900.00 / 324000; reported 618560761600.00 / 316660; non-PAID 14471151300.00 / 7340 (PAID 316660, PENDING 748, CANCELLED 6592); non-PAID with a PaidAt 0
+V8|PASS|Line level: for every branch x month the line amounts net of line discounts of the PAID invoices (aggregated per invoice first) = the report; every PAID header = its lines (discounts once, no double counting through the line tables)|PAID invoices whose header differs from its lines 0; branch-months differing 0; line-level total 618560761600.00 = reported 618560761600.00; lines read: service 65177, product 712789
+V9|PASS|Period not aligned to months (10th of the first month to the 20th of the last month, half-open): every branch total and the system total = reference; sum of branches = system|period [2025-01-10, 2025-12-20); branches differing 0; system 584439170700.00 / 299481; reference 584439170700.00 / 299481; sum of branches 584439170700.00 / 299481
+V10|PASS|Cross-check with UC05: SUM(MEMBER_MONTHLY_SPENDING.TotalSpend) per SpendingMonth = company-wide revenue of the same local month (two independent paths from the same PAID invoices)|months differing 0; total spending 618560761600.00 in 169040 member-month rows = reported revenue 618560761600.00
+V11|INFO|UTC-to-local shift in this data (context for V1-V5: the reports equal the LOCAL reference)|PAID invoices whose UTC calendar date differs from the local date 13319; whose UTC month differs from the local month 431 (amount 867567550.00); months in which a UTC-calendar report would differ from the local report 13 of 14
+-- company-wide revenue per local month (report routine usp_P3_RptSystemRevenue) --
+local_month|revenue|paid_invoices
+-----------|-------|-------------
+2024-12|.00|0
+2025-01|52067432950.00|26444
+2025-02|51559990150.00|26476
+2025-03|51865556350.00|26449
+2025-04|51555469050.00|26482
+2025-05|51913851350.00|26438
+2025-06|51873573600.00|26474
+2025-07|51667606400.00|26474
+2025-08|51367489250.00|26448
+2025-09|52066742200.00|26425
+2025-10|51356371400.00|26463
+2025-11|51047759700.00|26397
+2025-12|50218919200.00|25690
+2026-01|.00|0
+-- revenue per branch over the whole range (sum of the monthly branch reports) --
+Branch_ID|revenue|paid_invoices
+---------|-------|-------------
+1|79926828000.00|40682
+2|76504069450.00|39451
+3|76789469550.00|39425
+4|52190955300.00|26776
+5|49900206850.00|25628
+6|51471991600.00|26391
+7|50007190450.00|25649
+8|52393881400.00|26634
+9|52506694000.00|26793
+10|25150181000.00|12757
+11|26780180100.00|13713
+12|24939113900.00|12761
+T-REC-05 SUMMARY: database FitLife_P3_UC05L; checks=10 FAIL=0 INFO=1
+T-REC-05_RESULT: PASS

@@ -1,0 +1,36 @@
+{
+  "_comment": "WO-P3-P2-01 dataset profiles (D-022). runtime.MaxGrantPercent caps the memory grant of large statements (memory use only, never results). Generator: db/seed/S001__p3_dataset_generator.sql. Parameters follow 10 section 3.4; volumes follow the Phase 1 workload (900 invoices/day x 30 days = 27,000 per month). Validation settings are used only by tests/db/seed/T-SEED_dataset_checks.sql.",
+  "DS-S": {
+    "purpose": "Smoke test: 7 days crossing the January/February 2025 month boundary",
+    "generator": {
+      "Seed": 20261108, "StartDateLocal": "2025-01-29", "EndDateLocal": "2025-02-05", "InvoicesPerMonth": 27000,
+      "MemberCount": 30000, "BranchCount": 12, "EmployeesPerBranch": 10, "PlanCount": 30, "ProductCount": 200,
+      "ServiceInvoiceShare": 0.20, "CancelledShare": 0.02, "PendingWindowDays": 1, "PendingShareInWindow": 0.30,
+      "HeavyMemberShare": 0.20, "HeavyInvoiceShare": 0.60, "HomeBranchShare": 0.85, "DiscountLineShare": 0.20, "PeakShare": 0.35
+    },
+    "runtime": { "MaxGrantPercent": 2 },
+    "validation": { "CountTolerancePct": 5, "DistTolerancePP": 2, "LinesMeanTolerance": 0.05, "Demo70k": 0, "SkewCheck": 0 }
+  },
+  "DS-M": {
+    "purpose": "Minimum large-data demonstration: 3 complete calendar months (January-March 2025)",
+    "generator": {
+      "Seed": 20261108, "StartDateLocal": "2025-01-01", "EndDateLocal": "2025-04-01", "InvoicesPerMonth": 27000,
+      "MemberCount": 30000, "BranchCount": 12, "EmployeesPerBranch": 10, "PlanCount": 30, "ProductCount": 200,
+      "ServiceInvoiceShare": 0.20, "CancelledShare": 0.02, "PendingWindowDays": 3, "PendingShareInWindow": 0.30,
+      "HeavyMemberShare": 0.20, "HeavyInvoiceShare": 0.60, "HomeBranchShare": 0.85, "DiscountLineShare": 0.20, "PeakShare": 0.35
+    },
+    "runtime": { "MaxGrantPercent": 2 },
+    "validation": { "CountTolerancePct": 2, "DistTolerancePP": 2, "LinesMeanTolerance": 0.05, "Demo70k": 1, "SkewCheck": 1 }
+  },
+  "DS-L": {
+    "purpose": "Full benchmark scale: 12 complete calendar months (January-December 2025)",
+    "generator": {
+      "Seed": 20261108, "StartDateLocal": "2025-01-01", "EndDateLocal": "2026-01-01", "InvoicesPerMonth": 27000,
+      "MemberCount": 30000, "BranchCount": 12, "EmployeesPerBranch": 10, "PlanCount": 30, "ProductCount": 200,
+      "ServiceInvoiceShare": 0.20, "CancelledShare": 0.02, "PendingWindowDays": 3, "PendingShareInWindow": 0.30,
+      "HeavyMemberShare": 0.20, "HeavyInvoiceShare": 0.60, "HomeBranchShare": 0.85, "DiscountLineShare": 0.20, "PeakShare": 0.35
+    },
+    "runtime": { "MaxGrantPercent": 2 },
+    "validation": { "CountTolerancePct": 2, "DistTolerancePP": 2, "LinesMeanTolerance": 0.05, "Demo70k": 2, "SkewCheck": 1 }
+  }
+}

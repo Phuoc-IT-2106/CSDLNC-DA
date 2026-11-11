@@ -1,0 +1,790 @@
+﻿UC05LOY-RUN - WO-P3-P3-02 incremental loyalty and tier evaluation: build, regression, functional, concurrency, reconciliation (fixtures and DS-L)
+Started (UTC): 2026-11-09 16:36:24; databases changed: FitLife_P3_UC05, FitLife_P3_UC05L (isolated, disposable); FitLife_P3_P1 and FitLife_P3_P2 read only
+TEST_ONLY SYNTHETIC tier thresholds: Silver 0 (approved base rule), Gold 1000000.00, Platinum 3000000.00 - NOT business values (D-008 values open)
+Scripts (SHA-256):
+  7EF23835103CEE95034F1BB9786DE5E92F936107E29107F9A21C98CD862BB38B  tests/db/build/rebuild_uc05_db.sql
+  0C625B2926F34113D02F65C510F89F46ACC2183AC8C72009CDC8698EF5C03463  tests/db/build/rebuild_uc05l_db.sql
+  65A31C124B57DEA63D8998F59CF5FD4AB50DF1875DFA87D6821FF270758B8094  db/migrations/V001__p3_billing_and_spending_tables.sql
+  ADCF99E6D954A3202622B7BFFB25358BFBE90C9C174CD871DD8B8459C5FAFD67  db/migrations/V002__p3_settlement_and_spending_constraints.sql
+  22A13EDD90EAF51990E13C4F7B00642B16FD939AF3D5660EA4DDD94854932E5B  db/migrations/V003__p3_points_earned_rule.sql
+  2033CF4C014AF3356A75C2756A52C3713F27F6507CAE5E205B62871AA95DE313  db/procedures/usp_P3_CreateInvoice.sql
+  3DD3F6B71FB130B045653C819C189E5C111068731E8AE236B5106E86D3893857  db/procedures/usp_P3_SettleInvoice.sql
+  0D486D85C0AD28EA83EFD5901A412942BEDF25BDA2539EAC9EACB1305029CE2E  db/procedures/usp_P3_CancelInvoice.sql
+  283AD04C71B60220EC6ECBD874DE8C47C7E30B465350879874436BD67C7C8122  db/procedures/usp_P3_EvaluateTiers.sql
+  B19B97F306D61675D129348B5EBDC2ED339359C23918C315D9191B00A0DCB83A  db/procedures/usp_P3_GetMemberLoyalty.sql
+  D77FDAB7293A8FAB334EA2068ABA18A852D25E915B459107AC781BC19A4525F6  db/reference/usp_P3_SettleInvoice_Baseline.sql
+  108D684A8858706D82B26CAB0EECF0BCD7037C79515C818E98F4F12A3078171A  db/queries/baseline/Q-UC05-B.sql
+  24872C9B583938ACCE22B1DDA19C34E8D66BC5B63B51A0FA7F430037098BBF6D  db/queries/baseline/Q-UC05-C.sql
+  2BB5A101C5382AACA945E90FB8F52417308CD2B647AC6676310047B77D690FF5  db/seed/S001__p3_dataset_generator.sql
+  11244F13E6003E3C064B52AEB4EE961C368AA93A6644F77E0C0ACF4013139E00  tests/db/fixtures/F001U__TEST_ONLY_uc05_key_rows.sql
+  CA492A71EDFFCA48580FB4B93BA68F245DB3B19518A0846B204143063AFAF112  tests/db/fixtures/F001D__TEST_ONLY_fixture_key_rows.sql
+  B489FAD03B697DDAC2D969E8EC045D1D133AE026B11F9F2B2F3CF82E1FE3A60D  tests/db/fixtures/F002P__TEST_ONLY_member_current_points.sql
+  76C98FCDEFC9F3CCF3B5DE23EA51376608209D5AC41096D3F5090AE79124886E  tests/db/fixtures/F002T__TEST_ONLY_member_tier.sql
+  BAC2D7E132B098E545567659E2C4D7F8436BC339CFDFB719EA67559AD74D7E81  tests/db/fixtures/F003H__TEST_ONLY_paid_history_helper.sql
+  2C878CE6634E7825F719852AF337D58DD5C15E4317956BB195F769F5273D6C94  tests/db/fixtures/L001__TEST_ONLY_dsl_loyalty_state.sql
+  C8B11D4D649BF7F3A98BFA58CB8680424F6CCBC6ACAFFE1CC01BC7147590C75B  tests/db/doubles/D001__TEST_ONLY_settlement_hook_doubles.sql
+  7B48AE9601939ECB25A3531B9B8F78D846F8BF6EDE5B49705969D8761B003396  tests/db/schema/T-SCH-04_settlement_catalog_and_scope.sql
+  8F503600F8688A2E50AE538BDBC422B99F5000DC08409B7A7DA3FEAD4EC7678E  tests/db/schema/T-SCH-05_loyalty_catalog_and_scope.sql
+  AF02457325ED642870C22D908DC9AD98A2D44E7A8C81800ADA651D952C56BBDB  tests/db/functional/T-F05S_settlement.sql
+  FD4F1C822DCB845122764AC2CC4C71B256838CFDC177E5C3FD5EC5DF5FB76B89  tests/db/functional/T-F05-U0_settlement_baseline.sql
+  D7D16574AA9A8A9E7B705C98110D210B3FE2EEB8BBBBB70FB1CDB75DE583574D  tests/db/functional/T-F05L_loyalty_tiers.sql
+  33F94005BF894AD653B2B701A167F38BB5CC16BFFCA9A85D34C3D7C14B5C88F4  tests/db/functional/V-UC05T_loyalty_integrity.sql
+  D45A329AAA14499DFE6FBDA7FAE1FBD3BBE480C27C0D0C0D44CEAFEAE006ED83  tests/db/reconciliation/T-REC_loyalty.sql
+  82AACCCCEF257042F857EF94396E70F6A4E2B6E3F6B6D328AAD967733DF77827  tests/db/concurrency/T-CONC-04F_settlement_vs_tier_batch.ps1
+  47EB9BC1CF92C93D6B59313554535EFB5175E64B01BB79941180009B540E8FC5  tests/db/concurrency/T-CONC-01_02_parallel_settlement.ps1
+  65689EEEA32CFF8A0663C034FBB6522CD61D426034AB3D2B7CA6F8584FFEECEC  tests/db/concurrency/T-CONC-06_parallel_creation.ps1
+  10CA8768204CE9155DD1989092C456C55F65296F094B24D259A8F00536FBA646  tests/db/loyalty/capture_q_uc05_bc_b0.ps1
+  A35A0ADD5CD53D6D361EC46B04180CD67ED881D39E1A9303A6EC785E9B2C2116  tests/db/functional/run_uc05_loyalty.ps1
+
+== 1. Instance fingerprint before (FitLife_P3_UC05 and FitLife_P3_UC05L excluded) (sqlcmd exit 0) ==
+== F1. Databases other than tempdb and FitLife_P3_UC05 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+FitLife_P3_P2|10|2026-11-08 18:55:36.873|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+STEP 1 PASS: Instance fingerprint captured before
+STEP 2 PASS: FitLife_P3_P2 checksum before = DS-L run C reference - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+== 3. Rebuild FitLife_P3_UC05 (sqlcmd exit 0) ==
+Dropped previous disposable database FitLife_P3_UC05
+Changed database context to 'FitLife_P3_UC05'.
+Created FitLife_P3_UC05 (compatibility level 160, SIMPLE recovery, P3_Disposable marker)
+F001 (TEST_ONLY) applied: key-only fixtures MEMBER, BRANCH, EMPLOYEE, SERVICE_PLAN, PRODUCT
+V001 applied: INVOICE, INVOICE_SERVICE_ITEM, INVOICE_PRODUCT_ITEM, MEMBER_MONTHLY_SPENDING
+V002 applied: INVOICE.PaidAt, 12 CHECK constraints, 4 DEFAULT constraints
+BUILD_RESULT: OK (FitLife_P3_UC05)
+STEP 3 PASS: Fresh FitLife_P3_UC05 (F001, V001, V002)
+STEP 4 PASS: T-SCH-01 (P1 regression) - T-SCH-01 SUMMARY: cases=54 PASS=53 FAIL=0 INFO=1
+STEP 5 PASS: T-SCH-02 (P1 regression) - T-SCH-02 SUMMARY: checks=6 FAIL=0
+
+== 6. Creation routine (unchanged) (sqlcmd exit 0) ==
+usp_P3_CreateInvoice applied: types dbo.tt_P3_InvoiceServiceLine, dbo.tt_P3_InvoiceProductLine; procedure dbo.usp_P3_CreateInvoice
+STEP 6 PASS: Creation routine (unchanged)
+
+== 7. T-SCH-03 creation scope (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+K1|PASS|Table catalog (9 tables: columns, constraints and definitions, FKs, indexes, triggers, markers) identical to the accepted P1 database FitLife_P3_P1|catalog items: FitLife_P3_P1 108 = FitLife_P3_UC05 108; no difference
+K2|PASS|Inventory: 9 tables; plus exactly 1 procedure (usp_P3_CreateInvoice) and 2 table types; no view, function, trigger, sequence, synonym, other type, non-PK index, partition function or scheme|unexpected objects: none; procedures=1; table types=2 (expected names 2/2); other user types=0; triggers=0; non-PK indexes on tables=0; partition functions+schemes=0; user tables=9
+K3|PASS|Line types: columns as specified (all NOT NULL, money DECIMAL(18,2)), primary key on LineNo in each|service: 1:LineNo:smallint:5:0:0|2:Plan_ID:int:10:0:0|3:UnitPrice:decimal:18:2:0|4:DiscountAmount:decimal:18:2:0 || product: 1:LineNo:smallint:5:0:0|2:Product_ID:int:10:0:0|3:Quantity:int:10:0:0|4:UnitPrice:decimal:18:2:0|5:DiscountAmount:decimal:18:2:0 || type primary keys: 2
+K4|PASS|Write scope: modifies only the three invoice tables; no reference to MEMBER_MONTHLY_SPENDING, inventory, tier or any other table; shared tables read by key only; no cross-database reference|referenced: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,PRODUCT,SERVICE_PLAN,tt_P3_InvoiceProductLine,tt_P3_InvoiceServiceLine || modified: INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM || shared columns read: BRANCH.Branch_ID,EMPLOYEE.Employee_ID,MEMBER.Member_ID,PRODUCT.Product_ID,SERVICE_PLAN.Plan_ID || cross-database/remote references: 0 || entitlement/PT columns in the insert column list: PTSessionsRemaining,ValidFrom,ValidUntil (inserted as literal NULL only; values checked by T-F05-24 and V-UC05 I7)
+K5|PASS|Routine body has no EXEC, sp_executesql, OPENQUERY, OPENROWSET or OPENDATASOURCE and is not encrypted, so the dependency analysis (K4) covers every statement|definition length=8234; dynamic/nested call tokens found=0; SHA-256 of definition=3513176C846634380A87A740B3F58A2F29E70930B90B9A94CB0893F97A123013
+K6|PASS|No extra database user or role and no explicit object or type permission (the least-privilege role is TEST_ONLY, created and dropped by T-F05-26)|extra principals: none; explicit object/type permissions: 0
+-- routine dependencies (sys.dm_sql_referenced_entities) --
+cls|ent|minor|is_selected|is_updated
+---|---|-----|-----------|----------
+OBJECT_OR_COLUMN|BRANCH|-|1|0
+OBJECT_OR_COLUMN|BRANCH|Branch_ID|1|0
+OBJECT_OR_COLUMN|EMPLOYEE|-|1|0
+OBJECT_OR_COLUMN|EMPLOYEE|Employee_ID|1|0
+OBJECT_OR_COLUMN|INVOICE|-|1|1
+OBJECT_OR_COLUMN|INVOICE|Branch_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE|Employee_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|FinalAmount|0|1
+OBJECT_OR_COLUMN|INVOICE|GrossAmount|1|1
+OBJECT_OR_COLUMN|INVOICE|Invoice_ID|1|0
+OBJECT_OR_COLUMN|INVOICE|IssuedAt|0|1
+OBJECT_OR_COLUMN|INVOICE|Member_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|PaidAt|0|1
+OBJECT_OR_COLUMN|INVOICE|PaymentMethod|0|1
+OBJECT_OR_COLUMN|INVOICE|PaymentStatus|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|-|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Invoice_ID|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|LineNo|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Product_ID|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Quantity|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|UnitPrice|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|-|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|Invoice_ID|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|LineNo|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|Plan_ID|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|PTSessionsRemaining|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|UnitPrice|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|ValidFrom|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|ValidUntil|0|1
+OBJECT_OR_COLUMN|MEMBER|-|1|0
+OBJECT_OR_COLUMN|MEMBER|Member_ID|1|0
+OBJECT_OR_COLUMN|PRODUCT|-|1|0
+OBJECT_OR_COLUMN|PRODUCT|Product_ID|1|0
+OBJECT_OR_COLUMN|SERVICE_PLAN|-|1|0
+OBJECT_OR_COLUMN|SERVICE_PLAN|Plan_ID|1|0
+TYPE|tt_P3_InvoiceProductLine|-|0|0
+TYPE|tt_P3_InvoiceServiceLine|-|0|0
+T-SCH-03 SUMMARY: checks=6 FAIL=0
+T-SCH-03_RESULT: PASS
+STEP 7 PASS: T-SCH-03 creation scope
+
+== 8. F001U TEST_ONLY key rows (sqlcmd exit 0) ==
+branch_keys|employee_keys|member_keys|plan_keys|product_keys
+-----------|-------------|-----------|---------|------------
+3|6|40|5|10
+F001U (TEST_ONLY) applied: key rows only
+STEP 8 PASS: F001U TEST_ONLY key rows
+
+== 9. F002P TEST_ONLY CurrentPoints (sqlcmd exit 0) ==
+members|total_points
+-------|------------
+40|0
+F002P (TEST_ONLY) applied: MEMBER.CurrentPoints INT NOT NULL DEFAULT 0 (points only; no tier)
+STEP 9 PASS: F002P TEST_ONLY CurrentPoints
+
+== 10. D001 TEST_ONLY hook doubles (sqlcmd exit 0) ==
+D001 (TEST_ONLY) applied: hook doubles usp_HOOK_InventoryDecrementForInvoice, usp_HOOK_EntitlementActivationForInvoice; tables TEST_HookCallLog, TEST_HookFault
+STEP 10 PASS: D001 TEST_ONLY hook doubles
+
+== 11. Settlement routine (unchanged) (sqlcmd exit 0) ==
+usp_P3_SettleInvoice applied: function dbo.tvf_P3_SpendingMonth; procedure dbo.usp_P3_SettleInvoice
+STEP 11 PASS: Settlement routine (unchanged)
+
+== 12. Cancellation routine (unchanged) (sqlcmd exit 0) ==
+usp_P3_CancelInvoice applied: procedure dbo.usp_P3_CancelInvoice
+STEP 12 PASS: Cancellation routine (unchanged)
+
+== 13. T-SCH-04 settlement scope (before loyalty objects) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+K1|PASS|Table catalog = accepted P1 catalog (FitLife_P3_P1) plus exactly the F002P items on MEMBER and the TEST_ONLY double tables; the four P3 tables unchanged|items P1 108, UC05 131 (TEST_ONLY double items 19, F002P items 4); only in P1: none; unexpected only in UC05: none; missing F002P items: none
+K2|PASS|Inventory: 3 P3 procedures + 2 TEST_ONLY hook doubles, 1 function, 2 table types, 9 tables + 2 TEST_ONLY tables; no trigger, view, sequence, non-PK index or partition object; doubles marked TEST_ONLY_DOUBLE|procedures: usp_HOOK_EntitlementActivationForInvoice,usp_HOOK_InventoryDecrementForInvoice,usp_P3_CancelInvoice,usp_P3_CreateInvoice,usp_P3_SettleInvoice || functions: IF:tvf_P3_SpendingMonth || table types: tt_P3_InvoiceProductLine,tt_P3_InvoiceServiceLine || tables: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,MEMBER_MONTHLY_SPENDING,PRODUCT,SERVICE_PLAN,TEST_HookCallLog,TEST_HookFault || other objects: 0 || TEST_ONLY_DOUBLE markers: 4/4
+K3|PASS|Settlement write scope: modifies only INVOICE, MEMBER_MONTHLY_SPENDING and MEMBER.CurrentPoints; reads the line tables; calls only the 2 hooks and the month function; no tier or TEST_ object; no cross-database reference|referenced: INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,MEMBER_MONTHLY_SPENDING,tvf_P3_SpendingMonth,usp_HOOK_EntitlementActivationForInvoice,usp_HOOK_InventoryDecrementForInvoice || modified: INVOICE,MEMBER,MEMBER_MONTHLY_SPENDING || MEMBER columns: CurrentPoints:w,Member_ID:r || line-table writes: 0 || remote: 0 || Tier/TEST_ tokens: 0
+K4|PASS|Cancellation write scope: references INVOICE only and writes only PaymentStatus (no PaidAt, spending, points or hook)|referenced: INVOICE || columns: Invoice_ID:r,PaymentStatus:w
+K5|PASS|No dynamic SQL: settlement has exactly the 2 static hook calls and nothing else executed dynamically; cancellation and the function have none; not encrypted (K3/K4 complete)|EXEC tokens in settle: 2; other dynamic tokens: 0 || SHA-256 settle 96C877A800B0EBE004F6B6F44780B7A5C11530F36F8BEA9A9E2C96C07FD47E44; cancel 9C2EE95CDE5A6E579FE4E746EBB298BBCF0D7C2E62E6D4F802EAC026598B39D4; function 7E8A717BE994377D766A553B2D182D29C03CBDBF442226195F2E936C6E5EB780; create 3513176C846634380A87A740B3F58A2F29E70930B90B9A94CB0893F97A123013
+K6|PASS|No extra database user or role and no explicit object or type permission (least-privilege principals are TEST_ONLY and dropped by T-F05S)|extra principals: none; explicit permissions: 0
+K7|INFO|Benchmark-only U0 variant (usp_P3_SettleInvoice_Baseline, task 2) not implemented: needs tier rules D-007/D-008 (PROPOSED); acceptance criterion 4 NOT_RUN|objects named like %Baseline%: 0
+-- settlement dependencies (sys.dm_sql_referenced_entities) --
+ent|minor|is_selected|is_updated
+---|-----|-----------|----------
+INVOICE|-|1|1
+INVOICE|DiscountAmount|1|0
+INVOICE|FinalAmount|1|0
+INVOICE|GrossAmount|1|0
+INVOICE|Invoice_ID|1|0
+INVOICE|IssuedAt|1|0
+INVOICE|Member_ID|1|0
+INVOICE|PaidAt|1|1
+INVOICE|PaymentMethod|1|1
+INVOICE|PaymentStatus|1|1
+INVOICE_PRODUCT_ITEM|-|1|0
+INVOICE_PRODUCT_ITEM|DiscountAmount|1|0
+INVOICE_PRODUCT_ITEM|Invoice_ID|1|0
+INVOICE_PRODUCT_ITEM|Quantity|1|0
+INVOICE_PRODUCT_ITEM|UnitPrice|1|0
+INVOICE_SERVICE_ITEM|-|1|0
+INVOICE_SERVICE_ITEM|DiscountAmount|1|0
+INVOICE_SERVICE_ITEM|Invoice_ID|1|0
+INVOICE_SERVICE_ITEM|UnitPrice|1|0
+MEMBER|-|1|1
+MEMBER|CurrentPoints|1|1
+MEMBER|Member_ID|1|0
+MEMBER_MONTHLY_SPENDING|-|0|1
+MEMBER_MONTHLY_SPENDING|Member_ID|1|1
+MEMBER_MONTHLY_SPENDING|PointsEarned|1|1
+MEMBER_MONTHLY_SPENDING|SpendingMonth|1|1
+MEMBER_MONTHLY_SPENDING|TotalSpend|1|1
+MEMBER_MONTHLY_SPENDING|UpdatedAt|1|1
+tvf_P3_SpendingMonth|-|1|0
+tvf_P3_SpendingMonth|SpendingMonth|1|0
+usp_HOOK_EntitlementActivationForInvoice|-|0|0
+usp_HOOK_InventoryDecrementForInvoice|-|0|0
+T-SCH-04 SUMMARY: checks=6 FAIL=0 INFO=1
+T-SCH-04_RESULT: PASS
+STEP 13 PASS: T-SCH-04 settlement scope (before loyalty objects)
+
+== 14. F002T TEST_ONLY tiers (synthetic thresholds) (sqlcmd exit 0) ==
+Tier_ID|Tier_Name|SpendingThreshold
+-------|---------|-----------------
+1|Silver|.00
+2|Gold|1000000.00
+3|Platinum|3000000.00
+members|on_base_tier
+-------|------------
+40|40
+F002T (TEST_ONLY) applied: MEMBER_TIER (Silver 0 + SYNTHETIC Gold/Platinum) and MEMBER.Tier_ID NOT NULL FK; all members on the base tier
+STEP 14 PASS: F002T TEST_ONLY tiers (synthetic thresholds)
+
+== 15. F003H TEST_ONLY paid-history helper (sqlcmd exit 0) ==
+F003H (TEST_ONLY) applied: dbo.TEST_p3_AddPaidHistory, dbo.TEST_HistoryInvoice
+STEP 15 PASS: F003H TEST_ONLY paid-history helper
+
+== 16. U0 REFERENCE_ONLY (sqlcmd exit 0) ==
+usp_P3_SettleInvoice_Baseline applied (REFERENCE_ONLY U0)
+STEP 16 PASS: U0 REFERENCE_ONLY
+
+== 17. V003 point-rule CHECK (sqlcmd exit 0) ==
+V003 applied: CK_MEMBER_MONTHLY_SPENDING_PointsRule (PointsEarned = FLOOR(TotalSpend / 100000))
+STEP 17 PASS: V003 point-rule CHECK
+
+== 18. usp_P3_EvaluateTiers + tier functions (sqlcmd exit 0) ==
+usp_P3_EvaluateTiers applied: functions dbo.tvf_P3_TierWindow, dbo.tvf_P3_TierForSpend; procedure dbo.usp_P3_EvaluateTiers
+STEP 18 PASS: usp_P3_EvaluateTiers + tier functions
+
+== 19. usp_P3_GetMemberLoyalty (sqlcmd exit 0) ==
+usp_P3_GetMemberLoyalty applied: procedure dbo.usp_P3_GetMemberLoyalty
+STEP 19 PASS: usp_P3_GetMemberLoyalty
+
+== 20. T-SCH-05 catalog, inventory, loyalty write scope, no hard-coded thresholds, approved routines unchanged (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+K1|PASS|Catalog = accepted P1 catalog + exactly: F002P/F002T items on MEMBER, TEST_ONLY MEMBER_TIER and TEST_* tables, V003 CHECK (trusted, enabled); the P3 tables otherwise unchanged; no index added|items P1 108, UC05 147; only in P1: none; unexpected: none; missing expected: none; V003: CHK|CK_MEMBER_MONTHLY_SPENDING_PointsRule|([PointsEarned]=floor([TotalSpend]/(100000)))|0|0
+K2|PASS|Inventory: P3 routines (create, settle, cancel, evaluate, lookup) + REFERENCE_ONLY U0 + TEST_ONLY doubles/helper; 3 inline functions; fixtures + TEST_ONLY tables; no trigger, view, non-PK index or partition object; every non-production object marked|procedures: TEST_p3_AddPaidHistory,usp_HOOK_EntitlementActivationForInvoice,usp_HOOK_InventoryDecrementForInvoice,usp_P3_CancelInvoice,usp_P3_CreateInvoice,usp_P3_EvaluateTiers,usp_P3_GetMemberLoyalty,usp_P3_SettleInvoice,usp_P3_SettleInvoice_Baseline || functions: IF:tvf_P3_SpendingMonth,IF:tvf_P3_TierForSpend,IF:tvf_P3_TierWindow || tables: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,PRODUCT,SERVICE_PLAN,TEST_HistoryInvoice,TEST_HookCallLog,TEST_HookFault || other: 0 || unmarked: none
+K3|PASS|usp_P3_EvaluateTiers reads only the monthly aggregate, MEMBER and MEMBER_TIER (no INVOICE: no invoice-history rescan) and writes only MEMBER.Tier_ID|referenced: MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,tvf_P3_TierForSpend,tvf_P3_TierWindow || modified: MEMBER.*,MEMBER.Tier_ID || cross-database: 0
+K4|PASS|usp_P3_GetMemberLoyalty is read-only and does not read INVOICE|referenced: MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,tvf_P3_TierForSpend,tvf_P3_TierWindow || modified entities: 0
+K5|PASS|No hard-coded monetary threshold (no numeric literal of 6+ digits) and no dynamic SQL in the loyalty routines and functions; the tier rule reads MEMBER_TIER.SpendingThreshold (criterion 4)|definitions checked: 4; with 6+ digit literals: none; with dynamic SQL tokens: none; tier function reads: MEMBER_TIER.*,MEMBER_TIER.SpendingThreshold,MEMBER_TIER.Tier_ID,MEMBER_TIER.Tier_Name
+K6|PASS|Approved routines unchanged (definition SHA-256 = WO-P3-P3-00/01 evidence): create, settle, cancel, month function|changed: none; new: evaluate B99EE9625431B9D6297877EC4C8717EC37E2B833CD9A7494CFB855A5A15AF606, lookup 7C13AEA21908E3B0ECB5DE067555E9B56E8B52E3001B959A66B4F8D11F145A42
+K7|PASS|No extra database user or role and no explicit permission|extra principals: none; explicit permissions: 0
+T-SCH-05 SUMMARY: checks=7 FAIL=0
+T-SCH-05_RESULT: PASS
+STEP 20 PASS: T-SCH-05 catalog, inventory, loyalty write scope, no hard-coded thresholds, approved routines unchanged
+
+== 21. T-F05S settlement regression (47 cases): full output in T-F05S-SETTLE__20261109-1636.txt ==
+T-F05S SUMMARY: cases=47 FAIL=0
+T-F05S_RESULT: PASS
+STEP 21 PASS: T-F05S settlement regression (47 cases) - T-F05S SUMMARY: cases=47 FAIL=0
+
+== 21. V-UC05T after T-F05S (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 9
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 14 = sum PointsEarned 14
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 32
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+17|0|16|1|9|14|32
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 21-V PASS: V-UC05T after T-F05S - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 22. T-F05-U0 regression (T-F05-36, T-F05-37, K01): full output in T-F05-U0__20261109-1636.txt ==
+T-F05-U0 SUMMARY: cases=9 FAIL=0
+T-F05-U0_RESULT: PASS
+STEP 22 PASS: T-F05-U0 regression (T-F05-36, T-F05-37, K01) - T-F05-U0 SUMMARY: cases=9 FAIL=0
+
+== 22. V-UC05T after T-F05-U0 (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 15
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 103 = sum PointsEarned 103
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 42
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+26|1|23|2|15|103|42
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 22-V PASS: V-UC05T after T-F05-U0 - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 23. T-CONC-06 run R (creation regression) (exit 0): full output in T-CONC-06__20261109-1636_R.txt ==
+T-CONC-06 SUMMARY: run R; checks 5; FAIL 0
+T-CONC-06_RESULT: PASS
+STEP 23 PASS: T-CONC-06 run R (creation regression)
+
+== 23. V-UC05T after T-CONC-06 R (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 15
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 103 = sum PointsEarned 103
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 42
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+226|201|23|2|15|103|42
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 23-V PASS: V-UC05T after T-CONC-06 R - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 24. T-CONC-01 run A (settlement regression) (exit 0): full output in T-CONC-01__20261109-1636_A.txt ==
+T-CONC-01 SUMMARY: run A; mode SameInvoice; checks 5; FAIL 0
+T-CONC-01_RESULT: PASS
+STEP 24 PASS: T-CONC-01 run A (settlement regression)
+
+== 24. V-UC05T after T-CONC-01 A (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 18
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 121 = sum PointsEarned 121
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 82
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+246|201|43|2|18|121|82
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 24-V PASS: V-UC05T after T-CONC-01 A - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 25. T-CONC-02 run A (concurrent payments, same member) (exit 0): full output in T-CONC-02__20261109-1636_A.txt ==
+T-CONC-02 SUMMARY: run A; mode SameMember; checks 5; FAIL 0
+T-CONC-02_RESULT: PASS
+STEP 25 PASS: T-CONC-02 run A (concurrent payments, same member)
+
+== 25. V-UC05T after T-CONC-02 A (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 20
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 181 = sum PointsEarned 181
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 482
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+446|201|243|2|20|181|482
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 25-V PASS: V-UC05T after T-CONC-02 A - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 26. T-F05L loyalty tests (T-F05-12...-15, -32...-35): full output in T-F05L__20261109-1636.txt ==
+L01|T-F05-12|PASS|Tier selection: spend 0 -> Silver; Gold - 0.01 -> Silver; = Gold -> Gold; Gold + 0.01 -> Gold; Platinum - 0.01 -> Gold; = Platinum -> Platinum; above -> Platinum (inclusive, highest eligible)|error 0 ; batch evaluated 40, upgrades 9, downgrad
+L02|T-F05-14|PASS|Second run for the same evaluation date: 0 upgrades, 0 downgrades, every member unchanged, no row written|evaluated 40; upgrades 0; downgrades 0; unchanged 40; tier/points state changed no
+L03|T-F05-12|PASS|Member at Gold - 0.01 pays 0.01 (this month): still Silver right after settlement (accepted D-009 (a) latency); the next batch upgrades exactly this member to Gold|settlement SETTLED; tier after settlement 1; tier after batch 2; batch upgrade
+L04|T-F05-13|PASS|Platinum-level spend in the oldest window month: Platinum today and on the last day of this month; on the 1st of next month it leaves the window -> Silver with NO payment; re-evaluating today restores Platinum|payment month 2025-12-01; tier t
+L05a|T-F05-33|PASS|Payment at 2025-12-31 16:59:59.999 UTC -> December 2025 row; at 17:00:00.000 UTC (= 1 Jan 00:00 local) -> January 2026 row (same month function as settlement)|rows of member 20: 2025-12-01=1000000.00; 2026-01-01=1000000.00
+L05b|T-F05-13|PASS|December/January: as of 2026-11-30 (Dec 2025..Nov 2026) both payments count; 2026-12-01 (Jan..Dec 2026) only January; 2027-01-01 (Feb 2026..Jan 2027) none -> Silver; no 1 January reset of the window itself|tiers: 2 (expected 2), 2 (expected 
+L09|T-F05-34|PASS|Failure injected in the chunk of member 20 (chunk size 1): earlier chunk (member 19) committed correctly, member 20 and all later members unchanged, error passed through, no open transaction; the re-run completes and every member equals the i
+L08|T-F05-35|PASS|Invalid MEMBER_TIER configuration (a second tier at 0; a duplicate threshold): batch and lookup refuse, no tier written|errors: batch 51322 / 51323; lookup 51322; state changed no
+L06|T-F05-15|PASS|Loyalty lookup: points, stored and evaluated tier, window bounds and spend, next tier and gap equal the oracle (Gold member, Silver member with 0, top-tier member without next tier); unknown / NULL member rejected|rows: 14:Gold/1000000.00/nex
+L07|T-F05-32|PASS|25 settled invoices of 4,000 VND in one month: points per call 0 x24 then 1 at the cumulative 100,000; one month row; CurrentPoints 1|points per call 0000000000000000000000001; balance 1; month row 100000.00/1
+T-F05L SUMMARY: cases=10 FAIL=0
+T-F05L_RESULT: PASS
+STEP 26 PASS: T-F05L loyalty tests (T-F05-12...-15, -32...-35) - T-F05L SUMMARY: cases=10 FAIL=0
+
+== 26. V-UC05T after T-F05L (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 31
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 350 = sum PointsEarned 350
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 534
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+481|201|278|2|31|350|534
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 26-V PASS: V-UC05T after T-F05L - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 26. T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-F05L, whose last step evaluates today) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+T-REC-01|PASS|Monthly spending = PAID invoices per local month (independent AT TIME ZONE oracle)|mismatched member-months: 0 (missing row 0, row without PAID invoices 0); spending rows 31; PAID invoices 278
+T-REC-02|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per row; CurrentPoints = SUM(PointsEarned) per member|rows violating the point rule: 0; members with CurrentPoints <> SUM(PointsEarned): 0; members 40; total points 350
+T-REC-04|PASS|Tier_ID = tier computed independently from INVOICE for the twelve local months ending with the as-of month (D-007, D-008 rule)|as of 2026-11-09 (window 2025-12-01 .. 2026-11-01); members with a wrong tier: 0
+-- tier distribution (context) --
+Tier_ID|Tier_Name|SpendingThreshold|members
+-------|---------|-----------------|-------
+1|Silver|.00|25
+2|Gold|1000000.00|9
+3|Platinum|3000000.00|6
+T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+T-REC_loyalty_RESULT: PASS
+STEP 26-R PASS: T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-F05L, whose last step evaluates today) - T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+
+== 27A. T-CONC-04F run A (settlement concurrent with the tier batch) (exit 0): full output in T-CONC-04F__20261109-1636_A.txt ==
+Final quiescent run 1: error 0; upgrades 0; downgrades 0. Run 2: error 0; upgrades 0; downgrades 0
+  C1 PASS  Every settlement SETTLED; every batch run succeeded | settlements 200 of 200, failed 0; batch runs 24, failed 0; deadlock retries 0; worker errors 0 
+  C2 PASS  No incorrect Tier_ID change: no batch run reported a downgrade while spending only grew | concurrent runs: upgrades 13, downgrades 0; final runs downgrades 0 + 0
+  C3 PASS  After the final run every member's Tier_ID equals the tier computed independently from INVOICE | members with a wrong tier: 0
+  C4 PASS  No lost update: month spending grew by exactly the harness amounts; CurrentPoints = SUM(PointsEarned); point increase = SUM of returned increments | members checked 16; mismatches 0
+  C5 PASS  Batch runs overlapped settlement activity | batch runs overlapping the settlement period: 20 of 24
+  C6 PASS  Second final run changes nothing (idempotent) | upgrades 0; downgrades 0
+T-CONC-04F SUMMARY: run A; checks 6; FAIL 0
+T-CONC-04F_RESULT: PASS
+STEP 27A PASS: T-CONC-04F run A (settlement concurrent with the tier batch)
+
+== 27A. V-UC05T after T-CONC-04F A (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 42
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 602 = sum PointsEarned 602
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 934
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+681|201|478|2|42|602|934
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 27A-V PASS: V-UC05T after T-CONC-04F A - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 27A. T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F A (ends with a quiescent run)) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+T-REC-01|PASS|Monthly spending = PAID invoices per local month (independent AT TIME ZONE oracle)|mismatched member-months: 0 (missing row 0, row without PAID invoices 0); spending rows 42; PAID invoices 478
+T-REC-02|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per row; CurrentPoints = SUM(PointsEarned) per member|rows violating the point rule: 0; members with CurrentPoints <> SUM(PointsEarned): 0; members 40; total points 602
+T-REC-04|PASS|Tier_ID = tier computed independently from INVOICE for the twelve local months ending with the as-of month (D-007, D-008 rule)|as of 2026-11-09 (window 2025-12-01 .. 2026-11-01); members with a wrong tier: 0
+-- tier distribution (context) --
+Tier_ID|Tier_Name|SpendingThreshold|members
+-------|---------|-----------------|-------
+1|Silver|.00|12
+2|Gold|1000000.00|22
+3|Platinum|3000000.00|6
+T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+T-REC_loyalty_RESULT: PASS
+STEP 27A-R PASS: T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F A (ends with a quiescent run)) - T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+
+== 27B. T-CONC-04F run B (settlement concurrent with the tier batch) (exit 0): full output in T-CONC-04F__20261109-1636_B.txt ==
+Final quiescent run 1: error 0; upgrades 0; downgrades 0. Run 2: error 0; upgrades 0; downgrades 0
+  C1 PASS  Every settlement SETTLED; every batch run succeeded | settlements 200 of 200, failed 0; batch runs 22, failed 0; deadlock retries 0; worker errors 0 
+  C2 PASS  No incorrect Tier_ID change: no batch run reported a downgrade while spending only grew | concurrent runs: upgrades 14, downgrades 0; final runs downgrades 0 + 0
+  C3 PASS  After the final run every member's Tier_ID equals the tier computed independently from INVOICE | members with a wrong tier: 0
+  C4 PASS  No lost update: month spending grew by exactly the harness amounts; CurrentPoints = SUM(PointsEarned); point increase = SUM of returned increments | members checked 16; mismatches 0
+  C5 PASS  Batch runs overlapped settlement activity | batch runs overlapping the settlement period: 20 of 22
+  C6 PASS  Second final run changes nothing (idempotent) | upgrades 0; downgrades 0
+T-CONC-04F SUMMARY: run B; checks 6; FAIL 0
+T-CONC-04F_RESULT: PASS
+STEP 27B PASS: T-CONC-04F run B (settlement concurrent with the tier batch)
+
+== 27B. V-UC05T after T-CONC-04F B (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 42
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 866 = sum PointsEarned 866
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 1334
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+881|201|678|2|42|866|1334
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 27B-V PASS: V-UC05T after T-CONC-04F B - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 27B. T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F B (ends with a quiescent run)) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+T-REC-01|PASS|Monthly spending = PAID invoices per local month (independent AT TIME ZONE oracle)|mismatched member-months: 0 (missing row 0, row without PAID invoices 0); spending rows 42; PAID invoices 678
+T-REC-02|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per row; CurrentPoints = SUM(PointsEarned) per member|rows violating the point rule: 0; members with CurrentPoints <> SUM(PointsEarned): 0; members 40; total points 866
+T-REC-04|PASS|Tier_ID = tier computed independently from INVOICE for the twelve local months ending with the as-of month (D-007, D-008 rule)|as of 2026-11-09 (window 2025-12-01 .. 2026-11-01); members with a wrong tier: 0
+-- tier distribution (context) --
+Tier_ID|Tier_Name|SpendingThreshold|members
+-------|---------|-----------------|-------
+1|Silver|.00|12
+2|Gold|1000000.00|8
+3|Platinum|3000000.00|20
+T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+T-REC_loyalty_RESULT: PASS
+STEP 27B-R PASS: T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F B (ends with a quiescent run)) - T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+
+== 27C. T-CONC-04F run C (settlement concurrent with the tier batch) (exit 0): full output in T-CONC-04F__20261109-1636_C.txt ==
+Final quiescent run 1: error 0; upgrades 0; downgrades 0. Run 2: error 0; upgrades 0; downgrades 0
+  C1 PASS  Every settlement SETTLED; every batch run succeeded | settlements 200 of 200, failed 0; batch runs 16, failed 0; deadlock retries 0; worker errors 0 
+  C2 PASS  No incorrect Tier_ID change: no batch run reported a downgrade while spending only grew | concurrent runs: upgrades 0, downgrades 0; final runs downgrades 0 + 0
+  C3 PASS  After the final run every member's Tier_ID equals the tier computed independently from INVOICE | members with a wrong tier: 0
+  C4 PASS  No lost update: month spending grew by exactly the harness amounts; CurrentPoints = SUM(PointsEarned); point increase = SUM of returned increments | members checked 16; mismatches 0
+  C5 PASS  Batch runs overlapped settlement activity | batch runs overlapping the settlement period: 15 of 16
+  C6 PASS  Second final run changes nothing (idempotent) | upgrades 0; downgrades 0
+T-CONC-04F SUMMARY: run C; checks 6; FAIL 0
+T-CONC-04F_RESULT: PASS
+STEP 27C PASS: T-CONC-04F run C (settlement concurrent with the tier batch)
+
+== 27C. V-UC05T after T-CONC-04F C (sqlcmd exit 0) ==
+Warning: Null value is eliminated by an aggregate or other SET operation.
+check_id|result|descr|detail
+--------|------|-----|------
+U1|PASS|V-TOT: header = sum of lines, Final = Gross - Discount, at least one line (D-023 X1, BR12); no orphan line|V-TOT rows: 0; orphan lines: 0
+U2|PASS|Payment state: PAID <=> PaidAt set; PAID => method set, PaidAt >= IssuedAt; exact literals; no future UTC time (D-004, D-005)|violations: 0
+U3|PASS|Spending reconciliation (independent month oracle): each MEMBER_MONTHLY_SPENDING row = PAID invoices of that Asia/Ho_Chi_Minh month (TotalSpend, UpdatedAt = latest PaidAt); no row without PAID invoices; no PAID invoice without its row|mismatched member-months: 0 (missing row: 0; row without PAID invoices: 0); spending rows: 42
+U4|PASS|PointsEarned = FLOOR(TotalSpend / 100000) on every row; non-negative; first day of month (D-006, D-013)|violations: 0
+U5|PASS|Every member: CurrentPoints = sum of PointsEarned over all months (D-024; no lost or duplicated points)|members: 40; mismatching members: 0; sum CurrentPoints 1122 = sum PointsEarned 1122
+U6|PASS|Hooks (test doubles): exactly one inventory then one entitlement call per settled PAID invoice, inside the transaction while PENDING; none for other invoices and none for TEST_ONLY history invoices; no fault request left|PAID invoices with wrong calls: 0; non-PAID invoices with calls: 0; calls outside the expected context: 0; leftover faults or unknown invoices: 0; calls logged: 1734
+U7|PASS|No entitlement or PT value written by P3 or the doubles (DEP-06)|service lines with a value: 0
+U8|PASS|TEST_ONLY fixtures: exact F001U key rows; MEMBER = Member_ID + CurrentPoints (F002P) + Tier_ID (F002T); MEMBER_TIER = Silver 0 + Gold + Platinum (synthetic, increasing); other fixtures key-only|key rows as loaded: yes; key-only fixture columns: 4/4; MEMBER columns as expected: yes; tier fixture as expected: yes
+U9|PASS|No leftover TEST_ONLY trigger, principal or permission; only allowed objects (P3 routines, U0 reference, loyalty routines, fixtures, TEST_ONLY doubles/helper); no non-PK index|triggers: 0; extra principals/permissions: 0; non-PK indexes / type deviations: 0; unexpected objects: none; core objects missing: 0
+U10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|pending|paid|cancelled|spending_rows|total_points|hook_calls
+--------|-------|----|---------|-------------|------------|----------
+1081|201|878|2|42|1122|1734
+V-UC05T SUMMARY: checks=10 FAIL=0
+V-UC05T_RESULT: PASS
+STEP 27C-V PASS: V-UC05T after T-CONC-04F C - V-UC05T SUMMARY: checks=10 FAIL=0
+
+== 27C. T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F C (ends with a quiescent run)) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+T-REC-01|PASS|Monthly spending = PAID invoices per local month (independent AT TIME ZONE oracle)|mismatched member-months: 0 (missing row 0, row without PAID invoices 0); spending rows 42; PAID invoices 878
+T-REC-02|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per row; CurrentPoints = SUM(PointsEarned) per member|rows violating the point rule: 0; members with CurrentPoints <> SUM(PointsEarned): 0; members 40; total points 1122
+T-REC-04|PASS|Tier_ID = tier computed independently from INVOICE for the twelve local months ending with the as-of month (D-007, D-008 rule)|as of 2026-11-09 (window 2025-12-01 .. 2026-11-01); members with a wrong tier: 0
+-- tier distribution (context) --
+Tier_ID|Tier_Name|SpendingThreshold|members
+-------|---------|-----------------|-------
+1|Silver|.00|12
+2|Gold|1000000.00|8
+3|Platinum|3000000.00|20
+T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+T-REC_loyalty_RESULT: PASS
+STEP 27C-R PASS: T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F C (ends with a quiescent run)) - T-REC_loyalty SUMMARY: as-of 2026-11-09; checks=3 FAIL=0
+
+== 28. T-SCH-05 again (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+K1|PASS|Catalog = accepted P1 catalog + exactly: F002P/F002T items on MEMBER, TEST_ONLY MEMBER_TIER and TEST_* tables, V003 CHECK (trusted, enabled); the P3 tables otherwise unchanged; no index added|items P1 108, UC05 147; only in P1: none; unexpected: none; missing expected: none; V003: CHK|CK_MEMBER_MONTHLY_SPENDING_PointsRule|([PointsEarned]=floor([TotalSpend]/(100000)))|0|0
+K2|PASS|Inventory: P3 routines (create, settle, cancel, evaluate, lookup) + REFERENCE_ONLY U0 + TEST_ONLY doubles/helper; 3 inline functions; fixtures + TEST_ONLY tables; no trigger, view, non-PK index or partition object; every non-production object marked|procedures: TEST_p3_AddPaidHistory,usp_HOOK_EntitlementActivationForInvoice,usp_HOOK_InventoryDecrementForInvoice,usp_P3_CancelInvoice,usp_P3_CreateInvoice,usp_P3_EvaluateTiers,usp_P3_GetMemberLoyalty,usp_P3_SettleInvoice,usp_P3_SettleInvoice_Baseline || functions: IF:tvf_P3_SpendingMonth,IF:tvf_P3_TierForSpend,IF:tvf_P3_TierWindow || tables: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,PRODUCT,SERVICE_PLAN,TEST_HistoryInvoice,TEST_HookCallLog,TEST_HookFault || other: 0 || unmarked: none
+K3|PASS|usp_P3_EvaluateTiers reads only the monthly aggregate, MEMBER and MEMBER_TIER (no INVOICE: no invoice-history rescan) and writes only MEMBER.Tier_ID|referenced: MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,tvf_P3_TierForSpend,tvf_P3_TierWindow || modified: MEMBER.*,MEMBER.Tier_ID || cross-database: 0
+K4|PASS|usp_P3_GetMemberLoyalty is read-only and does not read INVOICE|referenced: MEMBER,MEMBER_MONTHLY_SPENDING,MEMBER_TIER,tvf_P3_TierForSpend,tvf_P3_TierWindow || modified entities: 0
+K5|PASS|No hard-coded monetary threshold (no numeric literal of 6+ digits) and no dynamic SQL in the loyalty routines and functions; the tier rule reads MEMBER_TIER.SpendingThreshold (criterion 4)|definitions checked: 4; with 6+ digit literals: none; with dynamic SQL tokens: none; tier function reads: MEMBER_TIER.*,MEMBER_TIER.SpendingThreshold,MEMBER_TIER.Tier_ID,MEMBER_TIER.Tier_Name
+K6|PASS|Approved routines unchanged (definition SHA-256 = WO-P3-P3-00/01 evidence): create, settle, cancel, month function|changed: none; new: evaluate B99EE9625431B9D6297877EC4C8717EC37E2B833CD9A7494CFB855A5A15AF606, lookup 7C13AEA21908E3B0ECB5DE067555E9B56E8B52E3001B959A66B4F8D11F145A42
+K7|PASS|No extra database user or role and no explicit permission|extra principals: none; explicit permissions: 0
+T-SCH-05 SUMMARY: checks=7 FAIL=0
+T-SCH-05_RESULT: PASS
+STEP 28 PASS: T-SCH-05 after all tests (no leftover object, principal or permission; approved routines unchanged) - T-SCH-05 SUMMARY: checks=7 FAIL=0
+
+== 29. Rebuild FitLife_P3_UC05L (sqlcmd exit 0) ==
+Dropped previous disposable database FitLife_P3_UC05L
+Changed database context to 'FitLife_P3_UC05L'.
+Created FitLife_P3_UC05L (compatibility level 160, SIMPLE recovery, P3_Disposable marker)
+F001 (TEST_ONLY) applied: key-only fixtures MEMBER, BRANCH, EMPLOYEE, SERVICE_PLAN, PRODUCT
+V001 applied: INVOICE, INVOICE_SERVICE_ITEM, INVOICE_PRODUCT_ITEM, MEMBER_MONTHLY_SPENDING
+V002 applied: INVOICE.PaidAt, 12 CHECK constraints, 4 DEFAULT constraints
+BUILD_RESULT: OK (FitLife_P3_UC05L)
+STEP 29 PASS: Fresh FitLife_P3_UC05L (F001, V001, V002)
+STEP 30 PASS: F001D key rows (DS-L profile)
+== 31. S001 generator, DS-L profile: Seed=20261108 StartDateLocal=2025-01-01 EndDateLocal=2026-01-01 InvoicesPerMonth=27000 MemberCount=30000 BranchCount=12 EmployeesPerBranch=10 PlanCount=30 ProductCount=200 ServiceInvoiceShare=0.20 CancelledShare=0.02 PendingWindowDays=3 PendingShareInWindow=0.30 HeavyMemberShare=0.20 HeavyInvoiceShare=0.60 HomeBranchShare=0.85 DiscountLineShare=0.20 PeakShare=0.35 (UTC start 2026-11-09 16:37:29) ==
+TIMING step=invoice_lines ms=4424
+TIMING step=load_invoice_tables ms=7950
+TIMING step=monthly_spending ms=991
+TIMING step=total_generator ms=182391
+invoice_rows|service_item_rows|product_item_rows|monthly_spending_rows
+------------|-----------------|-----------------|---------------------
+324000|65177|712789|169040
+GENERATOR_RESULT: OK
+STEP 31 PASS: S001 DS-L generation (unchanged generator)
+STEP 32 PASS: FitLife_P3_UC05L dataset checksum = DS-L run C reference (same data as the accepted dataset) - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+STEP 33 PASS: F002P on DS-L copy
+STEP 34 PASS: F002T on DS-L copy (synthetic thresholds)
+
+== 35. L001 TEST_ONLY loader (sqlcmd exit 0) ==
+members|members_with_points|total_points
+-------|-------------------|------------
+30000|29839|6110230
+L001 (TEST_ONLY) applied: CurrentPoints = SUM(PointsEarned) per member
+STEP 35 PASS: L001 CurrentPoints = SUM(PointsEarned)
+
+== 36. Task 0 B0 capture (exit 0): full output in T0-QUC05BC__20261109-1636.txt ==
+T0-QUC05BC - WO-P3-P3-02 task 0: B0 capture of Q-UC05-B and Q-UC05-C on DS-L (FitLife_P3_UC05L). Run 20261109-1636.
+== Q-UC05-B P1: file SHA-256 108D684A8858706D82B26CAB0EECF0BCD7037C79515C818E98F4F12A3078171A
+   rows 1; ordered-result SHA-256 19A3DA049F3B7A5FEA09BD7D077C0A0507179811AF753867C4BD84EE929D6C70
+   logical reads total 7; STATISTICS IO (raw):
+== Q-UC05-B P2: file SHA-256 108D684A8858706D82B26CAB0EECF0BCD7037C79515C818E98F4F12A3078171A
+   rows 1; ordered-result SHA-256 DC011F12FA725D7D076CA23B5118F2EDD5AAF4DB154F8133DF81169AE8AB70AB
+   logical reads total 7; STATISTICS IO (raw):
+== Q-UC05-C P1: file SHA-256 24872C9B583938ACCE22B1DDA19C34E8D66BC5B63B51A0FA7F430037098BBF6D
+   rows 29870; ordered-result SHA-256 74004627A37A3A9AD320B6F4E4E2C309259239B52FE20D6CECD5BA21F9EBF418
+   logical reads total 759; STATISTICS IO (raw):
+== Q-UC05-C P2: file SHA-256 24872C9B583938ACCE22B1DDA19C34E8D66BC5B63B51A0FA7F430037098BBF6D
+   rows 29804; ordered-result SHA-256 452A436F5ED360FCB32697AB88E46A21C11B7CA9B7EC97046D05E5DF1E255323
+   logical reads total 759; STATISTICS IO (raw):
+T0-QUC05BC_RESULT: CAPTURED (B0 plans, logical reads, row counts; no timing)
+STEP 36 PASS: Task 0: Q-UC05-B/C frozen and captured on DS-L before any loyalty routine or index (plans, logical reads; no timing)
+STEP 37 PASS: V003 validated WITH CHECK on all DS-L monthly rows
+STEP 38 PASS: Loyalty routines deployed on the DS-L copy
+
+== 39. usp_P3_EvaluateTiers in FitLife_P3_UC05L as of 2025-12-31 (sqlcmd exit 0) ==
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2025-12-31|2025-01-01|2026-01-01|30000|29521|0|479
+EVAL|2025-12-31|30000|29521|0|479
+STEP 39 PASS: Batch on DS-L as of 2025-12-31 (window Jan..Dec 2025) - evaluated 30000; upgrades 29521; downgrades 0
+
+== 40. T-REC-01/02/04 in FitLife_P3_UC05L as of 2025-12-31 (after the batch) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+T-REC-01|PASS|Monthly spending = PAID invoices per local month (independent AT TIME ZONE oracle)|mismatched member-months: 0 (missing row 0, row without PAID invoices 0); spending rows 169040; PAID invoices 316660
+T-REC-02|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per row; CurrentPoints = SUM(PointsEarned) per member|rows violating the point rule: 0; members with CurrentPoints <> SUM(PointsEarned): 0; members 30000; total points 6110230
+T-REC-04|PASS|Tier_ID = tier computed independently from INVOICE for the twelve local months ending with the as-of month (D-007, D-008 rule)|as of 2025-12-31 (window 2025-01-01 .. 2025-12-01); members with a wrong tier: 0
+-- tier distribution (context) --
+Tier_ID|Tier_Name|SpendingThreshold|members
+-------|---------|-----------------|-------
+1|Silver|.00|479
+2|Gold|1000000.00|1604
+3|Platinum|3000000.00|27917
+T-REC_loyalty SUMMARY: as-of 2025-12-31; checks=3 FAIL=0
+T-REC_loyalty_RESULT: PASS
+STEP 40-R PASS: T-REC-01/02/04 in FitLife_P3_UC05L as of 2025-12-31 (after the batch) - T-REC_loyalty SUMMARY: as-of 2025-12-31; checks=3 FAIL=0
+
+== 41. usp_P3_EvaluateTiers in FitLife_P3_UC05L as of 2025-12-31 (sqlcmd exit 0) ==
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2025-12-31|2025-01-01|2026-01-01|30000|0|0|30000
+EVAL|2025-12-31|30000|0|0|30000
+STEP 41 PASS: Re-run for 2025-12-31 changes nothing (T-F05-14 on DS-L) - upgrades 0; downgrades 0
+
+== 42. usp_P3_EvaluateTiers in FitLife_P3_UC05L as of 2026-01-15 (sqlcmd exit 0) ==
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-01-15|2025-02-01|2026-02-01|30000|0|668|29332
+EVAL|2026-01-15|30000|0|668|29332
+STEP 42 PASS: Batch as of 2026-01-15 (Feb 2025..Jan 2026; no new payment): only downgrades, no upgrade - evaluated 30000; upgrades 0; downgrades 668
+
+== 43. T-REC-01/02/04 in FitLife_P3_UC05L as of 2026-01-15 (after the no-payment downgrade run) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+T-REC-01|PASS|Monthly spending = PAID invoices per local month (independent AT TIME ZONE oracle)|mismatched member-months: 0 (missing row 0, row without PAID invoices 0); spending rows 169040; PAID invoices 316660
+T-REC-02|PASS|PointsEarned = FLOOR(TotalSpend / 100000) per row; CurrentPoints = SUM(PointsEarned) per member|rows violating the point rule: 0; members with CurrentPoints <> SUM(PointsEarned): 0; members 30000; total points 6110230
+T-REC-04|PASS|Tier_ID = tier computed independently from INVOICE for the twelve local months ending with the as-of month (D-007, D-008 rule)|as of 2026-01-15 (window 2025-02-01 .. 2026-01-01); members with a wrong tier: 0
+-- tier distribution (context) --
+Tier_ID|Tier_Name|SpendingThreshold|members
+-------|---------|-----------------|-------
+1|Silver|.00|679
+2|Gold|1000000.00|1956
+3|Platinum|3000000.00|27365
+T-REC_loyalty SUMMARY: as-of 2026-01-15; checks=3 FAIL=0
+T-REC_loyalty_RESULT: PASS
+STEP 43-R PASS: T-REC-01/02/04 in FitLife_P3_UC05L as of 2026-01-15 (after the no-payment downgrade run) - T-REC_loyalty SUMMARY: as-of 2026-01-15; checks=3 FAIL=0
+
+== 44. usp_P3_EvaluateTiers in FitLife_P3_UC05L as of 2026-01-15 (sqlcmd exit 0) ==
+AsOfDate|FromMonth|NextMonth|Evaluated|Upgrades|Downgrades|Unchanged
+--------|---------|---------|---------|--------|----------|---------
+2026-01-15|2025-02-01|2026-02-01|30000|0|0|30000
+EVAL|2026-01-15|30000|0|0|30000
+STEP 44 PASS: Re-run for 2026-01-15 changes nothing - upgrades 0; downgrades 0
+STEP 45 PASS: FitLife_P3_UC05L dataset checksum unchanged by the loyalty work (= run C) - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+== 46. Instance fingerprint after (sqlcmd exit 0) ==
+== F1. Databases other than tempdb and FitLife_P3_UC05 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+FitLife_P3_P2|10|2026-11-08 18:55:36.873|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+STEP 46 PASS: Instance fingerprint after = before (no other database changed)
+STEP 47 PASS: FitLife_P3_P2 checksum after = before = run C - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+Summary:
+  1      PASS  Instance fingerprint captured before
+  2      PASS  FitLife_P3_P2 checksum before = DS-L run C reference
+  3      PASS  Fresh FitLife_P3_UC05 (F001, V001, V002)
+  4      PASS  T-SCH-01 (P1 regression)
+  5      PASS  T-SCH-02 (P1 regression)
+  6      PASS  Creation routine (unchanged)
+  7      PASS  T-SCH-03 creation scope
+  8      PASS  F001U TEST_ONLY key rows
+  9      PASS  F002P TEST_ONLY CurrentPoints
+  10     PASS  D001 TEST_ONLY hook doubles
+  11     PASS  Settlement routine (unchanged)
+  12     PASS  Cancellation routine (unchanged)
+  13     PASS  T-SCH-04 settlement scope (before loyalty objects)
+  14     PASS  F002T TEST_ONLY tiers (synthetic thresholds)
+  15     PASS  F003H TEST_ONLY paid-history helper
+  16     PASS  U0 REFERENCE_ONLY
+  17     PASS  V003 point-rule CHECK
+  18     PASS  usp_P3_EvaluateTiers + tier functions
+  19     PASS  usp_P3_GetMemberLoyalty
+  20     PASS  T-SCH-05 catalog, inventory, loyalty write scope, no hard-coded thresholds, approved routines unchanged
+  21     PASS  T-F05S settlement regression (47 cases)
+  21-V   PASS  V-UC05T after T-F05S
+  22     PASS  T-F05-U0 regression (T-F05-36, T-F05-37, K01)
+  22-V   PASS  V-UC05T after T-F05-U0
+  23     PASS  T-CONC-06 run R (creation regression)
+  23-V   PASS  V-UC05T after T-CONC-06 R
+  24     PASS  T-CONC-01 run A (settlement regression)
+  24-V   PASS  V-UC05T after T-CONC-01 A
+  25     PASS  T-CONC-02 run A (concurrent payments, same member)
+  25-V   PASS  V-UC05T after T-CONC-02 A
+  26     PASS  T-F05L loyalty tests (T-F05-12...-15, -32...-35)
+  26-V   PASS  V-UC05T after T-F05L
+  26-R   PASS  T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-F05L, whose last step evaluates today)
+  27A    PASS  T-CONC-04F run A (settlement concurrent with the tier batch)
+  27A-V  PASS  V-UC05T after T-CONC-04F A
+  27A-R  PASS  T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F A (ends with a quiescent run))
+  27B    PASS  T-CONC-04F run B (settlement concurrent with the tier batch)
+  27B-V  PASS  V-UC05T after T-CONC-04F B
+  27B-R  PASS  T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F B (ends with a quiescent run))
+  27C    PASS  T-CONC-04F run C (settlement concurrent with the tier batch)
+  27C-V  PASS  V-UC05T after T-CONC-04F C
+  27C-R  PASS  T-REC-01/02/04 in FitLife_P3_UC05 as of 2026-11-09 (after T-CONC-04F C (ends with a quiescent run))
+  28     PASS  T-SCH-05 after all tests (no leftover object, principal or permission; approved routines unchanged)
+  29     PASS  Fresh FitLife_P3_UC05L (F001, V001, V002)
+  30     PASS  F001D key rows (DS-L profile)
+  31     PASS  S001 DS-L generation (unchanged generator)
+  32     PASS  FitLife_P3_UC05L dataset checksum = DS-L run C reference (same data as the accepted dataset)
+  33     PASS  F002P on DS-L copy
+  34     PASS  F002T on DS-L copy (synthetic thresholds)
+  35     PASS  L001 CurrentPoints = SUM(PointsEarned)
+  36     PASS  Task 0: Q-UC05-B/C frozen and captured on DS-L before any loyalty routine or index (plans, logical reads; no timing)
+  37     PASS  V003 validated WITH CHECK on all DS-L monthly rows
+  38     PASS  Loyalty routines deployed on the DS-L copy
+  39     PASS  Batch on DS-L as of 2025-12-31 (window Jan..Dec 2025)
+  40-R   PASS  T-REC-01/02/04 in FitLife_P3_UC05L as of 2025-12-31 (after the batch)
+  41     PASS  Re-run for 2025-12-31 changes nothing (T-F05-14 on DS-L)
+  42     PASS  Batch as of 2026-01-15 (Feb 2025..Jan 2026; no new payment): only downgrades, no upgrade
+  43-R   PASS  T-REC-01/02/04 in FitLife_P3_UC05L as of 2026-01-15 (after the no-payment downgrade run)
+  44     PASS  Re-run for 2026-01-15 changes nothing
+  45     PASS  FitLife_P3_UC05L dataset checksum unchanged by the loyalty work (= run C)
+  46     PASS  Instance fingerprint after = before (no other database changed)
+  47     PASS  FitLife_P3_P2 checksum after = before = run C
+UC05LOY-RUN SUMMARY: steps 62; FAIL 0; finished (UTC) 2026-11-09 16:41:45
+UC05LOY-RUN_RESULT: PASS

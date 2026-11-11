@@ -1,0 +1,496 @@
+﻿UC05-RUN - WO-P3-P3-00 invoice creation: build, regression, functional, concurrency and integrity tests
+Started (UTC): 2026-11-09 14:46:40; target database FitLife_P3_UC05 (isolated, disposable); read-only references FitLife_P3_P1, FitLife_P3_P2
+Repository: branch p3/wo-p3-p1-01, HEAD 792a85e (P3 work untracked; nothing committed)
+Scripts (SHA-256):
+  43A819996BBCC54517C3DE0E68FB7DC0FCADD77F86DB9B052B2C8AB5981061F4  tests/db/build/fingerprint_instance.sql
+  D731F90C57F82553B4D1A292F1EC2F73EBDA2B6EF722728C0A5526032ACBAABE  tests/db/seed/T-REPRO-02_checksums.sql
+  7EF23835103CEE95034F1BB9786DE5E92F936107E29107F9A21C98CD862BB38B  tests/db/build/rebuild_uc05_db.sql
+  193D855666E9A5047AAFD871671F8A9CE8218805BD53752B3581C22D29536E72  tests/db/fixtures/F001__TEST_ONLY_shared_dependency_keys.sql
+  65A31C124B57DEA63D8998F59CF5FD4AB50DF1875DFA87D6821FF270758B8094  db/migrations/V001__p3_billing_and_spending_tables.sql
+  ADCF99E6D954A3202622B7BFFB25358BFBE90C9C174CD871DD8B8459C5FAFD67  db/migrations/V002__p3_settlement_and_spending_constraints.sql
+  7F37DB16821AD44599690CFD3CD72D57359EBD5F14BC03AE61902C5A262CD1A5  tests/db/schema/T-SCH-01_constraints.sql
+  EBCD16B6EBA81C7940C0CF63D9C0565D2D888F3E299E6AF13D76486D187C02F9  tests/db/schema/T-SCH-02_conformance.sql
+  2033CF4C014AF3356A75C2756A52C3713F27F6507CAE5E205B62871AA95DE313  db/procedures/usp_P3_CreateInvoice.sql
+  5F3512036310DDC9988C6FA4C6902CE998B8F526F919C80F0F13069E88E97CD6  tests/db/schema/T-SCH-03_uc05_catalog_and_scope.sql
+  11244F13E6003E3C064B52AEB4EE961C368AA93A6644F77E0C0ACF4013139E00  tests/db/fixtures/F001U__TEST_ONLY_uc05_key_rows.sql
+  18323E68B00D0DC485DA7C6FDBF4A660746609AE6ADCBFFE1C0F220C7BD9CEC2  tests/db/functional/T-F05_invoice_creation.sql
+  E6E008CFE6414A05336A1A27B1321C6A07B7873837D61AD1B8567E0A53F340A8  tests/db/functional/V-UC05_integrity.sql
+  65689EEEA32CFF8A0663C034FBB6522CD61D426034AB3D2B7CA6F8584FFEECEC  tests/db/concurrency/T-CONC-06_parallel_creation.ps1
+  E1A0777DB5F3AFED19D0740C347ADDA8E0B581F964BE7BA77A329F63425D4A9D  tests/db/functional/run_uc05_invoice_creation.ps1
+
+== Instance (sqlcmd exit 0) ==
+version|edition|engine_edition|instance
+-------|-------|--------------|--------
+17.0.1000.7|Standard Developer Edition (64-bit)|2|(default)
+Power (context only): BatteryStatus 2 (1 = on battery, 2 = on AC), charge 56%. Correctness tests do not depend on it.
+
+== 1. Instance fingerprint before (all databases except tempdb and FitLife_P3_UC05) (sqlcmd exit 0) ==
+== F1. Databases other than tempdb and FitLife_P3_UC05 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+FitLife_P3_P2|10|2026-11-08 18:55:36.873|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+STEP 1 PASS: Instance fingerprint captured before
+
+== 2. FitLife_P3_P2 dataset checksum before (read-only) (sqlcmd exit 0) ==
+tbl|row_count|sha256
+---|---------|------
+INVOICE|324000|B321C5C8E689358C865EDA03B5D98BFF2DA8F92248CB5CEEDEC82E5E853A4FB7
+INVOICE_SERVICE_ITEM|65177|F087DEEB3C1FAA14D80ACC396B133F1DDAE5A63B5C6E20E4B09049FC8F6C8281
+INVOICE_PRODUCT_ITEM|712789|EC62F651B28F857F648A5C394ACFE48B1D32921396E36F83653817A4EEA4CBF1
+MEMBER_MONTHLY_SPENDING|169040|D25C9C8EFC99AE2C1782CC4A49800862E9BF117E51E34E62DCDBA4CF938E7BFC
+MEMBER (TEST_ONLY keys)|30000|B876C95BA3DFAF2B11377790815E242164DE5963E015BD5BBB7793D5DFC6E062
+BRANCH (TEST_ONLY keys)|12|7909937ABE135B51143FAF006BA1713D4C139E3337325AD10F9B81807CD66786
+EMPLOYEE (TEST_ONLY keys)|120|1C4732EAF0B754EF54C34467457CBBE4D233B277B73E72505AAEF7DBB4C5BD08
+SERVICE_PLAN (TEST_ONLY keys)|30|A8DA6DC1099B8B38805D26F04C1E8A49B9D3870506F9586535105A3C3BE64FDB
+PRODUCT (TEST_ONLY keys)|200|2066223C021D5FE0C60E02FCC68BFE6F618DE108F9E5AFC21200D86B620C305B
+item|sha256
+----|------
+DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+STEP 2 PASS: FitLife_P3_P2 checksum before = DS-L run C reference - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+== 3. Rebuild FitLife_P3_UC05 (sqlcmd exit 0) ==
+Dropped previous disposable database FitLife_P3_UC05
+Changed database context to 'FitLife_P3_UC05'.
+Created FitLife_P3_UC05 (compatibility level 160, SIMPLE recovery, P3_Disposable marker)
+F001 (TEST_ONLY) applied: key-only fixtures MEMBER, BRANCH, EMPLOYEE, SERVICE_PLAN, PRODUCT
+V001 applied: INVOICE, INVOICE_SERVICE_ITEM, INVOICE_PRODUCT_ITEM, MEMBER_MONTHLY_SPENDING
+V002 applied: INVOICE.PaidAt, 12 CHECK constraints, 4 DEFAULT constraints
+BUILD_RESULT: OK (FitLife_P3_UC05)
+STEP 3 PASS: Fresh isolated database built (F001 TEST_ONLY key-only fixtures, V001, V002)
+
+== 4. T-SCH-01 constraint tests (P1 regression) (sqlcmd exit 0) ==
+case_id|kind|result|descr|detail
+-------|----|------|-----|------
+P01|P|PASS|PENDING invoice + service line + product line, valid FKs; status defaults to PENDING|accepted; PaymentStatus=PENDING, PaymentMethod NULL, PaidAt NULL
+P02|P|PASS|PENDING -> PAID with CASH and PaidAt after IssuedAt|rows updated: 1
+P03|P|PASS|PENDING with VNPAY recorded at creation; PENDING -> CANCELLED without PaidAt|accepted
+P04|P|PASS|MEMBER_MONTHLY_SPENDING row with SpendingMonth = 2026-11-01|accepted
+P07|P|PASS|Defaults: TotalSpend 0, PointsEarned 0, UpdatedAt = SYSUTCDATETIME() (UTC, D-014)|defaults applied; UpdatedAt within 10 minutes of SYSUTCDATETIME()
+P08|P|PASS|Service line with ValidUntil >= ValidFrom and PTSessionsRemaining set|rows updated: 1
+P09|P|PASS|PAID invoice with CARD and PaidAt|accepted
+P05|P|PASS|V-TOT finds no inconsistent invoice among the consistent ones|V-TOT rows: 0
+P06|P|PASS|Header 999,999 vs lines 100,000: accepted by all CHECKs (X1 is cross-table); V-TOT reports exactly this invoice|V-TOT rows: 1; reported the inconsistent invoice: yes
+N01|N|PASS|Status 'DONE'|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaymentStatus". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE", column 'PaymentStatus'.
+N02|N|PASS|Method 'BITCOIN'|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaymentMethod". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE", column 'PaymentMethod'.
+N03|N|PASS|PAID with PaidAt NULL|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N04a|N|PASS|PENDING with PaidAt set|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N04b|N|PASS|CANCELLED invoice given a PaidAt|547: The UPDATE statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N05|N|PASS|PaidAt earlier than IssuedAt|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtAfterIssued". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N06|N|PASS|PAID with method NULL|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_MethodWhenPaid". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N07a|N|PASS|Negative GrossAmount (also makes FinalAmount negative)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N07b|N|PASS|Negative DiscountAmount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N07c|N|PASS|Discount greater than Gross (also makes FinalAmount negative)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N08|N|PASS|FinalAmount <> Gross - Discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_FinalAmount". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+N09a|N|PASS|Invoice with unknown member key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_MEMBER". The conflict occurred in database "FitLife_P3_UC05", table "dbo.MEMBER", column 'Member_ID'.
+N09b|N|PASS|Invoice with unknown employee key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_EMPLOYEE". The conflict occurred in database "FitLife_P3_UC05", table "dbo.EMPLOYEE", column 'Employee_ID'.
+N09c|N|PASS|Invoice with unknown branch key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_BRANCH". The conflict occurred in database "FitLife_P3_UC05", table "dbo.BRANCH", column 'Branch_ID'.
+N10a|N|PASS|Invoice with NULL PaymentStatus|515: Cannot insert the value NULL into column 'PaymentStatus', table 'FitLife_P3_UC05.dbo.INVOICE'; column does not allow nulls. INSERT fails.
+N10b|N|PASS|Invoice with NULL Member_ID|515: Cannot insert the value NULL into column 'Member_ID', table 'FitLife_P3_UC05.dbo.INVOICE'; column does not allow nulls. INSERT fails.
+N11|N|PASS|SpendingMonth 2026-11-15 (not the first day)|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_FirstDay". The conflict occurred in database "FitLife_P3_UC05", table "dbo.MEMBER_MONTHLY_SPENDING", column 'SpendingMonth'.
+N12|N|PASS|Duplicate (Member_ID, SpendingMonth)|2627: Violation of PRIMARY KEY constraint 'PK_MEMBER_MONTHLY_SPENDING'. Cannot insert duplicate key in object 'dbo.MEMBER_MONTHLY_SPENDING'. The duplicate key value is (1, 2026-11-01).
+N13a|N|PASS|Negative TotalSpend|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_NonNegative". The conflict occurred in database "FitLife_P3_UC05", table "dbo.MEMBER_MONTHLY_SPENDING".
+N13b|N|PASS|Negative PointsEarned|547: The INSERT statement conflicted with the CHECK constraint "CK_MEMBER_MONTHLY_SPENDING_NonNegative". The conflict occurred in database "FitLife_P3_UC05", table "dbo.MEMBER_MONTHLY_SPENDING".
+N14|N|PASS|Spending row for an unknown member key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_MEMBER_MONTHLY_SPENDING_MEMBER". The conflict occurred in database "FitLife_P3_UC05", table "dbo.MEMBER", column 'Member_ID'.
+N15|N|PASS|Service line with ValidUntil < ValidFrom (BR13)|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Validity". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_SERVICE_ITEM".
+N16|N|PASS|Product line with Quantity 0|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Quantity". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_PRODUCT_ITEM", column 'Quantity'.
+N17a|N|PASS|Service line with negative UnitPrice|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_SERVICE_ITEM".
+N17b|N|PASS|Service line with negative discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_SERVICE_ITEM".
+N17c|N|PASS|Service line discount greater than line price|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_SERVICE_ITEM_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_SERVICE_ITEM".
+N17d|N|PASS|Product line with negative UnitPrice|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_PRODUCT_ITEM".
+N17e|N|PASS|Product line discount greater than UnitPrice x Quantity|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_PRODUCT_ITEM".
+N17f|N|PASS|Product line with negative discount|547: The INSERT statement conflicted with the CHECK constraint "CK_INVOICE_PRODUCT_ITEM_Amounts". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_PRODUCT_ITEM".
+N18a|N|PASS|Service line for an unknown invoice|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_SERVICE_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE", column 'Invoice_ID'.
+N18b|N|PASS|Service line for an unknown plan key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN". The conflict occurred in database "FitLife_P3_UC05", table "dbo.SERVICE_PLAN", column 'Plan_ID'.
+N18c|N|PASS|Product line for an unknown invoice|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_PRODUCT_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE", column 'Invoice_ID'.
+N18d|N|PASS|Product line for an unknown product key|547: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_INVOICE_PRODUCT_ITEM_PRODUCT". The conflict occurred in database "FitLife_P3_UC05", table "dbo.PRODUCT", column 'Product_ID'.
+N19a|N|PASS|Delete a referenced member (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_MEMBER". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE", column 'Member_ID'.
+N19b|N|PASS|Delete a referenced branch (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_BRANCH". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE", column 'Branch_ID'.
+N19c|N|PASS|Delete a referenced employee (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_EMPLOYEE". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE", column 'Employee_ID'.
+N19d|N|PASS|Delete a referenced plan (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_SERVICE_ITEM", column 'Plan_ID'.
+N19e|N|PASS|Delete a referenced product (fixture row)|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_PRODUCT_ITEM_PRODUCT". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_PRODUCT_ITEM", column 'Product_ID'.
+N19f|N|PASS|Delete an invoice that has lines|547: The DELETE statement conflicted with the REFERENCE constraint "FK_INVOICE_SERVICE_ITEM_INVOICE". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE_SERVICE_ITEM", column 'Invoice_ID'.
+N20a|N|PASS|Duplicate service line (Invoice_ID, LineNo)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE_SERVICE_ITEM'. Cannot insert duplicate key in object 'dbo.INVOICE_SERVICE_ITEM'. The duplicate key value is (1, 1).
+N20b|N|PASS|Duplicate product line (Invoice_ID, LineNo)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE_PRODUCT_ITEM'. Cannot insert duplicate key in object 'dbo.INVOICE_PRODUCT_ITEM'. The duplicate key value is (1, 1).
+N21|N|PASS|Duplicate Invoice_ID (explicit key with IDENTITY_INSERT)|2627: Violation of PRIMARY KEY constraint 'PK_INVOICE'. Cannot insert duplicate key in object 'dbo.INVOICE'. The duplicate key value is (1).
+N22|N|PASS|PAID -> PENDING while keeping PaidAt|547: The UPDATE statement conflicted with the CHECK constraint "CK_INVOICE_PaidAtStatus". The conflict occurred in database "FitLife_P3_UC05", table "dbo.INVOICE".
+I01|I|INFO|PAID -> PENDING with PaidAt and PaymentMethod cleared (transition rule T2)|accepted by the schema, as documented: transition rules T1-T4 need the old value and are enforced by the UC05 routines (WO-P3-P3-01), not by CHECK constraints
+POST|P|PASS|All test rows rolled back (P3 and fixture tables empty)|remaining rows: 0
+T-SCH-01 SUMMARY: cases=54 PASS=53 FAIL=0 INFO=1
+T-SCH-01_RESULT: PASS
+STEP 4 PASS: T-SCH-01 on the fresh build - T-SCH-01 SUMMARY: cases=54 PASS=53 FAIL=0 INFO=1
+
+== 5. T-SCH-02 conformance (P1 regression, before the routine) (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+C1|PASS|Columns of all 9 tables: name, order, type, nullability, identity (35 columns)|35 expected = 35 actual; no differences
+C2|PASS|Constraint set: 9 PK (key columns), 8 FK, 13 CHECK, 4 DEFAULT, 0 UNIQUE; nothing extra or missing|expected 34 = actual 34
+C3|PASS|Foreign keys: exactly 8, all owned by P3 tables, NO ACTION on delete and update, enabled and trusted|count=8; on fixtures=0; all NO_ACTION, enabled, trusted
+C4|PASS|Classification: exactly 9 user tables; 5 fixtures marked TEST_ONLY_FIXTURE with 1 key column and only their PK; 4 P3 tables unmarked|BRANCH=TEST_ONLY_FIXTURE, EMPLOYEE=TEST_ONLY_FIXTURE, INVOICE=P3_OWNED (no fixture marker), INVOICE_PRODUCT_ITEM=P3_OWNED (no fixture marker), INVOICE_SERVICE_ITEM=P3_OWNED (no fixture marker), MEMBER=TEST_ONLY_FIXTURE, MEMBER_MONTHLY_SPENDING=P3_OWNED (no fixture marker), PRODUCT=TEST_ONLY_FIXTURE, SERVICE_PLAN=TEST_ONLY_FIXTURE
+C5|PASS|Inventory: no views, procedures, functions, triggers, sequences or synonyms; only the 9 clustered PK indexes; no partition function or scheme|other objects: none; clustered PK indexes: 9; non-PK indexes: 0; partition functions+schemes: 0
+C6|PASS|All 13 CHECK constraints enabled and trusted; compatibility level 160; P3_Disposable marker present|untrusted/disabled: none; compatibility_level=160; marker=WO-P3-P3-00 isolated UC05 development database; safe to drop and rebuild from scripts
+-- catalog listing: constraints (type, name, table, keys/columns/definition) --
+typ|name|tbl|detail
+---|----|---|------
+PK|PK_BRANCH|BRANCH|Branch_ID
+PK|PK_EMPLOYEE|EMPLOYEE|Employee_ID
+C|CK_INVOICE_Amounts|INVOICE|([GrossAmount]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[GrossAmount])
+C|CK_INVOICE_FinalAmount|INVOICE|([FinalAmount]=([GrossAmount]-[DiscountAmount]) AND [FinalAmount]>=(0))
+C|CK_INVOICE_MethodWhenPaid|INVOICE|([PaymentStatus]<>'PAID' OR [PaymentMethod] IS NOT NULL)
+C|CK_INVOICE_PaidAtAfterIssued|INVOICE|([PaidAt]>=[IssuedAt])
+C|CK_INVOICE_PaidAtStatus|INVOICE|([PaymentStatus]='PAID' AND [PaidAt] IS NOT NULL OR [PaymentStatus]<>'PAID' AND [PaidAt] IS NULL)
+C|CK_INVOICE_PaymentMethod|INVOICE|([PaymentMethod]='CARD' OR [PaymentMethod]='VNPAY' OR [PaymentMethod]='CASH')
+C|CK_INVOICE_PaymentStatus|INVOICE|([PaymentStatus]='CANCELLED' OR [PaymentStatus]='PAID' OR [PaymentStatus]='PENDING')
+D|DF_INVOICE_PaymentStatus|INVOICE|PaymentStatus = ('PENDING')
+F|FK_INVOICE_BRANCH|INVOICE|Branch_ID->BRANCH.Branch_ID
+F|FK_INVOICE_EMPLOYEE|INVOICE|Employee_ID->EMPLOYEE.Employee_ID
+F|FK_INVOICE_MEMBER|INVOICE|Member_ID->MEMBER.Member_ID
+PK|PK_INVOICE|INVOICE|Invoice_ID
+C|CK_INVOICE_PRODUCT_ITEM_Amounts|INVOICE_PRODUCT_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice]*[Quantity])
+C|CK_INVOICE_PRODUCT_ITEM_Quantity|INVOICE_PRODUCT_ITEM|([Quantity]>(0))
+F|FK_INVOICE_PRODUCT_ITEM_INVOICE|INVOICE_PRODUCT_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_PRODUCT_ITEM_PRODUCT|INVOICE_PRODUCT_ITEM|Product_ID->PRODUCT.Product_ID
+PK|PK_INVOICE_PRODUCT_ITEM|INVOICE_PRODUCT_ITEM|Invoice_ID,LineNo
+C|CK_INVOICE_SERVICE_ITEM_Amounts|INVOICE_SERVICE_ITEM|([UnitPrice]>=(0) AND [DiscountAmount]>=(0) AND [DiscountAmount]<=[UnitPrice])
+C|CK_INVOICE_SERVICE_ITEM_Validity|INVOICE_SERVICE_ITEM|([ValidUntil]>=[ValidFrom])
+F|FK_INVOICE_SERVICE_ITEM_INVOICE|INVOICE_SERVICE_ITEM|Invoice_ID->INVOICE.Invoice_ID
+F|FK_INVOICE_SERVICE_ITEM_SERVICE_PLAN|INVOICE_SERVICE_ITEM|Plan_ID->SERVICE_PLAN.Plan_ID
+PK|PK_INVOICE_SERVICE_ITEM|INVOICE_SERVICE_ITEM|Invoice_ID,LineNo
+PK|PK_MEMBER|MEMBER|Member_ID
+C|CK_MEMBER_MONTHLY_SPENDING_FirstDay|MEMBER_MONTHLY_SPENDING|(datepart(day,[SpendingMonth])=(1))
+C|CK_MEMBER_MONTHLY_SPENDING_NonNegative|MEMBER_MONTHLY_SPENDING|([TotalSpend]>=(0) AND [PointsEarned]>=(0))
+D|DF_MEMBER_MONTHLY_SPENDING_PointsEarned|MEMBER_MONTHLY_SPENDING|PointsEarned = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_TotalSpend|MEMBER_MONTHLY_SPENDING|TotalSpend = ((0))
+D|DF_MEMBER_MONTHLY_SPENDING_UpdatedAt|MEMBER_MONTHLY_SPENDING|UpdatedAt = (sysutcdatetime())
+F|FK_MEMBER_MONTHLY_SPENDING_MEMBER|MEMBER_MONTHLY_SPENDING|Member_ID->MEMBER.Member_ID
+PK|PK_MEMBER_MONTHLY_SPENDING|MEMBER_MONTHLY_SPENDING|Member_ID,SpendingMonth
+PK|PK_PRODUCT|PRODUCT|Product_ID
+PK|PK_SERVICE_PLAN|SERVICE_PLAN|Plan_ID
+T-SCH-02 SUMMARY: checks=6 FAIL=0
+T-SCH-02_RESULT: PASS
+STEP 5 PASS: T-SCH-02 on the fresh build - T-SCH-02 SUMMARY: checks=6 FAIL=0
+
+== 6. Apply db/procedures/usp_P3_CreateInvoice.sql (sqlcmd exit 0) ==
+usp_P3_CreateInvoice applied: types dbo.tt_P3_InvoiceServiceLine, dbo.tt_P3_InvoiceProductLine; procedure dbo.usp_P3_CreateInvoice
+STEP 6 PASS: Routine and line types applied
+
+== 7. T-SCH-03 catalog vs FitLife_P3_P1, inventory, write scope (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+K1|PASS|Table catalog (9 tables: columns, constraints and definitions, FKs, indexes, triggers, markers) identical to the accepted P1 database FitLife_P3_P1|catalog items: FitLife_P3_P1 108 = FitLife_P3_UC05 108; no difference
+K2|PASS|Inventory: 9 tables; plus exactly 1 procedure (usp_P3_CreateInvoice) and 2 table types; no view, function, trigger, sequence, synonym, other type, non-PK index, partition function or scheme|unexpected objects: none; procedures=1; table types=2 (expected names 2/2); other user types=0; triggers=0; non-PK indexes on tables=0; partition functions+schemes=0; user tables=9
+K3|PASS|Line types: columns as specified (all NOT NULL, money DECIMAL(18,2)), primary key on LineNo in each|service: 1:LineNo:smallint:5:0:0|2:Plan_ID:int:10:0:0|3:UnitPrice:decimal:18:2:0|4:DiscountAmount:decimal:18:2:0 || product: 1:LineNo:smallint:5:0:0|2:Product_ID:int:10:0:0|3:Quantity:int:10:0:0|4:UnitPrice:decimal:18:2:0|5:DiscountAmount:decimal:18:2:0 || type primary keys: 2
+K4|PASS|Write scope: modifies only the three invoice tables; no reference to MEMBER_MONTHLY_SPENDING, inventory, tier or any other table; shared tables read by key only; no cross-database reference|referenced: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,PRODUCT,SERVICE_PLAN,tt_P3_InvoiceProductLine,tt_P3_InvoiceServiceLine || modified: INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM || shared columns read: BRANCH.Branch_ID,EMPLOYEE.Employee_ID,MEMBER.Member_ID,PRODUCT.Product_ID,SERVICE_PLAN.Plan_ID || cross-database/remote references: 0 || entitlement/PT columns in the insert column list: PTSessionsRemaining,ValidFrom,ValidUntil (inserted as literal NULL only; values checked by T-F05-24 and V-UC05 I7)
+K5|PASS|Routine body has no EXEC, sp_executesql, OPENQUERY, OPENROWSET or OPENDATASOURCE and is not encrypted, so the dependency analysis (K4) covers every statement|definition length=8234; dynamic/nested call tokens found=0; SHA-256 of definition=3513176C846634380A87A740B3F58A2F29E70930B90B9A94CB0893F97A123013
+K6|PASS|No extra database user or role and no explicit object or type permission (the least-privilege role is TEST_ONLY, created and dropped by T-F05-26)|extra principals: none; explicit object/type permissions: 0
+-- routine dependencies (sys.dm_sql_referenced_entities) --
+cls|ent|minor|is_selected|is_updated
+---|---|-----|-----------|----------
+OBJECT_OR_COLUMN|BRANCH|-|1|0
+OBJECT_OR_COLUMN|BRANCH|Branch_ID|1|0
+OBJECT_OR_COLUMN|EMPLOYEE|-|1|0
+OBJECT_OR_COLUMN|EMPLOYEE|Employee_ID|1|0
+OBJECT_OR_COLUMN|INVOICE|-|1|1
+OBJECT_OR_COLUMN|INVOICE|Branch_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE|Employee_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|FinalAmount|0|1
+OBJECT_OR_COLUMN|INVOICE|GrossAmount|1|1
+OBJECT_OR_COLUMN|INVOICE|Invoice_ID|1|0
+OBJECT_OR_COLUMN|INVOICE|IssuedAt|0|1
+OBJECT_OR_COLUMN|INVOICE|Member_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|PaidAt|0|1
+OBJECT_OR_COLUMN|INVOICE|PaymentMethod|0|1
+OBJECT_OR_COLUMN|INVOICE|PaymentStatus|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|-|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Invoice_ID|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|LineNo|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Product_ID|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Quantity|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|UnitPrice|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|-|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|Invoice_ID|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|LineNo|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|Plan_ID|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|PTSessionsRemaining|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|UnitPrice|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|ValidFrom|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|ValidUntil|0|1
+OBJECT_OR_COLUMN|MEMBER|-|1|0
+OBJECT_OR_COLUMN|MEMBER|Member_ID|1|0
+OBJECT_OR_COLUMN|PRODUCT|-|1|0
+OBJECT_OR_COLUMN|PRODUCT|Product_ID|1|0
+OBJECT_OR_COLUMN|SERVICE_PLAN|-|1|0
+OBJECT_OR_COLUMN|SERVICE_PLAN|Plan_ID|1|0
+TYPE|tt_P3_InvoiceProductLine|-|0|0
+TYPE|tt_P3_InvoiceServiceLine|-|0|0
+T-SCH-03 SUMMARY: checks=6 FAIL=0
+T-SCH-03_RESULT: PASS
+STEP 7 PASS: T-SCH-03 after deployment - T-SCH-03 SUMMARY: checks=6 FAIL=0
+
+== 8. F001U TEST_ONLY key rows (sqlcmd exit 0) ==
+branch_keys|employee_keys|member_keys|plan_keys|product_keys
+-----------|-------------|-----------|---------|------------
+3|6|40|5|10
+F001U (TEST_ONLY) applied: key rows only
+STEP 8 PASS: TEST_ONLY key rows loaded
+
+== 9. T-F05 functional tests: full output in T-F05-CREATE__20261109-1446.txt ==
+T-F05 SUMMARY: cases=43 PASS=43 FAIL=0
+T-F05-01|9|9
+T-F05-03|16|16
+T-F05-04|7|7
+T-F05-18|1|1
+T-F05-19|4|4
+T-F05-23|1|1
+T-F05-24|1|1
+T-F05-25|3|3
+T-F05-26|1|1
+T-F05_RESULT: PASS
+STEP 9 PASS: T-F05 functional tests - T-F05 SUMMARY: cases=43 PASS=43 FAIL=0
+
+== 10. V-UC05 integrity after T-F05 (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+I1|PASS|V-TOT: header Gross/Discount = sum of lines; no invoice without a line (D-023 X1, BR12)|V-TOT rows: 0
+I2|PASS|No orphan invoice line|orphan service lines: 0; orphan product lines: 0
+I3|PASS|Initial payment state: every invoice PENDING with PaidAt NULL (D-005; no settlement routine in this database)|invoices not PENDING or with PaidAt: 0
+I4|PASS|PaymentMethod NULL or exactly CASH, VNPAY, CARD|other values: 0
+I5|PASS|Header amounts consistent (Final = Gross - Discount >= 0, Discount <= Gross); IssuedAt (UTC) not in the future|violations: 0
+I6|PASS|No loyalty or spending effect: MEMBER_MONTHLY_SPENDING has no row|rows: 0
+I7|PASS|No entitlement activation or PT effect: ValidFrom, ValidUntil, PTSessionsRemaining NULL on every service line (DEP-06)|service lines with a value: 0
+I8|PASS|TEST_ONLY fixtures unchanged (exact F001U key rows) and key-only (one column each)|key rows as loaded: yes; fixture columns: 5
+I9|PASS|No leftover TEST_ONLY trigger, principal or permission; object inventory as deployed (1 procedure, 2 types, no extra index)|triggers: 0; extra principals/permissions: 0; inventory deviations: 0
+I10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|service_lines|product_lines|spending_rows
+--------|-------------|-------------|-------------
+13|7|15|0
+V-UC05 SUMMARY: checks=10 FAIL=0
+V-UC05_RESULT: PASS
+STEP 10 PASS: V-UC05 after T-F05
+
+== 11A. T-CONC-06 run A (exit 0): full output in T-CONC-06__20261109-1446_A.txt ==
+Gate released (UTC): 2026-11-09 14:46:57.362; all sessions finished (UTC): 2026-11-09 14:46:58.455 (context only, not a measurement)
+  C1 PASS  Every call succeeded: return 0, Outcome CREATED, an invoice id | calls recorded 200 of 200; failed 0 ; worker errors 0 
+  C2 PASS  Distinct invoice ids; exactly N x K new invoices; no new invoice that no session received | ids returned 200, distinct 200; new invoices in the table 200 (ids 37-236); new invoices not returned to any session 0
+  C3 PASS  Each new invoice holds exactly its own request: header keys, totals, PENDING, PaidAt NULL, lines (no lost or misattached line), entitlement/PT columns NULL | invoices compared 200; mismatches 0; mixed invoices 50; lines expected and found 460
+  C4 PASS  V-TOT = 0 and no orphan line in the whole database | V-TOT rows 0; orphan lines 0; invoices 13 -> 213
+  C5 PASS  Sessions overlapped (the last session started before the first session finished) | latest first call (UTC) 2026-11-09 14:46:57.431; earliest last call end (UTC) 2026-11-09 14:46:58.010
+T-CONC-06 SUMMARY: run A; checks 5; FAIL 0
+T-CONC-06_RESULT: PASS
+STEP 11A PASS: T-CONC-06 run A (10 sessions x 20 parallel creations)
+
+== 11A. V-UC05 integrity after T-CONC-06 run A (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+I1|PASS|V-TOT: header Gross/Discount = sum of lines; no invoice without a line (D-023 X1, BR12)|V-TOT rows: 0
+I2|PASS|No orphan invoice line|orphan service lines: 0; orphan product lines: 0
+I3|PASS|Initial payment state: every invoice PENDING with PaidAt NULL (D-005; no settlement routine in this database)|invoices not PENDING or with PaidAt: 0
+I4|PASS|PaymentMethod NULL or exactly CASH, VNPAY, CARD|other values: 0
+I5|PASS|Header amounts consistent (Final = Gross - Discount >= 0, Discount <= Gross); IssuedAt (UTC) not in the future|violations: 0
+I6|PASS|No loyalty or spending effect: MEMBER_MONTHLY_SPENDING has no row|rows: 0
+I7|PASS|No entitlement activation or PT effect: ValidFrom, ValidUntil, PTSessionsRemaining NULL on every service line (DEP-06)|service lines with a value: 0
+I8|PASS|TEST_ONLY fixtures unchanged (exact F001U key rows) and key-only (one column each)|key rows as loaded: yes; fixture columns: 5
+I9|PASS|No leftover TEST_ONLY trigger, principal or permission; object inventory as deployed (1 procedure, 2 types, no extra index)|triggers: 0; extra principals/permissions: 0; inventory deviations: 0
+I10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|service_lines|product_lines|spending_rows
+--------|-------------|-------------|-------------
+213|57|425|0
+V-UC05 SUMMARY: checks=10 FAIL=0
+V-UC05_RESULT: PASS
+STEP 11A-V PASS: V-UC05 after T-CONC-06 run A
+
+== 11B. T-CONC-06 run B (exit 0): full output in T-CONC-06__20261109-1446_B.txt ==
+Gate released (UTC): 2026-11-09 14:47:01.449; all sessions finished (UTC): 2026-11-09 14:47:03.055 (context only, not a measurement)
+  C1 PASS  Every call succeeded: return 0, Outcome CREATED, an invoice id | calls recorded 200 of 200; failed 0 ; worker errors 0 
+  C2 PASS  Distinct invoice ids; exactly N x K new invoices; no new invoice that no session received | ids returned 200, distinct 200; new invoices in the table 200 (ids 237-436); new invoices not returned to any session 0
+  C3 PASS  Each new invoice holds exactly its own request: header keys, totals, PENDING, PaidAt NULL, lines (no lost or misattached line), entitlement/PT columns NULL | invoices compared 200; mismatches 0; mixed invoices 50; lines expected and found 460
+  C4 PASS  V-TOT = 0 and no orphan line in the whole database | V-TOT rows 0; orphan lines 0; invoices 213 -> 413
+  C5 PASS  Sessions overlapped (the last session started before the first session finished) | latest first call (UTC) 2026-11-09 14:47:01.565; earliest last call end (UTC) 2026-11-09 14:47:02.439
+T-CONC-06 SUMMARY: run B; checks 5; FAIL 0
+T-CONC-06_RESULT: PASS
+STEP 11B PASS: T-CONC-06 run B (10 sessions x 20 parallel creations)
+
+== 11B. V-UC05 integrity after T-CONC-06 run B (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+I1|PASS|V-TOT: header Gross/Discount = sum of lines; no invoice without a line (D-023 X1, BR12)|V-TOT rows: 0
+I2|PASS|No orphan invoice line|orphan service lines: 0; orphan product lines: 0
+I3|PASS|Initial payment state: every invoice PENDING with PaidAt NULL (D-005; no settlement routine in this database)|invoices not PENDING or with PaidAt: 0
+I4|PASS|PaymentMethod NULL or exactly CASH, VNPAY, CARD|other values: 0
+I5|PASS|Header amounts consistent (Final = Gross - Discount >= 0, Discount <= Gross); IssuedAt (UTC) not in the future|violations: 0
+I6|PASS|No loyalty or spending effect: MEMBER_MONTHLY_SPENDING has no row|rows: 0
+I7|PASS|No entitlement activation or PT effect: ValidFrom, ValidUntil, PTSessionsRemaining NULL on every service line (DEP-06)|service lines with a value: 0
+I8|PASS|TEST_ONLY fixtures unchanged (exact F001U key rows) and key-only (one column each)|key rows as loaded: yes; fixture columns: 5
+I9|PASS|No leftover TEST_ONLY trigger, principal or permission; object inventory as deployed (1 procedure, 2 types, no extra index)|triggers: 0; extra principals/permissions: 0; inventory deviations: 0
+I10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|service_lines|product_lines|spending_rows
+--------|-------------|-------------|-------------
+413|107|835|0
+V-UC05 SUMMARY: checks=10 FAIL=0
+V-UC05_RESULT: PASS
+STEP 11B-V PASS: V-UC05 after T-CONC-06 run B
+
+== 11C. T-CONC-06 run C (exit 0): full output in T-CONC-06__20261109-1446_C.txt ==
+Gate released (UTC): 2026-11-09 14:47:06.704; all sessions finished (UTC): 2026-11-09 14:47:08.177 (context only, not a measurement)
+  C1 PASS  Every call succeeded: return 0, Outcome CREATED, an invoice id | calls recorded 200 of 200; failed 0 ; worker errors 0 
+  C2 PASS  Distinct invoice ids; exactly N x K new invoices; no new invoice that no session received | ids returned 200, distinct 200; new invoices in the table 200 (ids 437-636); new invoices not returned to any session 0
+  C3 PASS  Each new invoice holds exactly its own request: header keys, totals, PENDING, PaidAt NULL, lines (no lost or misattached line), entitlement/PT columns NULL | invoices compared 200; mismatches 0; mixed invoices 50; lines expected and found 460
+  C4 PASS  V-TOT = 0 and no orphan line in the whole database | V-TOT rows 0; orphan lines 0; invoices 413 -> 613
+  C5 PASS  Sessions overlapped (the last session started before the first session finished) | latest first call (UTC) 2026-11-09 14:47:06.858; earliest last call end (UTC) 2026-11-09 14:47:07.555
+T-CONC-06 SUMMARY: run C; checks 5; FAIL 0
+T-CONC-06_RESULT: PASS
+STEP 11C PASS: T-CONC-06 run C (10 sessions x 20 parallel creations)
+
+== 11C. V-UC05 integrity after T-CONC-06 run C (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+I1|PASS|V-TOT: header Gross/Discount = sum of lines; no invoice without a line (D-023 X1, BR12)|V-TOT rows: 0
+I2|PASS|No orphan invoice line|orphan service lines: 0; orphan product lines: 0
+I3|PASS|Initial payment state: every invoice PENDING with PaidAt NULL (D-005; no settlement routine in this database)|invoices not PENDING or with PaidAt: 0
+I4|PASS|PaymentMethod NULL or exactly CASH, VNPAY, CARD|other values: 0
+I5|PASS|Header amounts consistent (Final = Gross - Discount >= 0, Discount <= Gross); IssuedAt (UTC) not in the future|violations: 0
+I6|PASS|No loyalty or spending effect: MEMBER_MONTHLY_SPENDING has no row|rows: 0
+I7|PASS|No entitlement activation or PT effect: ValidFrom, ValidUntil, PTSessionsRemaining NULL on every service line (DEP-06)|service lines with a value: 0
+I8|PASS|TEST_ONLY fixtures unchanged (exact F001U key rows) and key-only (one column each)|key rows as loaded: yes; fixture columns: 5
+I9|PASS|No leftover TEST_ONLY trigger, principal or permission; object inventory as deployed (1 procedure, 2 types, no extra index)|triggers: 0; extra principals/permissions: 0; inventory deviations: 0
+I10|PASS|All CHECK and FOREIGN KEY constraints enabled and trusted|disabled or untrusted: 0
+invoices|service_lines|product_lines|spending_rows
+--------|-------------|-------------|-------------
+613|157|1245|0
+V-UC05 SUMMARY: checks=10 FAIL=0
+V-UC05_RESULT: PASS
+STEP 11C-V PASS: V-UC05 after T-CONC-06 run C
+
+== 12. T-SCH-03 again after all tests (sqlcmd exit 0) ==
+check_id|result|descr|detail
+--------|------|-----|------
+K1|PASS|Table catalog (9 tables: columns, constraints and definitions, FKs, indexes, triggers, markers) identical to the accepted P1 database FitLife_P3_P1|catalog items: FitLife_P3_P1 108 = FitLife_P3_UC05 108; no difference
+K2|PASS|Inventory: 9 tables; plus exactly 1 procedure (usp_P3_CreateInvoice) and 2 table types; no view, function, trigger, sequence, synonym, other type, non-PK index, partition function or scheme|unexpected objects: none; procedures=1; table types=2 (expected names 2/2); other user types=0; triggers=0; non-PK indexes on tables=0; partition functions+schemes=0; user tables=9
+K3|PASS|Line types: columns as specified (all NOT NULL, money DECIMAL(18,2)), primary key on LineNo in each|service: 1:LineNo:smallint:5:0:0|2:Plan_ID:int:10:0:0|3:UnitPrice:decimal:18:2:0|4:DiscountAmount:decimal:18:2:0 || product: 1:LineNo:smallint:5:0:0|2:Product_ID:int:10:0:0|3:Quantity:int:10:0:0|4:UnitPrice:decimal:18:2:0|5:DiscountAmount:decimal:18:2:0 || type primary keys: 2
+K4|PASS|Write scope: modifies only the three invoice tables; no reference to MEMBER_MONTHLY_SPENDING, inventory, tier or any other table; shared tables read by key only; no cross-database reference|referenced: BRANCH,EMPLOYEE,INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM,MEMBER,PRODUCT,SERVICE_PLAN,tt_P3_InvoiceProductLine,tt_P3_InvoiceServiceLine || modified: INVOICE,INVOICE_PRODUCT_ITEM,INVOICE_SERVICE_ITEM || shared columns read: BRANCH.Branch_ID,EMPLOYEE.Employee_ID,MEMBER.Member_ID,PRODUCT.Product_ID,SERVICE_PLAN.Plan_ID || cross-database/remote references: 0 || entitlement/PT columns in the insert column list: PTSessionsRemaining,ValidFrom,ValidUntil (inserted as literal NULL only; values checked by T-F05-24 and V-UC05 I7)
+K5|PASS|Routine body has no EXEC, sp_executesql, OPENQUERY, OPENROWSET or OPENDATASOURCE and is not encrypted, so the dependency analysis (K4) covers every statement|definition length=8234; dynamic/nested call tokens found=0; SHA-256 of definition=3513176C846634380A87A740B3F58A2F29E70930B90B9A94CB0893F97A123013
+K6|PASS|No extra database user or role and no explicit object or type permission (the least-privilege role is TEST_ONLY, created and dropped by T-F05-26)|extra principals: none; explicit object/type permissions: 0
+-- routine dependencies (sys.dm_sql_referenced_entities) --
+cls|ent|minor|is_selected|is_updated
+---|---|-----|-----------|----------
+OBJECT_OR_COLUMN|BRANCH|-|1|0
+OBJECT_OR_COLUMN|BRANCH|Branch_ID|1|0
+OBJECT_OR_COLUMN|EMPLOYEE|-|1|0
+OBJECT_OR_COLUMN|EMPLOYEE|Employee_ID|1|0
+OBJECT_OR_COLUMN|INVOICE|-|1|1
+OBJECT_OR_COLUMN|INVOICE|Branch_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE|Employee_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|FinalAmount|0|1
+OBJECT_OR_COLUMN|INVOICE|GrossAmount|1|1
+OBJECT_OR_COLUMN|INVOICE|Invoice_ID|1|0
+OBJECT_OR_COLUMN|INVOICE|IssuedAt|0|1
+OBJECT_OR_COLUMN|INVOICE|Member_ID|0|1
+OBJECT_OR_COLUMN|INVOICE|PaidAt|0|1
+OBJECT_OR_COLUMN|INVOICE|PaymentMethod|0|1
+OBJECT_OR_COLUMN|INVOICE|PaymentStatus|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|-|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Invoice_ID|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|LineNo|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Product_ID|0|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|Quantity|1|1
+OBJECT_OR_COLUMN|INVOICE_PRODUCT_ITEM|UnitPrice|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|-|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|DiscountAmount|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|Invoice_ID|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|LineNo|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|Plan_ID|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|PTSessionsRemaining|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|UnitPrice|1|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|ValidFrom|0|1
+OBJECT_OR_COLUMN|INVOICE_SERVICE_ITEM|ValidUntil|0|1
+OBJECT_OR_COLUMN|MEMBER|-|1|0
+OBJECT_OR_COLUMN|MEMBER|Member_ID|1|0
+OBJECT_OR_COLUMN|PRODUCT|-|1|0
+OBJECT_OR_COLUMN|PRODUCT|Product_ID|1|0
+OBJECT_OR_COLUMN|SERVICE_PLAN|-|1|0
+OBJECT_OR_COLUMN|SERVICE_PLAN|Plan_ID|1|0
+TYPE|tt_P3_InvoiceProductLine|-|0|0
+TYPE|tt_P3_InvoiceServiceLine|-|0|0
+T-SCH-03 SUMMARY: checks=6 FAIL=0
+T-SCH-03_RESULT: PASS
+STEP 12 PASS: T-SCH-03 after all tests (no leftover object, principal or permission; catalog still = P1)
+
+== 13. Instance fingerprint after (sqlcmd exit 0) ==
+== F1. Databases other than tempdb and FitLife_P3_UC05 ==
+name|database_id|create_date|compatibility_level|state_desc|recovery_model_desc|owner_is_current_login|file_count
+----|-----------|-----------|-------------------|----------|-------------------|----------------------|----------
+master|1|2003-04-08 09:13:36.390|170|ONLINE|SIMPLE|0|2
+model|3|2003-04-08 09:13:36.390|170|ONLINE|FULL|0|2
+msdb|4|2025-10-21 12:53:13.233|170|ONLINE|SIMPLE|0|2
+QLDT1|5|2026-08-04 09:20:30.370|170|ONLINE|FULL|1|2
+NHAHANG|6|2026-07-20 23:08:22.330|170|ONLINE|FULL|1|2
+FOOD_DELIVERY_PRACTICE|7|2026-08-10 10:09:11.700|170|ONLINE|FULL|1|2
+ONTAP_SQL|8|2026-08-16 11:23:24.540|170|ONLINE|FULL|1|2
+FitLife_P3_P1|9|2026-11-07 18:54:16.693|160|ONLINE|SIMPLE|1|2
+FitLife_P3_P2|10|2026-11-08 18:55:36.873|160|ONLINE|SIMPLE|1|2
+== F2. FitLife_P3_P1 content fingerprint (must stay unchanged) ==
+db|user_tables|user_objects|total_rows|last_object_change|disposable_marker
+--|-----------|------------|----------|------------------|-----------------
+FitLife_P3_P1|9|43|0|2026-11-07 18:54:16.967|WO-P3-P1-01 isolated test database; safe to drop and rebuild from scripts
+STEP 13 PASS: Instance fingerprint after = before (no other database changed)
+
+== 14. FitLife_P3_P2 dataset checksum after (read-only) (sqlcmd exit 0) ==
+tbl|row_count|sha256
+---|---------|------
+INVOICE|324000|B321C5C8E689358C865EDA03B5D98BFF2DA8F92248CB5CEEDEC82E5E853A4FB7
+INVOICE_SERVICE_ITEM|65177|F087DEEB3C1FAA14D80ACC396B133F1DDAE5A63B5C6E20E4B09049FC8F6C8281
+INVOICE_PRODUCT_ITEM|712789|EC62F651B28F857F648A5C394ACFE48B1D32921396E36F83653817A4EEA4CBF1
+MEMBER_MONTHLY_SPENDING|169040|D25C9C8EFC99AE2C1782CC4A49800862E9BF117E51E34E62DCDBA4CF938E7BFC
+MEMBER (TEST_ONLY keys)|30000|B876C95BA3DFAF2B11377790815E242164DE5963E015BD5BBB7793D5DFC6E062
+BRANCH (TEST_ONLY keys)|12|7909937ABE135B51143FAF006BA1713D4C139E3337325AD10F9B81807CD66786
+EMPLOYEE (TEST_ONLY keys)|120|1C4732EAF0B754EF54C34467457CBBE4D233B277B73E72505AAEF7DBB4C5BD08
+SERVICE_PLAN (TEST_ONLY keys)|30|A8DA6DC1099B8B38805D26F04C1E8A49B9D3870506F9586535105A3C3BE64FDB
+PRODUCT (TEST_ONLY keys)|200|2066223C021D5FE0C60E02FCC68BFE6F618DE108F9E5AFC21200D86B620C305B
+item|sha256
+----|------
+DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+STEP 14 PASS: FitLife_P3_P2 checksum after = before = DS-L run C reference - DATASET_CHECKSUM|26ABB2776BD71C1347D2478D880B926FF35D8B6E7BA8F583D76E56D4DD82CA1F
+
+== Final content of FitLife_P3_UC05 (disposable; kept for inspection) (sqlcmd exit 0) ==
+invoices|service_lines|product_lines|spending_rows
+--------|-------------|-------------|-------------
+613|157|1245|0
+
+Summary:
+  1      PASS  Instance fingerprint captured before
+  2      PASS  FitLife_P3_P2 checksum before = DS-L run C reference
+  3      PASS  Fresh isolated database built (F001 TEST_ONLY key-only fixtures, V001, V002)
+  4      PASS  T-SCH-01 on the fresh build
+  5      PASS  T-SCH-02 on the fresh build
+  6      PASS  Routine and line types applied
+  7      PASS  T-SCH-03 after deployment
+  8      PASS  TEST_ONLY key rows loaded
+  9      PASS  T-F05 functional tests
+  10     PASS  V-UC05 after T-F05
+  11A    PASS  T-CONC-06 run A (10 sessions x 20 parallel creations)
+  11A-V  PASS  V-UC05 after T-CONC-06 run A
+  11B    PASS  T-CONC-06 run B (10 sessions x 20 parallel creations)
+  11B-V  PASS  V-UC05 after T-CONC-06 run B
+  11C    PASS  T-CONC-06 run C (10 sessions x 20 parallel creations)
+  11C-V  PASS  V-UC05 after T-CONC-06 run C
+  12     PASS  T-SCH-03 after all tests (no leftover object, principal or permission; catalog still = P1)
+  13     PASS  Instance fingerprint after = before (no other database changed)
+  14     PASS  FitLife_P3_P2 checksum after = before = DS-L run C reference
+UC05-RUN SUMMARY: steps 19; FAIL 0; finished (UTC) 2026-11-09 14:47:22
+UC05-RUN_RESULT: PASS
